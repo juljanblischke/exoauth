@@ -128,7 +128,8 @@ backend/
 ├── src/
 │   ├── ExoAuth.Domain/
 │   │   ├── ExoAuth.Domain.csproj
-│   │   ├── Entities/                    [LEER]
+│   │   ├── Entities/
+│   │   │   └── BaseEntity.cs            ✅
 │   │   ├── ValueObjects/                [LEER]
 │   │   ├── Enums/                       [LEER]
 │   │   ├── Exceptions/                  [LEER]
@@ -136,11 +137,22 @@ backend/
 │   │
 │   ├── ExoAuth.Application/
 │   │   ├── ExoAuth.Application.csproj
+│   │   ├── DependencyInjection.cs       ✅
 │   │   ├── Common/
-│   │   │   ├── Interfaces/              [LEER]
-│   │   │   ├── Behaviors/               [LEER]
+│   │   │   ├── Interfaces/
+│   │   │   │   ├── ICacheService.cs     ✅
+│   │   │   │   ├── IMessageBus.cs       ✅
+│   │   │   │   ├── ICurrentUserService.cs ✅
+│   │   │   │   └── IDateTimeProvider.cs ✅
+│   │   │   ├── Behaviors/
+│   │   │   │   └── ValidationBehavior.cs ✅
 │   │   │   ├── Mappings/                [LEER]
-│   │   │   └── Models/                  [LEER]
+│   │   │   └── Models/
+│   │   │       ├── ApiResponse.cs       ✅
+│   │   │       ├── ApiError.cs          ✅
+│   │   │       ├── ErrorCodes.cs        ✅
+│   │   │       ├── PaginationMeta.cs    ✅
+│   │   │       └── CursorPagedList.cs   ✅
 │   │   └── Features/
 │   │       ├── Auth/
 │   │       │   ├── Commands/
@@ -161,24 +173,42 @@ backend/
 │   │
 │   ├── ExoAuth.Infrastructure/
 │   │   ├── ExoAuth.Infrastructure.csproj
+│   │   ├── DependencyInjection.cs       ✅
 │   │   ├── Persistence/
+│   │   │   ├── AppDbContext.cs          ✅
 │   │   │   ├── Configurations/          [LEER]
 │   │   │   ├── Migrations/              [LEER]
 │   │   │   └── Repositories/            [LEER]
-│   │   ├── Caching/                     [LEER]
-│   │   ├── Messaging/                   [LEER]
+│   │   ├── Caching/
+│   │   │   ├── RedisCacheService.cs     ✅
+│   │   │   └── RedisConnectionFactory.cs ✅
+│   │   ├── Messaging/
+│   │   │   ├── RabbitMqMessageBus.cs    ✅
+│   │   │   ├── RabbitMqConnectionFactory.cs ✅
+│   │   │   └── RabbitMqBackgroundService.cs ✅
+│   │   ├── Services/
+│   │   │   └── DateTimeProvider.cs      ✅
 │   │   └── Sessions/                    [LEER]
 │   │
 │   └── ExoAuth.Api/
 │       ├── ExoAuth.Api.csproj
-│       ├── Program.cs                   [DEFAULT - muss konfiguriert werden]
-│       ├── appsettings.json
-│       ├── appsettings.Development.json
+│       ├── Program.cs                   ✅ (konfiguriert)
+│       ├── appsettings.json             ✅ (Jwt, RateLimiting, Cors, Serilog)
+│       ├── appsettings.Development.json ✅
 │       ├── appsettings.Production.json
-│       ├── Controllers/                 [LEER]
-│       ├── Middleware/                  [LEER]
-│       ├── Filters/                     [LEER]
-│       └── Extensions/                  [LEER]
+│       ├── Controllers/
+│       │   ├── ApiControllerBase.cs     ✅
+│       │   └── HealthController.cs      ✅
+│       ├── Middleware/
+│       │   ├── ExceptionMiddleware.cs   ✅
+│       │   └── RequestLoggingMiddleware.cs ✅
+│       ├── Filters/
+│       │   ├── RateLimitAttribute.cs    ✅
+│       │   └── RateLimitFilter.cs       ✅
+│       ├── Extensions/
+│       │   └── ServiceCollectionExtensions.cs ✅
+│       └── Services/
+│           └── CurrentUserService.cs    ✅
 │
 └── tests/
     ├── ExoAuth.UnitTests/
@@ -199,16 +229,25 @@ backend/
 |---------|---------|---------|
 | ExoAuth.Application | Mediator.Abstractions | 3.0.1 |
 | ExoAuth.Application | FluentValidation | 12.1.1 |
+| ExoAuth.Application | FluentValidation.DependencyInjectionExtensions | 12.1.1 |
 | ExoAuth.Infrastructure | Microsoft.EntityFrameworkCore | 8.0.11 |
 | ExoAuth.Infrastructure | Npgsql.EntityFrameworkCore.PostgreSQL | 8.0.11 |
 | ExoAuth.Infrastructure | Microsoft.EntityFrameworkCore.Design | 8.0.11 |
 | ExoAuth.Infrastructure | StackExchange.Redis | 2.10.1 |
 | ExoAuth.Infrastructure | RabbitMQ.Client | 7.2.0 |
+| ExoAuth.Infrastructure | Konscious.Security.Cryptography.Argon2 | 1.3.1 |
+| ExoAuth.Infrastructure | Microsoft.Extensions.Hosting.Abstractions | 8.0.1 |
 | ExoAuth.Api | Mediator.SourceGenerator | 3.0.1 |
 | ExoAuth.Api | Mediator.Abstractions | 3.0.1 |
 | ExoAuth.Api | Swashbuckle.AspNetCore | default |
+| ExoAuth.Api | Serilog.AspNetCore | 8.0.3 |
+| ExoAuth.Api | Serilog.Sinks.Console | 6.0.0 |
+| ExoAuth.Api | AspNetCore.HealthChecks.NpgSql | 8.0.2 |
+| ExoAuth.Api | AspNetCore.HealthChecks.Redis | 8.0.1 |
 | ExoAuth.UnitTests | xunit | default |
 | ExoAuth.IntegrationTests | xunit | default |
+
+**Hinweis:** `AspNetCore.HealthChecks.Rabbitmq` wurde entfernt - inkompatibel mit `RabbitMQ.Client 7.x`
 
 ### Projekt Referenzen (NICHT NOCHMAL HINZUFÜGEN)
 
@@ -332,20 +371,6 @@ public class {Name}Configuration : IEntityTypeConfiguration<{Name}>
 
 ---
 
-## Noch zu erstellen (Foundation)
-
-Diese Files müssen ZUERST erstellt werden bevor Features gebaut werden:
-
-| Priorität | Datei | Status |
-|-----------|-------|--------|
-| 1 | `src/ExoAuth.Domain/Entities/BaseEntity.cs` | ❌ |
-| 2 | `src/ExoAuth.Infrastructure/Persistence/AppDbContext.cs` | ❌ |
-| 3 | `src/ExoAuth.Infrastructure/DependencyInjection.cs` | ❌ |
-| 4 | `src/ExoAuth.Application/DependencyInjection.cs` | ❌ |
-| 5 | `src/ExoAuth.Api/Program.cs` konfigurieren | ❌ |
-
----
-
 ## Regeln für Task Erstellung
 
 1. **IMMER** zuerst diese Datei lesen
@@ -361,5 +386,11 @@ Diese Files müssen ZUERST erstellt werden bevor Features gebaut werden:
 ## Letzte Änderung
 
 - **Datum:** 2024-12-24
-- **Status:** Initial Setup - Alle Ordner leer, keine Logik implementiert
-- **Nächster Task:** Foundation Files erstellen
+- **Status:** Foundation Infrastructure komplett (Task 001)
+- **Erledigte Tasks:**
+  - Task 001: Foundation & Infrastructure Setup ✅
+- **Nächster Task:** Features implementieren (Auth, Users, Roles, Permissions)
+
+### Bekannte Einschränkungen
+- RabbitMQ Health Check nicht in `/health` enthalten (`RabbitMQ.Client 7.x` Inkompatibilität mit Health Check Package)
+- RabbitMQ Verbindung wird via `RabbitMqBackgroundService` beim Start geprüft

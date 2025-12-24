@@ -18,7 +18,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS development
 WORKDIR /app
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
-ENTRYPOINT ["dotnet", "watch", "run", "--project", "src/ExoAuth.Api"]
+ENTRYPOINT ["dotnet", "watch", "run", "--project", "src/ExoAuth.Api", "--no-launch-profile"]
 
 # Production stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS production

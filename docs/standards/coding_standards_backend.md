@@ -276,6 +276,249 @@ public async ValueTask<UserDto> Handle(GetUserByIdQuery query, CancellationToken
 
 ---
 
+## API Response Standard
+
+Alle API Endpoints verwenden `ApiResponse<T>` als Wrapper:
+
+```csharp
+// Erfolgreiche Response
+return ApiResponse<UserDto>.Success(userDto);
+return ApiResponse<UserDto>.Success(userDto, "User created successfully");
+
+// Mit Pagination
+return ApiResponse<List<UserDto>>.Success(users, pagination);
+
+// Error Response
+return ApiResponse<object>.Error(
+    statusCode: 400,
+    message: "Validation failed",
+    errors: new List<ApiError> { new("email", ErrorCodes.VALIDATION_REQUIRED, "Email is required") }
+);
+```
+
+### Response Schema
+
+```json
+{
+  "status": "success | error",
+  "statusCode": 200,
+  "message": "OK",
+  "data": { ... },
+  "meta": {
+    "timestamp": "2024-12-24T10:00:00Z",
+    "requestId": "uuid",
+    "pagination": {
+      "cursor": "base64...",
+      "nextCursor": "base64...",
+      "hasMore": true,
+      "pageSize": 20
+    }
+  },
+  "errors": [{ "field": "email", "code": "VALIDATION_REQUIRED", "message": "..." }]
+}
+```
+
+---
+
+## Error Codes
+
+Verwende die vordefinierten Error Codes aus `ErrorCodes.cs`:
+
+| Code | HTTP Status | Verwendung |
+|------|-------------|------------|
+| `VALIDATION_REQUIRED` | 400 | Pflichtfeld fehlt |
+| `VALIDATION_INVALID_FORMAT` | 400 | Ungültiges Format (Email, etc.) |
+| `VALIDATION_MIN_LENGTH` | 400 | Mindestlänge nicht erreicht |
+| `VALIDATION_MAX_LENGTH` | 400 | Maximallänge überschritten |
+| `AUTH_UNAUTHORIZED` | 401 | Nicht authentifiziert |
+| `AUTH_FORBIDDEN` | 403 | Keine Berechtigung |
+| `AUTH_TOKEN_EXPIRED` | 401 | Token abgelaufen |
+| `AUTH_TOKEN_INVALID` | 401 | Token ungültig |
+| `RESOURCE_NOT_FOUND` | 404 | Resource nicht gefunden |
+| `RATE_LIMIT_EXCEEDED` | 429 | Rate Limit überschritten |
+| `INTERNAL_ERROR` | 500 | Interner Serverfehler |
+
+---
+
+## Rate Limiting
+
+Verwende das `[RateLimit]` Attribut auf Controller oder Actions:
+
+```csharp
+// Standard Rate Limit (100 requests/minute aus appsettings)
+[RateLimit]
+public async Task<IActionResult> GetAll() { ... }
+
+// Custom Rate Limit
+[RateLimit(RequestsPerMinute = 10)]
+public async Task<IActionResult> Login() { ... }
+```
+
+Rate Limit wird per IP in Redis gespeichert (Sliding Window).
+
+---
+
+## Caching
+
+Verwende `ICacheService` für Redis Caching:
+
+```csharp
+public class MyHandler
+{
+    private readonly ICacheService _cache;
+
+    public async ValueTask<UserDto?> Handle(GetUserQuery query, CancellationToken ct)
+    {
+        var cacheKey = $"user:{query.Id}";
+
+        // Try cache first
+        var cached = await _cache.GetAsync<UserDto>(cacheKey, ct);
+        if (cached is not null) return cached;
+
+        // Fetch from DB
+        var user = await _repository.GetByIdAsync(query.Id, ct);
+        if (user is null) return null;
+
+        var dto = new UserDto(user);
+
+        // Cache for 5 minutes
+        await _cache.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(5), ct);
+
+        return dto;
+    }
+}
+```
+
+---
+
+## Message Bus
+
+Verwende `IMessageBus` für async Events:
+
+```csharp
+public class CreateUserHandler
+{
+    private readonly IMessageBus _messageBus;
+
+    public async ValueTask<Guid> Handle(CreateUserCommand cmd, CancellationToken ct)
+    {
+        var user = User.Create(cmd.Email, cmd.PasswordHash);
+        await _repository.AddAsync(user, ct);
+
+        // Publish event
+        await _messageBus.PublishAsync(
+            "user.created",
+            new { UserId = user.Id, Email = user.Email },
+            ct
+        );
+
+        return user.Id;
+    }
+}
+```
+
+---
+
+## DateTime Handling
+
+**IMMER UTC verwenden!** Nutze `IDateTimeProvider`:
+
+```csharp
+public class MyHandler
+{
+    private readonly IDateTimeProvider _dateTime;
+
+    public async ValueTask Handle(...)
+    {
+        var now = _dateTime.UtcNow;  // ✅ Richtig
+        // var now = DateTime.Now;   // ❌ Falsch - verwendet lokale Zeit!
+    }
+}
+```
+
+---
+
+## Logging
+
+Serilog ist konfiguriert. Nutze strukturiertes Logging:
+
+```csharp
+// Via ILogger<T> Injection
+public class MyHandler
+{
+    private readonly ILogger<MyHandler> _logger;
+
+    public async ValueTask Handle(CreateUserCommand cmd, CancellationToken ct)
+    {
+        _logger.LogInformation("Creating user with email {Email}", cmd.Email);
+
+        try
+        {
+            // ...
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create user {Email}", cmd.Email);
+            throw;
+        }
+    }
+}
+```
+
+**Wichtig:** Sensitive Daten (Passwords, Tokens) werden automatisch vom `RequestLoggingMiddleware` gefiltert.
+
+---
+
+## Base Controller
+
+Alle API Controller erben von `ApiControllerBase`:
+
+```csharp
+[ApiController]
+[Route("api/v{version:apiVersion}/[controller]")]
+public class UsersController : ApiControllerBase
+{
+    // Inherited: IMediator _mediator, CurrentUserId, CurrentUserEmail
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+    {
+        var query = new GetUserByIdQuery(id);
+        var result = await _mediator.Send(query, ct);
+        return Ok(ApiResponse<UserDto>.Success(result));
+    }
+}
+```
+
+---
+
+## Health Checks
+
+Health Check Endpoint: `/health`
+
+Custom Health Checks hinzufügen:
+
+```csharp
+// In DependencyInjection.cs
+services.AddHealthChecks()
+    .AddCheck<MyCustomHealthCheck>("my-service");
+
+// Custom Health Check
+public class MyCustomHealthCheck : IHealthCheck
+{
+    public async Task<HealthCheckResult> CheckHealthAsync(
+        HealthCheckContext context,
+        CancellationToken ct = default)
+    {
+        // Check logic...
+        return HealthCheckResult.Healthy("All good");
+    }
+}
+```
+
+---
+
 ## Letzte Änderung
 
 - **Datum:** 2024-12-24
+- **Added:** API Response Standards, Error Codes, Rate Limiting, Caching, Message Bus, DateTime Handling, Logging, Base Controller, Health Checks
