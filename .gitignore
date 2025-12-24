@@ -1,0 +1,44 @@
+# Backend - .NET
+backend/**/bin/
+backend/**/obj/
+backend/**/*.user
+backend/**/*.userosscache
+backend/**/*.suo
+backend/**/.vs/
+backend/**/appsettings.*.json
+!backend/**/appsettings.json
+!backend/**/appsettings.Development.json
+!backend/**/appsettings.Production.json
+
+# Frontend - Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Test results
+backend/**/TestResults/
+frontend/coverage/
+
+# Docker
+docker/data/
