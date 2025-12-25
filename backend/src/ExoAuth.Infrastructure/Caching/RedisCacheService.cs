@@ -108,4 +108,29 @@ public sealed class RedisCacheService : ICacheService
             return 0;
         }
     }
+
+    public async Task DeleteByPatternAsync(string pattern, CancellationToken ct = default)
+    {
+        try
+        {
+            var connection = await _connectionFactory.GetConnectionAsync(ct);
+            var db = connection.GetDatabase();
+
+            foreach (var endpoint in connection.GetEndPoints())
+            {
+                var server = connection.GetServer(endpoint);
+                var keys = server.Keys(pattern: pattern).ToArray();
+
+                if (keys.Length > 0)
+                {
+                    await db.KeyDeleteAsync(keys);
+                    _logger.LogInformation("Deleted {Count} keys matching pattern: {Pattern}", keys.Length, pattern);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to delete keys by pattern: {Pattern}", pattern);
+        }
+    }
 }

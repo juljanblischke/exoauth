@@ -10,6 +10,7 @@ services:
       - ConnectionStrings__Database=Host=postgres;Database=exoauth;Username=exoauth;Password=exoauth_secret
       - ConnectionStrings__Redis=redis:6379
       - ConnectionStrings__RabbitMq=amqp://guest:guest@rabbitmq:5672
+      - Jwt__Secret=YourSuperSecretKeyForDevelopmentThatIsAtLeast32CharactersLong!
     depends_on:
       postgres:
         condition: service_healthy

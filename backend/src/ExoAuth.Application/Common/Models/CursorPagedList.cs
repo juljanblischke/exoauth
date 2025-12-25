@@ -48,6 +48,25 @@ public sealed class CursorPagedList<T>
         );
     }
 
+    /// <summary>
+    /// Creates a CursorPagedList from pre-computed pagination values.
+    /// </summary>
+    public static CursorPagedList<T> FromItems(
+        IReadOnlyList<T> items,
+        string? nextCursor,
+        bool hasMore,
+        int pageSize = 20)
+    {
+        var pagination = PaginationMeta.Create(
+            cursor: null,
+            nextCursor: nextCursor,
+            hasMore: hasMore,
+            pageSize: pageSize
+        );
+
+        return new CursorPagedList<T>(items, pagination);
+    }
+
     public static string EncodeCursor(string value)
     {
         var bytes = Encoding.UTF8.GetBytes(value);

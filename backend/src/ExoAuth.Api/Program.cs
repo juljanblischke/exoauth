@@ -4,6 +4,8 @@ using ExoAuth.Api.Services;
 using ExoAuth.Application;
 using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Infrastructure;
+using ExoAuth.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +36,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerConfiguration();
 builder.Services.AddCorsConfiguration(builder.Configuration);
 builder.Services.AddHealthChecksConfiguration(builder.Configuration);
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
@@ -57,13 +60,52 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Apply pending migrations on startup
+try
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    if (dbContext.Database.GetPendingMigrations().Any())
+    {
+        Log.Information("Applying pending database migrations...");
+        await dbContext.Database.MigrateAsync();
+        Log.Information("Database migrations applied successfully");
+    }
+    else
+    {
+        Log.Information("Database is up to date - no migrations to apply");
+    }
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "Failed to apply database migrations");
+    throw; // Fail fast if migrations fail
+}
+
+// Invalidate permission cache on startup
+try
+{
+    using var scope = app.Services.CreateScope();
+    var cacheService = scope.ServiceProvider.GetService<ICacheService>();
+    if (cacheService is not null)
+    {
+        await cacheService.DeleteByPatternAsync("user:permissions:*");
+        Log.Information("Permission cache invalidated on startup");
+    }
+}
+catch (Exception ex)
+{
+    Log.Warning(ex, "Failed to invalidate permission cache on startup - Redis may be unavailable");
+}
+
 // Log startup
 Log.Information("ExoAuth API starting...");
 Log.Information("Environment: {Environment}", app.Environment.EnvironmentName);
 
 try
 {
-    app.Run();
+    await app.RunAsync();
 }
 catch (Exception ex)
 {

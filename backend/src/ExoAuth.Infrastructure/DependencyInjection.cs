@@ -1,7 +1,10 @@
 using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Infrastructure.Caching;
 using ExoAuth.Infrastructure.Messaging;
+using ExoAuth.Infrastructure.Messaging.Consumers;
 using ExoAuth.Infrastructure.Persistence;
+using ExoAuth.Infrastructure.Persistence.Repositories;
+using ExoAuth.Infrastructure.Persistence.Seeders;
 using ExoAuth.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +30,7 @@ public static class DependencyInjection
                         errorCodesToAdd: null);
                 });
         });
+        services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
         // Redis
         services.AddSingleton<RedisConnectionFactory>();
@@ -36,9 +40,29 @@ public static class DependencyInjection
         services.AddSingleton<RabbitMqConnectionFactory>();
         services.AddSingleton<IMessageBus, RabbitMqMessageBus>();
         services.AddHostedService<RabbitMqBackgroundService>();
+        services.AddHostedService<SendEmailConsumer>();
 
-        // Services
+        // Core Services
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddSingleton<IPasswordHasher, PasswordHasher>();
+        services.AddSingleton<ITokenService, TokenService>();
+        services.AddScoped<IAuditService, AuditService>();
+
+        // Redis Services
+        services.AddSingleton<IPermissionCacheService, PermissionCacheService>();
+        services.AddSingleton<IBruteForceProtectionService, BruteForceProtectionService>();
+        services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
+
+        // Email Services
+        services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
+        services.AddScoped<IEmailService, EmailService>();
+
+        // Repositories
+        services.AddScoped<ISystemUserRepository, SystemUserRepository>();
+
+        // Seeders
+        services.AddScoped<SystemPermissionSeeder>();
+        services.AddScoped<DatabaseSeeder>();
 
         return services;
     }

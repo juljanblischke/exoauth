@@ -40,7 +40,15 @@ Wenn ein neues Feature geplant wird, MUSS dieser Template verwendet werden:
 | POST | /api/... | `{ ... }` | `{ ... }` | ... |
 | GET | /api/... | - | `{ ... }` | ... |
 
-## 4. Datenbank Änderungen
+## 4. Neue Error Codes
+
+| Code | HTTP Status | Beschreibung |
+|------|-------------|--------------|
+| `ERROR_CODE_NAME` | 4xx | Beschreibung des Fehlers |
+
+> ⚠️ **Nach Completion:** Diese Codes zu `coding_standards_backend.md` (Error Codes Tabelle) hinzufügen!
+
+## 5. Datenbank Änderungen
 
 ### Neue Entities
 | Entity | Properties | Beziehungen |
@@ -50,7 +58,7 @@ Wenn ein neues Feature geplant wird, MUSS dieser Template verwendet werden:
 ### Migrations
 - [ ] Migration Name: `Add{EntityName}`
 
-## 5. Files zu erstellen
+## 6. Files zu erstellen
 
 ### Domain Layer
 | Datei | Pfad | Beschreibung |
@@ -74,29 +82,29 @@ Wenn ein neues Feature geplant wird, MUSS dieser Template verwendet werden:
 |-------|------|--------------|
 | Controller | `src/ExoAuth.Api/Controllers/...Controller.cs` | ... |
 
-## 6. Files zu ändern
+## 7. Files zu ändern
 
 | Datei | Was ändern? |
 |-------|-------------|
 | `src/.../AppDbContext.cs` | DbSet hinzufügen |
 | `src/.../DependencyInjection.cs` | Service registrieren |
 
-## 7. Neue Packages
+## 8. Neue Packages
 
 | Package | Version | Projekt | Warum? |
 |---------|---------|---------|--------|
 | ... | ... | ExoAuth.XXX | ... |
 
-## 8. Implementation Reihenfolge
+## 9. Implementation Reihenfolge
 
 1. [ ] **Domain**: Entity erstellen
 2. [ ] **Infrastructure**: Configuration + DbContext + Migration
 3. [ ] **Application**: Commands/Queries + Handlers + Validators
 4. [ ] **API**: Controller + Endpoints
 5. [ ] **Tests**: Unit + Integration Tests
-6. [ ] **Standards updaten**: task_standards_backend.md aktualisieren
+6. [ ] **Standards updaten**: task_standards_backend.md + coding_standards_backend.md aktualisieren
 
-## 9. Tests
+## 10. Tests
 
 ### Unit Tests
 | Test Datei | Was wird getestet? |
@@ -108,10 +116,11 @@ Wenn ein neues Feature geplant wird, MUSS dieser Template verwendet werden:
 |------------|-------------------|
 | `tests/ExoAuth.IntegrationTests/Features/.../...Tests.cs` | ... |
 
-## 10. Nach Completion
+## 11. Nach Completion
 
 - [ ] Alle Tests grün
 - [ ] `task_standards_backend.md` aktualisiert (neue Files, Packages)
+- [ ] `coding_standards_backend.md` aktualisiert (neue Error Codes)
 - [ ] Code reviewed
 ```
 
@@ -385,11 +394,12 @@ public class {Name}Configuration : IEntityTypeConfiguration<{Name}>
 
 ## Letzte Änderung
 
-- **Datum:** 2024-12-24
+- **Datum:** 2025-12-25
 - **Status:** Foundation Infrastructure komplett (Task 001)
 - **Erledigte Tasks:**
   - Task 001: Foundation & Infrastructure Setup ✅
 - **Nächster Task:** Features implementieren (Auth, Users, Roles, Permissions)
+- **Template Update:** Section 4 "Neue Error Codes" zur Vorlage hinzugefügt
 
 ### Bekannte Einschränkungen
 - RabbitMQ Health Check nicht in `/health` enthalten (`RabbitMQ.Client 7.x` Inkompatibilität mit Health Check Package)

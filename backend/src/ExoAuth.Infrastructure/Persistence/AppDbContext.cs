@@ -1,12 +1,22 @@
+using ExoAuth.Application.Common.Interfaces;
+using ExoAuth.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExoAuth.Infrastructure.Persistence;
 
-public sealed class AppDbContext : DbContext
+public sealed class AppDbContext : DbContext, IAppDbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
+
+    // System entities
+    public DbSet<SystemUser> SystemUsers => Set<SystemUser>();
+    public DbSet<SystemPermission> SystemPermissions => Set<SystemPermission>();
+    public DbSet<SystemUserPermission> SystemUserPermissions => Set<SystemUserPermission>();
+    public DbSet<SystemAuditLog> SystemAuditLogs => Set<SystemAuditLog>();
+    public DbSet<SystemInvite> SystemInvites => Set<SystemInvite>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,3 +1,6 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 namespace ExoAuth.Api.Extensions;
@@ -81,6 +84,62 @@ public static class ServiceCollectionExtensions
 
         // Note: RabbitMQ health check disabled - AspNetCore.HealthChecks.Rabbitmq incompatible with RabbitMQ.Client 7.x
         // RabbitMQ connection is verified via RabbitMqBackgroundService on startup
+
+        return services;
+    }
+
+    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
+        var jwtSection = configuration.GetSection("Jwt");
+        var secret = jwtSection["Secret"]
+            ?? throw new InvalidOperationException("JWT Secret is not configured");
+        var issuer = jwtSection["Issuer"] ?? "ExoAuth";
+        var audience = jwtSection["Audience"] ?? "ExoAuth";
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = issuer,
+                ValidAudience = audience,
+                IssuerSigningKey = key,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    // Support token from cookie (HttpOnly)
+                    if (context.Request.Cookies.TryGetValue("access_token", out var accessToken))
+                    {
+                        context.Token = accessToken;
+                    }
+                    return Task.CompletedTask;
+                },
+                OnAuthenticationFailed = context =>
+                {
+                    if (context.Exception is SecurityTokenExpiredException)
+                    {
+                        context.Response.Headers.Append("Token-Expired", "true");
+                    }
+                    return Task.CompletedTask;
+                }
+            };
+        });
+
+        services.AddAuthorization();
 
         return services;
     }
