@@ -115,3 +115,9 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Partial class to enable WebApplicationFactory access for integration tests
+namespace ExoAuth.Api
+{
+    public partial class Program { }
+}

@@ -32,7 +32,10 @@ public sealed class TokenService : ITokenService
 
         _accessTokenExpiration = TimeSpan.FromMinutes(accessMinutes);
         _refreshTokenExpiration = TimeSpan.FromDays(refreshDays);
-        _tokenHandler = new JwtSecurityTokenHandler();
+        _tokenHandler = new JwtSecurityTokenHandler
+        {
+            MapInboundClaims = false // Preserve original claim types (sub, email, etc.)
+        };
     }
 
     public TimeSpan AccessTokenExpiration => _accessTokenExpiration;

@@ -475,26 +475,34 @@ public class RefreshToken
 22. [x] **Templates**: Email Templates erstellen (EN + DE)
 23. [x] **Api**: Auto-Migration bei Startup hinzufügen
 24. [x] **Application**: IAppDbContext Interface erstellen (Clean Architecture Fix)
-25. [ ] **Tests**: Unit Tests
+25. [x] **Tests**: Unit Tests (106 Tests - Auth, SystemUsers, Services) ✅
 26. [ ] **Tests**: Integration Tests (inkl. Redis Mocking)
 27. [ ] **Standards updaten**: task_standards_backend.md + coding_standards_backend.md aktualisieren
 
 ## 10. Tests
 
-### Unit Tests
+### Unit Tests ✅ (106 Tests)
 
-| Test Datei | Was wird getestet? |
-|------------|-------------------|
-| `tests/ExoAuth.UnitTests/Features/Auth/RegisterHandlerTests.cs` | Register: First user gets all permissions, validation |
-| `tests/ExoAuth.UnitTests/Features/Auth/LoginHandlerTests.cs` | Login: Correct credentials, wrong password, inactive user |
-| `tests/ExoAuth.UnitTests/Features/Auth/RefreshTokenHandlerTests.cs` | Refresh: Valid token, expired token, revoked token |
-| `tests/ExoAuth.UnitTests/Features/SystemUsers/InviteSystemUserHandlerTests.cs` | Invite: Email unique, permissions valid, email sent |
-| `tests/ExoAuth.UnitTests/Features/SystemUsers/UpdatePermissionsHandlerTests.cs` | Permissions: Last permission holder check |
-| `tests/ExoAuth.UnitTests/Services/PasswordHasherTests.cs` | Password hashing und verification |
-| `tests/ExoAuth.UnitTests/Services/TokenServiceTests.cs` | JWT generation und validation |
-| `tests/ExoAuth.UnitTests/Services/BruteForceProtectionServiceTests.cs` | Brute force counting, blocking, reset |
-| `tests/ExoAuth.UnitTests/Services/PermissionCacheServiceTests.cs` | Cache hit, cache miss, invalidation |
-| `tests/ExoAuth.UnitTests/Services/EmailTemplateServiceTests.cs` | Template rendering, language fallback |
+**Helper Files erstellt:**
+| Datei | Beschreibung |
+|-------|--------------|
+| `tests/ExoAuth.UnitTests/Helpers/MockDbContext.cs` | Mock DbContext mit async DbSet Support |
+| `tests/ExoAuth.UnitTests/Helpers/TestDataFactory.cs` | Factory für Test-Entities |
+| `tests/ExoAuth.UnitTests/Helpers/AsyncQueryableExtensions.cs` | IAsyncQueryProvider für EF Core Mocking |
+
+**Test Files erstellt:**
+| Test Datei | Was wird getestet? | Tests |
+|------------|-------------------|-------|
+| `tests/ExoAuth.UnitTests/Features/Auth/RegisterHandlerTests.cs` | Register: First user gets all permissions, registration closed | 3 |
+| `tests/ExoAuth.UnitTests/Features/Auth/LoginHandlerTests.cs` | Login: Credentials, blocked user, inactive user, brute force | 6 |
+| `tests/ExoAuth.UnitTests/Features/Auth/RefreshTokenHandlerTests.cs` | Refresh: Valid/invalid/revoked/blacklisted tokens | 8 |
+| `tests/ExoAuth.UnitTests/Features/SystemUsers/InviteSystemUserHandlerTests.cs` | Invite: Email unique, permissions, email sent | 6 |
+| `tests/ExoAuth.UnitTests/Features/SystemUsers/UpdatePermissionsHandlerTests.cs` | Permissions: Update, last holder check, cache invalidation | 6 |
+| `tests/ExoAuth.UnitTests/Services/PasswordHasherTests.cs` | Argon2id hashing und verification | 6 |
+| `tests/ExoAuth.UnitTests/Services/TokenServiceTests.cs` | JWT generation, validation, expiration, claims | 13 |
+| `tests/ExoAuth.UnitTests/Services/BruteForceProtectionServiceTests.cs` | Counting, blocking threshold, reset | 13 |
+| `tests/ExoAuth.UnitTests/Services/PermissionCacheServiceTests.cs` | Cache get/set, invalidation, GetOrSet | 6 |
+| `tests/ExoAuth.UnitTests/Services/EmailTemplateServiceTests.cs` | Template rendering, language fallback, variables | 6 |
 
 ### Integration Tests
 
@@ -939,5 +947,5 @@ await _messageBus.PublishAsync(new SendEmailMessage(
 
 ---
 
-**Letzte Änderung:** 2025-12-25
-**Status:** Ready for Implementation
+**Letzte Änderung:** 2025-12-26
+**Status:** In Progress (Unit Tests ✅ 106 Tests, Integration Tests pending)

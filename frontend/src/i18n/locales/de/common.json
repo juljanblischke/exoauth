@@ -1,0 +1,127 @@
+{
+  "app": {
+    "name": "ExoAuth",
+    "copyright": "Alle Rechte vorbehalten."
+  },
+  "actions": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "add": "Hinzufügen",
+    "remove": "Entfernen",
+    "close": "Schließen",
+    "clear": "Löschen",
+    "confirm": "Bestätigen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "submit": "Absenden",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "reset": "Zurücksetzen",
+    "refresh": "Aktualisieren",
+    "export": "Exportieren",
+    "import": "Importieren",
+    "copy": "Kopieren",
+    "copied": "Kopiert!",
+    "loading": "Laden...",
+    "view": "Ansehen",
+    "viewDetails": "Details anzeigen",
+    "viewAll": "Alle anzeigen",
+    "showMore": "Mehr anzeigen",
+    "showLess": "Weniger anzeigen",
+    "selectAll": "Alle auswählen",
+    "deselectAll": "Auswahl aufheben",
+    "continue": "Fortfahren",
+    "retry": "Erneut versuchen",
+    "account": "Konto",
+    "logout": "Abmelden"
+  },
+  "search": {
+    "placeholder": "Suchen...",
+    "noResults": "Keine Ergebnisse gefunden."
+  },
+  "status": {
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "pending": "Ausstehend",
+    "suspended": "Gesperrt",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert"
+  },
+  "table": {
+    "noResults": "Keine Ergebnisse gefunden",
+    "noData": "Keine Daten vorhanden",
+    "loading": "Daten werden geladen...",
+    "selected": "{{count}} ausgewählt",
+    "selectAll": "Alle auswählen",
+    "selectRow": "Zeile auswählen",
+    "rowsPerPage": "Zeilen pro Seite",
+    "of": "von",
+    "columns": "Spalten",
+    "showColumns": "Spalten anzeigen",
+    "hideColumn": "Spalte ausblenden",
+    "sortAsc": "Aufsteigend sortieren",
+    "sortDesc": "Absteigend sortieren",
+    "clearSort": "Sortierung aufheben"
+  },
+  "time": {
+    "justNow": "Gerade eben",
+    "minutesAgo": "vor {{count}} Minute",
+    "minutesAgo_other": "vor {{count}} Minuten",
+    "hoursAgo": "vor {{count}} Stunde",
+    "hoursAgo_other": "vor {{count}} Stunden",
+    "daysAgo": "vor {{count}} Tag",
+    "daysAgo_other": "vor {{count}} Tagen",
+    "weeksAgo": "vor {{count}} Woche",
+    "weeksAgo_other": "vor {{count}} Wochen",
+    "monthsAgo": "vor {{count}} Monat",
+    "monthsAgo_other": "vor {{count}} Monaten"
+  },
+  "confirm": {
+    "title": "Aktion bestätigen",
+    "deleteTitle": "Löschen bestätigen",
+    "deleteMessage": "Sind Sie sicher, dass Sie diesen Eintrag löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "unsavedTitle": "Ungespeicherte Änderungen",
+    "unsavedMessage": "Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?",
+    "typeToConfirm": "Geben Sie \"{{text}}\" zur Bestätigung ein",
+    "stay": "Bleiben",
+    "leave": "Verlassen"
+  },
+  "legal": {
+    "imprint": "Impressum",
+    "privacy": "Datenschutz",
+    "terms": "AGB",
+    "cookies": "Cookie-Richtlinie"
+  },
+  "theme": {
+    "label": "Design",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  },
+  "language": {
+    "en": "English",
+    "de": "Deutsch"
+  },
+  "session": {
+    "warningTitle": "Sitzung läuft ab",
+    "warningDescription": "Ihre Sitzung läuft in {{time}} ab. Möchten Sie sie verlängern?",
+    "extend": "Sitzung verlängern"
+  },
+  "cookies": {
+    "title": "Cookie-Einwilligung",
+    "description": "Wir verwenden Cookies, um Ihre Erfahrung zu verbessern. Durch die weitere Nutzung dieser Website stimmen Sie der Verwendung von Cookies zu.",
+    "accept": "Alle akzeptieren",
+    "reject": "Ablehnen",
+    "learnMore": "Mehr erfahren"
+  },
+  "help": {
+    "toggle": "Hilfe",
+    "title": "Brauchen Sie Hilfe?",
+    "documentation": "Dokumentation",
+    "support": "Support kontaktieren",
+    "feedback": "Feedback senden"
+  }
+}

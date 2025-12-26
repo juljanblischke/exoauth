@@ -4,6 +4,23 @@
 
 ---
 
+## Task File Workflow
+
+**Bevor du Code schreibst, lies IMMER:**
+1. `docs/standards/task_standards_backend.md` - Aktueller Projekt Stand, File Tree, Packages
+2. Das aktuelle Task File in `docs/tasks/` - Was genau gebaut werden soll
+
+**Während der Implementierung:**
+- Halte das Task File IMMER aktuell (neue Files, geänderte Files, neue Packages)
+- Das Task File ist die Single Source of Truth
+
+**Nach Completion:**
+- Error Codes hier in dieser Datei hinzufügen
+- File Tree in `task_standards_backend.md` aktualisieren
+- Packages in `task_standards_backend.md` aktualisieren
+
+---
+
 ## Projekt Struktur
 
 ```
@@ -324,16 +341,47 @@ return ApiResponse<object>.Error(
 
 Verwende die vordefinierten Error Codes aus `ErrorCodes.cs`:
 
+### Validation Errors (400)
+
 | Code | HTTP Status | Verwendung |
 |------|-------------|------------|
 | `VALIDATION_REQUIRED` | 400 | Pflichtfeld fehlt |
 | `VALIDATION_INVALID_FORMAT` | 400 | Ungültiges Format (Email, etc.) |
 | `VALIDATION_MIN_LENGTH` | 400 | Mindestlänge nicht erreicht |
 | `VALIDATION_MAX_LENGTH` | 400 | Maximallänge überschritten |
+
+### Auth Errors (401/403/429)
+
+| Code | HTTP Status | Verwendung |
+|------|-------------|------------|
 | `AUTH_UNAUTHORIZED` | 401 | Nicht authentifiziert |
 | `AUTH_FORBIDDEN` | 403 | Keine Berechtigung |
-| `AUTH_TOKEN_EXPIRED` | 401 | Token abgelaufen |
+| `AUTH_TOKEN_EXPIRED` | 401 | Access Token abgelaufen |
 | `AUTH_TOKEN_INVALID` | 401 | Token ungültig |
+| `AUTH_INVALID_CREDENTIALS` | 401 | E-Mail oder Passwort falsch |
+| `AUTH_USER_INACTIVE` | 401 | User ist deaktiviert |
+| `AUTH_REFRESH_TOKEN_INVALID` | 401 | Refresh Token ungültig oder revoked |
+| `AUTH_INVITE_EXPIRED` | 400 | Einladung abgelaufen (24h) |
+| `AUTH_INVITE_INVALID` | 400 | Einladungs-Token ungültig |
+| `AUTH_REGISTRATION_CLOSED` | 400 | Registration nur für ersten User |
+| `AUTH_EMAIL_EXISTS` | 409 | E-Mail bereits vergeben |
+| `AUTH_PASSWORD_TOO_WEAK` | 400 | Passwort erfüllt Anforderungen nicht |
+| `AUTH_TOO_MANY_ATTEMPTS` | 429 | Zu viele fehlgeschlagene Login-Versuche |
+
+### System Errors (400/403/404)
+
+| Code | HTTP Status | Verwendung |
+|------|-------------|------------|
+| `SYSTEM_USER_NOT_FOUND` | 404 | SystemUser nicht gefunden |
+| `SYSTEM_PERMISSION_NOT_FOUND` | 404 | Permission nicht gefunden |
+| `SYSTEM_LAST_PERMISSION_HOLDER` | 400 | Kann nicht entfernen - letzter User mit dieser Permission |
+| `SYSTEM_CANNOT_DELETE_SELF` | 400 | Kann sich selbst nicht löschen |
+| `SYSTEM_FORBIDDEN` | 403 | Keine Berechtigung für System-Aktion |
+
+### General Errors
+
+| Code | HTTP Status | Verwendung |
+|------|-------------|------------|
 | `RESOURCE_NOT_FOUND` | 404 | Resource nicht gefunden |
 | `RATE_LIMIT_EXCEEDED` | 429 | Rate Limit überschritten |
 | `INTERNAL_ERROR` | 500 | Interner Serverfehler |
@@ -520,5 +568,6 @@ public class MyCustomHealthCheck : IHealthCheck
 
 ## Letzte Änderung
 
-- **Datum:** 2024-12-24
-- **Added:** API Response Standards, Error Codes, Rate Limiting, Caching, Message Bus, DateTime Handling, Logging, Base Controller, Health Checks
+- **Datum:** 2025-12-26
+- **Added:** Task File Workflow Section, Auth Error Codes, System Error Codes
+- **Updated:** Error Codes in kategorisierte Sections aufgeteilt

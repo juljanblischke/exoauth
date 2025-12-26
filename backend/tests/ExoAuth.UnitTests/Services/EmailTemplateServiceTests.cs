@@ -1,0 +1,303 @@
+using ExoAuth.Infrastructure.Services;
+using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
+
+namespace ExoAuth.UnitTests.Services;
+
+public sealed class EmailTemplateServiceTests : IDisposable
+{
+    private readonly Mock<ILogger<EmailTemplateService>> _mockLogger;
+    private readonly EmailTemplateService _service;
+    private readonly string _tempDir;
+    private readonly string _templatesDir;
+
+    public EmailTemplateServiceTests()
+    {
+        _mockLogger = new Mock<ILogger<EmailTemplateService>>();
+        _service = new EmailTemplateService(_mockLogger.Object);
+
+        // Create temp directory for test templates
+        _tempDir = Path.Combine(Path.GetTempPath(), "exoauth-tests-" + Guid.NewGuid().ToString("N"));
+        _templatesDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "templates", "emails");
+
+        // Ensure template directories exist for tests that need them
+        Directory.CreateDirectory(Path.Combine(_templatesDir, "en"));
+        Directory.CreateDirectory(Path.Combine(_templatesDir, "de"));
+    }
+
+    public void Dispose()
+    {
+        // Clean up temp directory
+        if (Directory.Exists(_tempDir))
+        {
+            Directory.Delete(_tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void Render_ReplacesVariablesCorrectly()
+    {
+        // Arrange
+        var templatePath = Path.Combine(_templatesDir, "en", "test-template.html");
+        var templateContent = "<html><body>Hello {{firstName}} {{lastName}}!</body></html>";
+
+        try
+        {
+            File.WriteAllText(templatePath, templateContent);
+
+            var variables = new Dictionary<string, string>
+            {
+                ["firstName"] = "John",
+                ["lastName"] = "Doe"
+            };
+
+            // Act
+            var result = _service.Render("test-template", variables, "en");
+
+            // Assert
+            result.Should().Contain("Hello John Doe!");
+        }
+        finally
+        {
+            if (File.Exists(templatePath))
+                File.Delete(templatePath);
+        }
+    }
+
+    [Fact]
+    public void Render_WithMissingVariables_LeavesPlaceholdersIntact()
+    {
+        // Arrange
+        var templatePath = Path.Combine(_templatesDir, "en", "test-missing-var.html");
+        var templateContent = "<html><body>Hello {{firstName}} {{unknownVar}}!</body></html>";
+
+        try
+        {
+            File.WriteAllText(templatePath, templateContent);
+
+            var variables = new Dictionary<string, string>
+            {
+                ["firstName"] = "John"
+            };
+
+            // Act
+            var result = _service.Render("test-missing-var", variables, "en");
+
+            // Assert
+            result.Should().Contain("Hello John {{unknownVar}}!");
+        }
+        finally
+        {
+            if (File.Exists(templatePath))
+                File.Delete(templatePath);
+        }
+    }
+
+    [Fact]
+    public void Render_FallsBackToEnglishWhenLanguageNotFound()
+    {
+        // Arrange
+        var templatePath = Path.Combine(_templatesDir, "en", "test-fallback.html");
+        var templateContent = "<html><body>English content</body></html>";
+
+        try
+        {
+            File.WriteAllText(templatePath, templateContent);
+
+            var variables = new Dictionary<string, string>();
+
+            // Act - request German but only English exists
+            var result = _service.Render("test-fallback", variables, "de");
+
+            // Assert
+            result.Should().Contain("English content");
+        }
+        finally
+        {
+            if (File.Exists(templatePath))
+                File.Delete(templatePath);
+        }
+    }
+
+    [Fact]
+    public void Render_UsesCorrectLanguageWhenAvailable()
+    {
+        // Arrange
+        var enPath = Path.Combine(_templatesDir, "en", "test-lang.html");
+        var dePath = Path.Combine(_templatesDir, "de", "test-lang.html");
+
+        try
+        {
+            File.WriteAllText(enPath, "<html><body>English</body></html>");
+            File.WriteAllText(dePath, "<html><body>Deutsch</body></html>");
+
+            var variables = new Dictionary<string, string>();
+
+            // Act
+            var resultEn = _service.Render("test-lang", variables, "en");
+            var resultDe = _service.Render("test-lang", variables, "de");
+
+            // Assert
+            resultEn.Should().Contain("English");
+            resultDe.Should().Contain("Deutsch");
+        }
+        finally
+        {
+            if (File.Exists(enPath))
+                File.Delete(enPath);
+            if (File.Exists(dePath))
+                File.Delete(dePath);
+        }
+    }
+
+    [Fact]
+    public void Render_ThrowsWhenTemplateNotFoundInAnyLanguage()
+    {
+        // Arrange
+        var variables = new Dictionary<string, string>();
+
+        // Act & Assert
+        var act = () => _service.Render("non-existent-template", variables, "en");
+        act.Should().Throw<FileNotFoundException>();
+    }
+
+    [Fact]
+    public void TemplateExists_ReturnsTrueWhenExists()
+    {
+        // Arrange
+        var templatePath = Path.Combine(_templatesDir, "en", "test-exists.html");
+
+        try
+        {
+            File.WriteAllText(templatePath, "<html></html>");
+
+            // Act
+            var result = _service.TemplateExists("test-exists", "en");
+
+            // Assert
+            result.Should().BeTrue();
+        }
+        finally
+        {
+            if (File.Exists(templatePath))
+                File.Delete(templatePath);
+        }
+    }
+
+    [Fact]
+    public void TemplateExists_ReturnsFalseWhenNotExists()
+    {
+        // Act
+        var result = _service.TemplateExists("definitely-not-exists-" + Guid.NewGuid(), "en");
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Render_HandlesMultipleVariableReplacements()
+    {
+        // Arrange
+        var templatePath = Path.Combine(_templatesDir, "en", "test-multi.html");
+        var templateContent = @"
+            <html>
+                <body>
+                    <p>Dear {{firstName}} {{lastName}},</p>
+                    <p>Your email is {{email}}.</p>
+                    <p>You were invited by {{inviterName}}.</p>
+                    <p>Link: {{inviteLink}}</p>
+                    <p>Expires in {{expirationHours}} hours.</p>
+                    <p>© {{year}} ExoAuth</p>
+                </body>
+            </html>";
+
+        try
+        {
+            File.WriteAllText(templatePath, templateContent);
+
+            var variables = new Dictionary<string, string>
+            {
+                ["firstName"] = "Jane",
+                ["lastName"] = "Smith",
+                ["email"] = "jane@test.com",
+                ["inviterName"] = "Admin User",
+                ["inviteLink"] = "https://example.com/invite/abc123",
+                ["expirationHours"] = "24",
+                ["year"] = "2025"
+            };
+
+            // Act
+            var result = _service.Render("test-multi", variables, "en");
+
+            // Assert
+            result.Should().Contain("Jane Smith");
+            result.Should().Contain("jane@test.com");
+            result.Should().Contain("Admin User");
+            result.Should().Contain("https://example.com/invite/abc123");
+            result.Should().Contain("24 hours");
+            result.Should().Contain("2025 ExoAuth");
+        }
+        finally
+        {
+            if (File.Exists(templatePath))
+                File.Delete(templatePath);
+        }
+    }
+
+    [Fact]
+    public void Render_WithEmptyVariables_ReturnsTemplateUnchanged()
+    {
+        // Arrange
+        var templatePath = Path.Combine(_templatesDir, "en", "test-empty.html");
+        var templateContent = "<html><body>Static content</body></html>";
+
+        try
+        {
+            File.WriteAllText(templatePath, templateContent);
+
+            var variables = new Dictionary<string, string>();
+
+            // Act
+            var result = _service.Render("test-empty", variables, "en");
+
+            // Assert
+            result.Should().Be(templateContent);
+        }
+        finally
+        {
+            if (File.Exists(templatePath))
+                File.Delete(templatePath);
+        }
+    }
+
+    [Fact]
+    public void Render_HandlesSpecialCharactersInVariables()
+    {
+        // Arrange
+        var templatePath = Path.Combine(_templatesDir, "en", "test-special.html");
+        var templateContent = "<html><body>Name: {{name}}</body></html>";
+
+        try
+        {
+            File.WriteAllText(templatePath, templateContent);
+
+            var variables = new Dictionary<string, string>
+            {
+                ["name"] = "O'Connor <script>alert('xss')</script>"
+            };
+
+            // Act
+            var result = _service.Render("test-special", variables, "en");
+
+            // Assert
+            // Note: The service does NOT escape HTML - that should be done before passing variables
+            result.Should().Contain("O'Connor <script>alert('xss')</script>");
+        }
+        finally
+        {
+            if (File.Exists(templatePath))
+                File.Delete(templatePath);
+        }
+    }
+}

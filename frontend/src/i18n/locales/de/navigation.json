@@ -1,0 +1,62 @@
+{
+  "sections": {
+    "navigation": "Navigation",
+    "system": "System",
+    "management": "Verwaltung",
+    "settings": "Einstellungen"
+  },
+  "items": {
+    "dashboard": "Dashboard",
+    "users": "Benutzer",
+    "permissions": "Berechtigungen",
+    "auditLogs": "Audit-Protokolle",
+    "organizations": "Organisationen",
+    "projects": "Projekte",
+    "settings": "Einstellungen"
+  },
+  "breadcrumb": {
+    "home": "Startseite",
+    "dashboard": "Dashboard",
+    "users": "Benutzer",
+    "userDetails": "Benutzerdetails",
+    "createUser": "Benutzer erstellen",
+    "editUser": "Benutzer bearbeiten",
+    "permissions": "Berechtigungen",
+    "auditLogs": "Audit-Protokolle",
+    "organizations": "Organisationen",
+    "projects": "Projekte",
+    "settings": "Einstellungen"
+  },
+  "userMenu": {
+    "profile": "Profil",
+    "settings": "Einstellungen",
+    "signOut": "Abmelden"
+  },
+  "search": {
+    "placeholder": "Suchen...",
+    "hint": "Drücken Sie",
+    "noResults": "Keine Ergebnisse gefunden",
+    "recentSearches": "Letzte Suchen",
+    "clearRecent": "Verlauf löschen"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "empty": "Keine Benachrichtigungen",
+    "markAllRead": "Alle als gelesen markieren",
+    "viewAll": "Alle Benachrichtigungen anzeigen"
+  },
+  "help": {
+    "title": "Hilfe",
+    "documentation": "Dokumentation",
+    "support": "Support",
+    "feedback": "Feedback senden"
+  },
+  "sidebar": {
+    "collapse": "Einklappen",
+    "expand": "Ausklappen",
+    "toggleMenu": "Menü umschalten"
+  },
+  "language": {
+    "change": "Sprache ändern"
+  }
+}

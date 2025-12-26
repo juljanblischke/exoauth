@@ -1,0 +1,65 @@
+{
+  "title": "Users",
+  "subtitle": "Manage system users and their permissions",
+  "createUser": "Create User",
+  "inviteUser": "Invite User",
+  "editUser": "Edit User",
+  "deleteUser": "Delete User",
+  "userDetails": "User Details",
+  "fields": {
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "createdAt": "Created",
+    "updatedAt": "Last Updated",
+    "lastLogin": "Last Login",
+    "mfaEnabled": "2FA Enabled",
+    "password": "Password",
+    "confirmPassword": "Confirm Password"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "user": "User",
+    "viewer": "Viewer"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending Invite",
+    "suspended": "Suspended"
+  },
+  "actions": {
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "suspend": "Suspend",
+    "resetPassword": "Reset Password",
+    "resendInvite": "Resend Invite",
+    "revokeInvite": "Revoke Invite"
+  },
+  "messages": {
+    "createSuccess": "User created successfully",
+    "updateSuccess": "User updated successfully",
+    "deleteSuccess": "User deleted successfully",
+    "inviteSuccess": "Invitation sent successfully",
+    "activateSuccess": "User activated successfully",
+    "deactivateSuccess": "User deactivated successfully",
+    "suspendSuccess": "User suspended successfully",
+    "resetPasswordSuccess": "Password reset email sent"
+  },
+  "confirmDelete": {
+    "title": "Delete User",
+    "message": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+    "typeToConfirm": "Type the user's email to confirm"
+  },
+  "empty": {
+    "title": "No users yet",
+    "message": "Get started by creating your first user or inviting someone to join.",
+    "action": "Create User"
+  },
+  "filters": {
+    "status": "Status",
+    "role": "Role",
+    "all": "All"
+  }
+}

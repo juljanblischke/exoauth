@@ -20,7 +20,13 @@ Die komplette Frontend-Grundstruktur für das ExoAuth Admin Dashboard: Layout-Sy
 │  ├── i18n (EN + DE, Multi-File)                             │
 │  ├── Routing (TanStack Router, Protected Routes)            │
 │  ├── Shared Components (DataTable, Modals, etc.)            │
-│  └── Auth Context (Token Handling, Permission Check)        │
+│  ├── Auth Context (User State, Permission Check)            │
+│  └── API Client (Axios, HTTP-only Cookie Auth)              │
+├─────────────────────────────────────────────────────────────┤
+│  BACKEND (.NET Core)                                        │
+│  ├── HTTP-only Cookies for Auth (not localStorage!)         │
+│  ├── JWT Access Token (15 min) + Refresh Token (30 days)    │
+│  └── API Response: { status, statusCode, data, errors }     │
 ├─────────────────────────────────────────────────────────────┤
 │  FEATURES (Später - Task 004+)                              │
 │  ├── Auth Pages (Login, Register, Accept Invite)            │
@@ -120,6 +126,62 @@ Die komplette Frontend-Grundstruktur für das ExoAuth Admin Dashboard: Layout-Sy
 | URL Structure | Query Params für Filter/Sort (shareable) |
 | State Management | TanStack Query + React Context |
 | File Upload (später) | Dropzone Style |
+
+### Authentication & API (Backend Integration)
+| Feature | Implementation |
+|---------|----------------|
+| Auth Method | HTTP-only Cookies (NOT localStorage) |
+| Access Token | Cookie `access_token`, HttpOnly, Secure, SameSite=Strict, 15 min |
+| Refresh Token | Cookie `refresh_token`, HttpOnly, Secure, SameSite=Strict, 30 days |
+| Token Refresh | Automatic via axios interceptor on 401 |
+| API Client | Axios with `withCredentials: true` |
+| API Base URL | `/api` (via Vite proxy or env var) |
+
+### Backend API Response Format
+```typescript
+interface ApiResponse<T> {
+  status: 'success' | 'error'
+  statusCode: number
+  message: string
+  data: T
+  meta?: {
+    timestamp: string
+    requestId: string
+    pagination?: PaginationMeta
+  }
+  errors?: Array<{
+    field?: string
+    code: string
+    message: string
+  }>
+}
+```
+
+### Auth Endpoints (Backend)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/register` | POST | Register new user (first user = admin) |
+| `/api/auth/login` | POST | Login with email/password |
+| `/api/auth/logout` | POST | Logout, revoke refresh token |
+| `/api/auth/refresh` | POST | Refresh access token |
+| `/api/auth/me` | GET | Get current user info |
+| `/api/auth/accept-invite` | POST | Accept invitation |
+
+### User DTO (from Backend)
+```typescript
+interface User {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  fullName: string
+  isActive: boolean
+  emailVerified: boolean
+  lastLoginAt: string | null
+  createdAt: string
+  permissions: string[]  // Array of permission strings
+}
+```
 
 ## 3. Theme / CSS Variables
 
@@ -404,220 +466,241 @@ export const navigation: NavSection[] = [
 ## 6. Files zu erstellen
 
 ### Foundation / Core
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| API Client | `src/lib/axios.ts` | Axios instance mit Interceptors |
-| i18n Config | `src/i18n/index.ts` | i18next Setup |
-| EN Common | `src/i18n/locales/en/common.json` | Englische Common Translations |
-| EN Auth | `src/i18n/locales/en/auth.json` | Englische Auth Translations |
-| EN Navigation | `src/i18n/locales/en/navigation.json` | Englische Nav Translations |
-| EN Users | `src/i18n/locales/en/users.json` | Englische User Translations |
-| EN Errors | `src/i18n/locales/en/errors.json` | Englische Error Translations |
-| EN Validation | `src/i18n/locales/en/validation.json` | Englische Validation Translations |
-| DE Common | `src/i18n/locales/de/common.json` | Deutsche Common Translations |
-| DE Auth | `src/i18n/locales/de/auth.json` | Deutsche Auth Translations |
-| DE Navigation | `src/i18n/locales/de/navigation.json` | Deutsche Nav Translations |
-| DE Users | `src/i18n/locales/de/users.json` | Deutsche User Translations |
-| DE Errors | `src/i18n/locales/de/errors.json` | Deutsche Error Translations |
-| DE Validation | `src/i18n/locales/de/validation.json` | Deutsche Validation Translations |
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| API Client | `src/lib/axios.ts` | ✅ | Axios instance mit Interceptors |
+| i18n Config | `src/i18n/index.ts` | ✅ | i18next Setup |
+| EN Common | `src/i18n/locales/en/common.json` | ✅ | Englische Common Translations |
+| EN Auth | `src/i18n/locales/en/auth.json` | ✅ | Englische Auth Translations |
+| EN Navigation | `src/i18n/locales/en/navigation.json` | ✅ | Englische Nav Translations |
+| EN Users | `src/i18n/locales/en/users.json` | ✅ | Englische User Translations |
+| EN Errors | `src/i18n/locales/en/errors.json` | ✅ | Englische Error Translations |
+| EN Validation | `src/i18n/locales/en/validation.json` | ✅ | Englische Validation Translations |
+| DE Common | `src/i18n/locales/de/common.json` | ✅ | Deutsche Common Translations |
+| DE Auth | `src/i18n/locales/de/auth.json` | ✅ | Deutsche Auth Translations |
+| DE Navigation | `src/i18n/locales/de/navigation.json` | ✅ | Deutsche Nav Translations |
+| DE Users | `src/i18n/locales/de/users.json` | ✅ | Deutsche User Translations |
+| DE Errors | `src/i18n/locales/de/errors.json` | ✅ | Deutsche Error Translations |
+| DE Validation | `src/i18n/locales/de/validation.json` | ✅ | Deutsche Validation Translations |
+
+### Types (erstellt)
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Auth Types | `src/types/auth.ts` | ✅ | User, Token, LoginCredentials, etc. |
+| API Types | `src/types/api.ts` | ✅ | ApiResponse, ApiError, Pagination |
+| Table Types | `src/types/table.ts` | ✅ | Column, Filter, Sort Definitions |
+| Index | `src/types/index.ts` | ✅ | Barrel Export |
+
+### Hooks (erstellt)
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| useDebounce | `src/hooks/use-debounce.ts` | ✅ | Debounce Hook |
+| useLocalStorage | `src/hooks/use-local-storage.ts` | ✅ | LocalStorage Hook |
+| useMediaQuery | `src/hooks/use-media-query.ts` | ✅ | Responsive Hook (+ useIsMobile, useIsDesktop) |
+| useCopyToClipboard | `src/hooks/use-copy-to-clipboard.ts` | ✅ | Copy Hook |
+| useTablePreferences | `src/hooks/use-table-preferences.ts` | ✅ | Table State Persistence |
+| Index | `src/hooks/index.ts` | ✅ | Barrel Export |
 
 ### App Setup
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Providers | `src/app/providers.tsx` | QueryClient, Theme, i18n Wrapper |
-| Router | `src/app/router.tsx` | TanStack Router Config |
-| Root Route | `src/routes/__root.tsx` | Root Route mit Layout |
-| Auth Context | `src/contexts/auth-context.tsx` | Auth State, User, Permissions |
-| Theme Provider | `src/contexts/theme-context.tsx` | Dark/Light Mode |
-| Sidebar Context | `src/contexts/sidebar-context.tsx` | Collapsed State |
-| Navigation Config | `src/config/navigation.ts` | Sidebar Items mit Permissions |
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Providers | `src/app/providers.tsx` | ✅ | QueryClient, Theme, Auth, Sidebar, Toaster |
+| Router | `src/app/router.tsx` | ⏳ | TanStack Router Config |
+| Root Route | `src/routes/__root.tsx` | ⏳ | Root Route mit Layout |
 
-### Layout Components
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| App Layout | `src/components/shared/layout/app-layout.tsx` | Main Layout Wrapper |
-| Sidebar | `src/components/shared/layout/sidebar.tsx` | Collapsible Nav |
-| Sidebar Item | `src/components/shared/layout/sidebar-item.tsx` | Single Nav Item |
-| Sidebar Section | `src/components/shared/layout/sidebar-section.tsx` | Section with Header |
-| Header | `src/components/shared/layout/header.tsx` | Top Bar |
-| User Menu | `src/components/shared/layout/user-menu.tsx` | Profile Dropdown |
-| Theme Toggle | `src/components/shared/layout/theme-toggle.tsx` | Dark/Light Switch |
-| Language Switcher | `src/components/shared/layout/language-switcher.tsx` | EN/DE Switch |
-| Breadcrumbs | `src/components/shared/layout/breadcrumbs.tsx` | Navigation Breadcrumbs |
-| Page Header | `src/components/shared/layout/page-header.tsx` | Title + Actions |
-| Footer | `src/components/shared/layout/footer.tsx` | Legal Links |
-| Mobile Nav | `src/components/shared/layout/mobile-nav.tsx` | Hamburger + Sheet |
+### Contexts (erstellt)
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Auth Context | `src/contexts/auth-context.tsx` | ✅ | Auth State, User, Permissions, Login/Logout |
+| Theme Provider | `src/contexts/theme-context.tsx` | ✅ | Dark/Light/System Mode |
+| Sidebar Context | `src/contexts/sidebar-context.tsx` | ✅ | Collapsed State |
+| Index | `src/contexts/index.ts` | ✅ | Barrel Export |
 
-### Feedback Components
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Loading Spinner | `src/components/shared/feedback/loading-spinner.tsx` | Spinner Component |
-| Skeleton | `src/components/shared/feedback/skeleton.tsx` | Skeleton Loader |
-| Empty State | `src/components/shared/feedback/empty-state.tsx` | No Data Illustration |
-| Error State | `src/components/shared/feedback/error-state.tsx` | Error Display |
-| Confirm Dialog | `src/components/shared/feedback/confirm-dialog.tsx` | Simple Confirm |
-| Type Confirm | `src/components/shared/feedback/type-confirm-dialog.tsx` | Type to Confirm |
-| Unsaved Warning | `src/components/shared/feedback/unsaved-warning.tsx` | Leave Form Warning |
+### Config (erstellt)
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Navigation Config | `src/config/navigation.ts` | ✅ | Sidebar Items mit Permissions |
 
-### DataTable Components
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| DataTable | `src/components/shared/data-table/data-table.tsx` | Main Table Component |
-| DataTable Header | `src/components/shared/data-table/data-table-header.tsx` | Search, Filter, Columns |
-| DataTable Toolbar | `src/components/shared/data-table/data-table-toolbar.tsx` | Toolbar mit Actions |
-| DataTable Filters | `src/components/shared/data-table/data-table-filters.tsx` | Filter Dropdown |
-| DataTable Column Toggle | `src/components/shared/data-table/data-table-column-toggle.tsx` | Show/Hide Columns |
-| DataTable Pagination | `src/components/shared/data-table/data-table-pagination.tsx` | Infinite Scroll Logic |
-| DataTable Row Actions | `src/components/shared/data-table/data-table-row-actions.tsx` | Three-Dot Menu |
-| DataTable Bulk Actions | `src/components/shared/data-table/data-table-bulk-actions.tsx` | Floating Bar |
-| DataTable Card | `src/components/shared/data-table/data-table-card.tsx` | Mobile Card View |
+### Layout Components (erstellt)
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| App Layout | `src/components/shared/layout/app-layout.tsx` | ✅ | Main Layout Wrapper |
+| Sidebar | `src/components/shared/layout/sidebar.tsx` | ✅ | Collapsible Nav (inkl. Item & Section) |
+| Header | `src/components/shared/layout/header.tsx` | ✅ | Top Bar mit Breadcrumbs |
+| User Menu | `src/components/shared/layout/user-menu.tsx` | ✅ | Profile Dropdown |
+| Theme Toggle | `src/components/shared/layout/theme-toggle.tsx` | ✅ | Dark/Light/System Switch |
+| Language Switcher | `src/components/shared/layout/language-switcher.tsx` | ✅ | EN/DE Switch |
+| Breadcrumbs | `src/components/shared/layout/breadcrumbs.tsx` | ✅ | Navigation Breadcrumbs |
+| Page Header | `src/components/shared/layout/page-header.tsx` | ✅ | Title + Description + Actions |
+| Footer | `src/components/shared/layout/footer.tsx` | ✅ | Legal Links (Impressum, Privacy, Terms) |
+| Mobile Nav | `src/components/shared/layout/mobile-nav.tsx` | ✅ | Hamburger + Sheet Navigation |
+| Index | `src/components/shared/layout/index.ts` | ✅ | Barrel Export |
 
-### Form Components
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Password Input | `src/components/shared/form/password-input.tsx` | Toggle + Strength |
-| Password Strength | `src/components/shared/form/password-strength.tsx` | Strength Indicator |
-| Form Sheet | `src/components/shared/form/form-sheet.tsx` | Slide-out Form |
-| Form Modal | `src/components/shared/form/form-modal.tsx` | Modal Form |
+### Feedback Components (erstellt)
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Loading Spinner | `src/components/shared/feedback/loading-spinner.tsx` | ✅ | Spinner Component |
+| Empty State | `src/components/shared/feedback/empty-state.tsx` | ✅ | No Data Illustration |
+| Error State | `src/components/shared/feedback/error-state.tsx` | ✅ | Error Display |
+| Confirm Dialog | `src/components/shared/feedback/confirm-dialog.tsx` | ✅ | Simple Confirm |
+| Type Confirm | `src/components/shared/feedback/type-confirm-dialog.tsx` | ✅ | Type to Confirm |
+| Unsaved Warning | `src/components/shared/feedback/unsaved-warning.tsx` | ✅ | Leave Form Warning |
+| Index | `src/components/shared/feedback/index.ts` | ✅ | Barrel Export |
 
-### Utility Components
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Avatar | `src/components/shared/avatar.tsx` | Initials Avatar |
-| Status Badge | `src/components/shared/status-badge.tsx` | Colored Pill |
-| Copy Button | `src/components/shared/copy-button.tsx` | Copy to Clipboard |
-| Relative Time | `src/components/shared/relative-time.tsx` | "2h ago" + Tooltip |
-| Help Button | `src/components/shared/help-button.tsx` | Floating ? |
-| Command Menu | `src/components/shared/command-menu.tsx` | Cmd+K Spotlight |
-| Session Warning | `src/components/shared/session-warning.tsx` | Timeout Modal |
-| Cookie Consent | `src/components/shared/cookie-consent.tsx` | GDPR Banner |
+### DataTable Components (erstellt)
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| DataTable | `src/components/shared/data-table/data-table.tsx` | ✅ | Main Table Component |
+| DataTable Toolbar | `src/components/shared/data-table/data-table-toolbar.tsx` | ✅ | Toolbar mit Search, Filter, Columns |
+| DataTable Filters | `src/components/shared/data-table/data-table-filters.tsx` | ✅ | Filter Dropdown |
+| DataTable Column Toggle | `src/components/shared/data-table/data-table-column-toggle.tsx` | ✅ | Show/Hide Columns |
+| DataTable Pagination | `src/components/shared/data-table/data-table-pagination.tsx` | ✅ | Infinite Scroll Logic |
+| DataTable Row Actions | `src/components/shared/data-table/data-table-row-actions.tsx` | ✅ | Three-Dot Menu |
+| DataTable Bulk Actions | `src/components/shared/data-table/data-table-bulk-actions.tsx` | ✅ | Floating Bar |
+| DataTable Card | `src/components/shared/data-table/data-table-card.tsx` | ✅ | Mobile Card View |
+| Index | `src/components/shared/data-table/index.ts` | ✅ | Barrel Export |
 
-### Error Pages
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Not Found | `src/routes/404.tsx` | 404 Page |
-| Server Error | `src/routes/500.tsx` | 500 Page |
-| Forbidden | `src/routes/403.tsx` | 403 Page |
+### Form Components (erstellt)
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Password Input | `src/components/shared/form/password-input.tsx` | ✅ | Toggle + Strength |
+| Password Strength | `src/components/shared/form/password-strength.tsx` | ✅ | Strength Indicator |
+| Form Sheet | `src/components/shared/form/form-sheet.tsx` | ✅ | Slide-out Form |
+| Form Modal | `src/components/shared/form/form-modal.tsx` | ✅ | Modal Form |
+| Index | `src/components/shared/form/index.ts` | ✅ | Barrel Export |
 
-### Hooks
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| useAuth | `src/hooks/use-auth.ts` | Auth Context Hook |
-| usePermissions | `src/hooks/use-permissions.ts` | Permission Check |
-| useDebounce | `src/hooks/use-debounce.ts` | Debounce Hook |
-| useLocalStorage | `src/hooks/use-local-storage.ts` | LocalStorage Hook |
-| useMediaQuery | `src/hooks/use-media-query.ts` | Responsive Hook |
-| useCopyToClipboard | `src/hooks/use-copy-to-clipboard.ts` | Copy Hook |
-| useTablePreferences | `src/hooks/use-table-preferences.ts` | Table State Persistence |
+### Utility Components (erstellt)
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| User Avatar | `src/components/shared/user-avatar.tsx` | ✅ | Initials Avatar |
+| Status Badge | `src/components/shared/status-badge.tsx` | ✅ | Colored Pill |
+| Copy Button | `src/components/shared/copy-button.tsx` | ✅ | Copy to Clipboard |
+| Relative Time | `src/components/shared/relative-time.tsx` | ✅ | "2h ago" + Tooltip |
+| Help Button | `src/components/shared/help-button.tsx` | ✅ | Floating ? |
+| Command Menu | `src/components/shared/command-menu.tsx` | ✅ | Cmd+K Spotlight |
+| Session Warning | `src/components/shared/session-warning.tsx` | ✅ | Timeout Modal |
+| Cookie Consent | `src/components/shared/cookie-consent.tsx` | ✅ | GDPR Banner |
+| Index | `src/components/shared/index.ts` | ✅ | Barrel Export |
 
-### Types
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Auth Types | `src/types/auth.ts` | User, Token, etc. |
-| API Types | `src/types/api.ts` | Response, Error, Pagination |
-| Table Types | `src/types/table.ts` | Column, Filter, Sort |
+### Routing & Error Pages (erstellt)
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Router Config | `src/app/router.tsx` | ✅ | TanStack Router Setup |
+| Root Route | `src/routes/__root.tsx` | ✅ | Route Tree with Layout |
+| Protected Route | `src/routes/protected-route.tsx` | ✅ | Auth & Permission Guard |
+| Not Found | `src/routes/not-found.tsx` | ✅ | 404 Page |
+| Forbidden | `src/routes/forbidden.tsx` | ✅ | 403 Page |
+| Server Error | `src/routes/server-error.tsx` | ✅ | 500 Page |
+| Index | `src/routes/index.ts` | ✅ | Barrel Export |
 
 ## 7. Files zu ändern
 
-| Datei | Was ändern? |
-|-------|-------------|
-| `src/main.tsx` | i18n import, Providers wrappen |
-| `src/App.tsx` | Router verwenden |
-| `src/styles/globals.css` | Theme Variables (Rose), Dark Mode |
-| `src/lib/utils.ts` | Ggf. neue Utilities hinzufügen |
-| `package.json` | Neue Dependencies |
-| `vite.config.ts` | Ggf. Alias Updates |
+| Datei | Status | Was ändern? |
+|-------|--------|-------------|
+| `src/main.tsx` | ✅ | i18n import, Providers, Router |
+| `src/App.tsx` | ⏳ | Router verwenden |
+| `src/styles/globals.css` | ✅ | Theme Variables (Rose), Dark Mode |
+| `src/lib/utils.ts` | ✅ | Keine Änderungen nötig |
+| `package.json` | ✅ | Neue Dependencies hinzugefügt |
+| `vite.config.ts` | ✅ | Keine Änderungen nötig |
 
 ## 8. Neue Packages
 
-| Package | Warum? |
-|---------|--------|
-| `i18next` | Internationalization |
-| `react-i18next` | React Integration für i18n |
-| `i18next-browser-languagedetector` | Auto-detect Browser Language |
-| `@tanstack/react-table` | Headless Table |
-| `cmdk` | Command Menu (Cmd+K) |
-| `date-fns` | Date Formatting |
-| `react-intersection-observer` | Infinite Scroll |
+| Package | Status | Warum? |
+|---------|--------|--------|
+| `i18next` | ✅ | Internationalization |
+| `react-i18next` | ✅ | React Integration für i18n |
+| `i18next-browser-languagedetector` | ✅ | Auto-detect Browser Language |
+| `@tanstack/react-table` | ✅ | Headless Table |
+| `cmdk` | ✅ | Command Menu (Cmd+K) |
+| `date-fns` | ✅ | Date Formatting |
+| `react-intersection-observer` | ✅ | Infinite Scroll |
 
-### Shadcn/UI Komponenten (zu installieren)
-| Komponente | Command |
-|------------|---------|
-| Sheet | `npx shadcn@latest add sheet` |
-| Avatar | `npx shadcn@latest add avatar` |
-| Badge | `npx shadcn@latest add badge` |
-| Breadcrumb | `npx shadcn@latest add breadcrumb` |
-| Command | `npx shadcn@latest add command` |
-| Alert Dialog | `npx shadcn@latest add alert-dialog` |
-| Tooltip | `npx shadcn@latest add tooltip` |
-| Progress | `npx shadcn@latest add progress` |
-| Skeleton | `npx shadcn@latest add skeleton` |
-| Separator | `npx shadcn@latest add separator` |
-| Scroll Area | `npx shadcn@latest add scroll-area` |
+### Shadcn/UI Komponenten (installiert)
+| Komponente | Status | Command |
+|------------|--------|---------|
+| Sheet | ✅ | `npx shadcn@latest add sheet` |
+| Avatar | ✅ | `npx shadcn@latest add avatar` |
+| Badge | ✅ | `npx shadcn@latest add badge` |
+| Breadcrumb | ✅ | `npx shadcn@latest add breadcrumb` |
+| Command | ✅ | `npx shadcn@latest add command` |
+| Alert Dialog | ✅ | `npx shadcn@latest add alert-dialog` |
+| Tooltip | ✅ | `npx shadcn@latest add tooltip` |
+| Progress | ✅ | `npx shadcn@latest add progress` |
+| Skeleton | ✅ | `npx shadcn@latest add skeleton` |
+| Separator | ✅ | `npx shadcn@latest add separator` |
+| Scroll Area | ✅ | `npx shadcn@latest add scroll-area` |
+| Dropdown Menu | ✅ | `npx shadcn@latest add dropdown-menu` |
+| Sonner | ✅ | `npx shadcn@latest add sonner` |
+| Input | ✅ | `npx shadcn@latest add input` |
+| Label | ✅ | `npx shadcn@latest add label` |
+| Popover | ✅ | `npx shadcn@latest add popover` |
+| Table | ✅ | `npx shadcn@latest add table` |
+| Checkbox | ✅ | `npx shadcn@latest add checkbox` |
 
 ## 9. Implementation Reihenfolge
 
 ### Phase 1: Foundation
-1. [ ] **Packages**: Neue Dependencies installieren
-2. [ ] **Shadcn**: Neue UI Komponenten installieren
-3. [ ] **Theme**: globals.css mit Rose Theme updaten
-4. [ ] **i18n**: i18next Setup + alle Locale Files
-5. [ ] **Types**: Base Types erstellen (auth, api, table)
-6. [ ] **Lib**: axios.ts mit Interceptors erstellen
-7. [ ] **Hooks**: Utility Hooks erstellen
+1. [x] **Packages**: Neue Dependencies installieren
+2. [x] **Shadcn**: Neue UI Komponenten installieren
+3. [x] **Theme**: globals.css mit Rose Theme updaten
+4. [x] **i18n**: i18next Setup + alle Locale Files
+5. [x] **Types**: Base Types erstellen (auth, api, table)
+6. [x] **Lib**: axios.ts mit Interceptors erstellen
+7. [x] **Hooks**: Utility Hooks erstellen
 
 ### Phase 2: Context & State
-8. [ ] **Context**: AuthContext erstellen
-9. [ ] **Context**: ThemeContext erstellen
-10. [ ] **Context**: SidebarContext erstellen
-11. [ ] **Providers**: App Providers Wrapper
+8. [x] **Context**: AuthContext erstellen
+9. [x] **Context**: ThemeContext erstellen
+10. [x] **Context**: SidebarContext erstellen
+11. [x] **Providers**: App Providers Wrapper
 
 ### Phase 3: Layout
-12. [ ] **Layout**: AppLayout Component
-13. [ ] **Layout**: Sidebar (collapsible)
-14. [ ] **Layout**: Header mit User Menu
-15. [ ] **Layout**: Footer mit Legal Links
-16. [ ] **Layout**: Mobile Navigation
-17. [ ] **Layout**: Breadcrumbs
-18. [ ] **Layout**: Page Header
+12. [x] **Layout**: AppLayout Component
+13. [x] **Layout**: Sidebar (collapsible)
+14. [x] **Layout**: Header mit User Menu
+15. [x] **Layout**: Footer mit Legal Links
+16. [x] **Layout**: Mobile Navigation
+17. [x] **Layout**: Breadcrumbs
+18. [x] **Layout**: Page Header
 
 ### Phase 4: Shared Components
-19. [ ] **Feedback**: Loading, Skeleton, Empty, Error States
-20. [ ] **Feedback**: Confirm Dialogs (simple + type)
-21. [ ] **Feedback**: Unsaved Warning
-22. [ ] **Utility**: Avatar, Badge, Copy Button
-23. [ ] **Utility**: Relative Time
-24. [ ] **Utility**: Command Menu (Cmd+K)
-25. [ ] **Utility**: Session Warning Modal
-26. [ ] **Utility**: Cookie Consent Banner
-27. [ ] **Utility**: Help Button
+19. [x] **Feedback**: Loading, Skeleton, Empty, Error States
+20. [x] **Feedback**: Confirm Dialogs (simple + type)
+21. [x] **Feedback**: Unsaved Warning
+22. [x] **Utility**: Avatar, Badge, Copy Button
+23. [x] **Utility**: Relative Time
+24. [x] **Utility**: Command Menu (Cmd+K)
+25. [x] **Utility**: Session Warning Modal
+26. [x] **Utility**: Cookie Consent Banner
+27. [x] **Utility**: Help Button
 
 ### Phase 5: DataTable
-28. [ ] **DataTable**: Base Table Component
-29. [ ] **DataTable**: Header (Search, Filter, Columns)
-30. [ ] **DataTable**: Filter Dropdown
-31. [ ] **DataTable**: Column Toggle
-32. [ ] **DataTable**: Infinite Scroll
-33. [ ] **DataTable**: Row Actions Menu
-34. [ ] **DataTable**: Bulk Actions Bar
-35. [ ] **DataTable**: Mobile Card View
-36. [ ] **DataTable**: Table Preferences Hook
+28. [x] **DataTable**: Base Table Component
+29. [x] **DataTable**: Header (Search, Filter, Columns)
+30. [x] **DataTable**: Filter Dropdown
+31. [x] **DataTable**: Column Toggle
+32. [x] **DataTable**: Infinite Scroll
+33. [x] **DataTable**: Row Actions Menu
+34. [x] **DataTable**: Bulk Actions Bar
+35. [x] **DataTable**: Mobile Card View
+36. [x] **DataTable**: Table Preferences Hook (already in hooks/)
 
 ### Phase 6: Forms
-37. [ ] **Form**: Password Input + Strength
-38. [ ] **Form**: Form Sheet (slide-out)
-39. [ ] **Form**: Form Modal
+37. [x] **Form**: Password Input + Strength
+38. [x] **Form**: Form Sheet (slide-out)
+39. [x] **Form**: Form Modal
 
 ### Phase 7: Routing
-40. [ ] **Router**: TanStack Router Setup
-41. [ ] **Router**: Root Route mit Layout
-42. [ ] **Router**: Protected Route Wrapper
-43. [ ] **Router**: Error Pages (404, 403, 500)
+40. [x] **Router**: TanStack Router Setup
+41. [x] **Router**: Root Route mit Layout
+42. [x] **Router**: Protected Route Wrapper
+43. [x] **Router**: Error Pages (404, 403, 500)
 
 ### Phase 8: Polish
-44. [ ] **Print**: Print Styles für Tables
-45. [ ] **A11y**: Focus Styles, ARIA Labels
-46. [ ] **Main**: main.tsx + App.tsx updaten
+44. [x] **Print**: Print Styles für Tables
+45. [x] **A11y**: Focus Styles, ARIA Labels, Reduced Motion
+46. [x] **Main**: main.tsx updated, App.tsx removed
 47. [ ] **Standards**: task_standards_frontend.md updaten
 
 ## 10. Component Specs
@@ -719,13 +802,13 @@ Collapsed:
 ## 13. Nach Completion
 
 - [ ] Alle Components funktionieren
-- [ ] Dark Mode funktioniert
-- [ ] i18n EN + DE funktioniert
+- [x] Dark Mode funktioniert (ThemeContext erstellt)
+- [x] i18n EN + DE funktioniert (alle Locale Files erstellt)
 - [ ] Responsive funktioniert
 - [ ] Keyboard Navigation funktioniert
 - [ ] Print Styles funktionieren
 - [ ] `task_standards_frontend.md` aktualisiert
-- [ ] TypeScript keine Errors
+- [x] TypeScript keine Errors (Build passed)
 - [ ] Lint passed
 
 ---
@@ -733,15 +816,113 @@ Collapsed:
 ## Notizen
 
 - **Permission Check**: Sidebar Items werden nur gezeigt wenn User die Permission hat
-- **LocalStorage Keys**:
-  - `exoauth-theme` für Dark/Light
+- **Auth Tokens**: Werden in HTTP-only Cookies gespeichert (NICHT localStorage!)
+  - Backend setzt Cookies automatisch bei Login/Register
+  - Frontend sendet Cookies automatisch via `withCredentials: true`
+- **LocalStorage Keys** (nur für UI preferences):
+  - `exoauth-theme` für Dark/Light/System
   - `exoauth-sidebar` für Collapsed State
-  - `exoauth-language` für Sprache
-  - `exoauth-table-{id}` für Table Preferences
+  - `exoauth-sidebar-mobile` für Mobile Sheet State
+  - `exoauth-language` für Sprache (i18next)
+  - `exoauth-table-{id}` für Table Preferences (sorting, columns, pageSize)
 - **Cookie Consent**: Muss vor Analytics/Tracking gezeigt werden
 - **Session Warning**: 5 Minuten vor Ablauf zeigen
 
 ---
 
-**Letzte Änderung:** 2025-12-25
-**Status:** Ready for Implementation
+## Erstellte Dateien Übersicht
+
+### Phase 1-3 Complete (39 Files)
+
+**Core/Lib:**
+- `src/lib/axios.ts`
+
+**i18n (13 files):**
+- `src/i18n/index.ts`
+- `src/i18n/locales/en/{common,auth,navigation,users,errors,validation}.json`
+- `src/i18n/locales/de/{common,auth,navigation,users,errors,validation}.json`
+
+**Types (4 files):**
+- `src/types/{auth,api,table,index}.ts`
+
+**Hooks (6 files):**
+- `src/hooks/{use-debounce,use-local-storage,use-media-query,use-copy-to-clipboard,use-table-preferences,index}.ts`
+
+**Contexts (4 files):**
+- `src/contexts/{auth-context,theme-context,sidebar-context,index}.tsx`
+
+**Config (1 file):**
+- `src/config/navigation.ts`
+
+**App (1 file):**
+- `src/app/providers.tsx`
+
+**Layout Components (11 files):**
+- `src/components/shared/layout/{app-layout,sidebar,header,user-menu,theme-toggle,language-switcher,breadcrumbs,page-header,footer,mobile-nav,index}.tsx`
+
+### Phase 4 Complete (16 Files)
+
+**Feedback Components (7 files):**
+- `src/components/shared/feedback/{loading-spinner,empty-state,error-state,confirm-dialog,type-confirm-dialog,unsaved-warning,index}.tsx`
+
+**Utility Components (9 files):**
+- `src/components/shared/user-avatar.tsx`
+- `src/components/shared/status-badge.tsx`
+- `src/components/shared/copy-button.tsx`
+- `src/components/shared/relative-time.tsx`
+- `src/components/shared/command-menu.tsx`
+- `src/components/shared/session-warning.tsx`
+- `src/components/shared/cookie-consent.tsx`
+- `src/components/shared/help-button.tsx`
+- `src/components/shared/index.ts`
+
+### Phase 5 Complete (9 Files)
+
+**DataTable Components (9 files):**
+- `src/components/shared/data-table/data-table.tsx`
+- `src/components/shared/data-table/data-table-toolbar.tsx`
+- `src/components/shared/data-table/data-table-filters.tsx`
+- `src/components/shared/data-table/data-table-column-toggle.tsx`
+- `src/components/shared/data-table/data-table-pagination.tsx`
+- `src/components/shared/data-table/data-table-row-actions.tsx`
+- `src/components/shared/data-table/data-table-bulk-actions.tsx`
+- `src/components/shared/data-table/data-table-card.tsx`
+- `src/components/shared/data-table/index.ts`
+
+**Shadcn Components added:**
+- Table, Checkbox
+
+### Phase 6 Complete (5 Files)
+
+**Form Components (5 files):**
+- `src/components/shared/form/password-input.tsx`
+- `src/components/shared/form/password-strength.tsx`
+- `src/components/shared/form/form-sheet.tsx`
+- `src/components/shared/form/form-modal.tsx`
+- `src/components/shared/form/index.ts`
+
+### Phase 7 Complete (7 Files)
+
+**Routing (7 files):**
+- `src/app/router.tsx`
+- `src/routes/__root.tsx`
+- `src/routes/protected-route.tsx`
+- `src/routes/not-found.tsx`
+- `src/routes/forbidden.tsx`
+- `src/routes/server-error.tsx`
+- `src/routes/index.ts`
+
+**Updated:**
+- `src/main.tsx` - Added router, providers, i18n
+
+### Phase 8 Complete (Polish)
+
+**Updated files:**
+- `src/styles/globals.css` - Tailwind v4 @theme, Print Styles, A11y Focus, Reduced Motion
+- `src/App.tsx` - Removed (using RouterProvider now)
+- `src/App.css` - Removed
+
+---
+
+**Letzte Änderung:** 2025-12-26
+**Status:** In Progress (Phase 1-8 complete, only step 47 pending)

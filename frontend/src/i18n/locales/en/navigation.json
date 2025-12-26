@@ -1,0 +1,62 @@
+{
+  "sections": {
+    "navigation": "Navigation",
+    "system": "System",
+    "management": "Management",
+    "settings": "Settings"
+  },
+  "items": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "permissions": "Permissions",
+    "auditLogs": "Audit Logs",
+    "organizations": "Organizations",
+    "projects": "Projects",
+    "settings": "Settings"
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "userDetails": "User Details",
+    "createUser": "Create User",
+    "editUser": "Edit User",
+    "permissions": "Permissions",
+    "auditLogs": "Audit Logs",
+    "organizations": "Organizations",
+    "projects": "Projects",
+    "settings": "Settings"
+  },
+  "userMenu": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "signOut": "Sign Out"
+  },
+  "search": {
+    "placeholder": "Search...",
+    "hint": "Press",
+    "noResults": "No results found",
+    "recentSearches": "Recent Searches",
+    "clearRecent": "Clear recent"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "markAllRead": "Mark all as read",
+    "viewAll": "View all notifications"
+  },
+  "help": {
+    "title": "Help",
+    "documentation": "Documentation",
+    "support": "Support",
+    "feedback": "Send Feedback"
+  },
+  "sidebar": {
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "toggleMenu": "Toggle menu"
+  },
+  "language": {
+    "change": "Change language"
+  }
+}

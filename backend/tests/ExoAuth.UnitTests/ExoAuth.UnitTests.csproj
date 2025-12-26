@@ -11,18 +11,27 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Moq" Version="4.20.70" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
+    <Using Include="Moq" />
+    <Using Include="Microsoft.Extensions.Configuration" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ExoAuth.Application\ExoAuth.Application.csproj" />
     <ProjectReference Include="..\..\src\ExoAuth.Domain\ExoAuth.Domain.csproj" />
+    <ProjectReference Include="..\..\src\ExoAuth.Infrastructure\ExoAuth.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

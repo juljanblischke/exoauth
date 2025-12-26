@@ -1,0 +1,65 @@
+{
+  "title": "Benutzer",
+  "subtitle": "Systembenutzer und deren Berechtigungen verwalten",
+  "createUser": "Benutzer erstellen",
+  "inviteUser": "Benutzer einladen",
+  "editUser": "Benutzer bearbeiten",
+  "deleteUser": "Benutzer löschen",
+  "userDetails": "Benutzerdetails",
+  "fields": {
+    "name": "Name",
+    "email": "E-Mail",
+    "role": "Rolle",
+    "status": "Status",
+    "createdAt": "Erstellt",
+    "updatedAt": "Zuletzt aktualisiert",
+    "lastLogin": "Letzte Anmeldung",
+    "mfaEnabled": "2FA aktiviert",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "user": "Benutzer",
+    "viewer": "Betrachter"
+  },
+  "status": {
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "pending": "Einladung ausstehend",
+    "suspended": "Gesperrt"
+  },
+  "actions": {
+    "activate": "Aktivieren",
+    "deactivate": "Deaktivieren",
+    "suspend": "Sperren",
+    "resetPassword": "Passwort zurücksetzen",
+    "resendInvite": "Einladung erneut senden",
+    "revokeInvite": "Einladung widerrufen"
+  },
+  "messages": {
+    "createSuccess": "Benutzer erfolgreich erstellt",
+    "updateSuccess": "Benutzer erfolgreich aktualisiert",
+    "deleteSuccess": "Benutzer erfolgreich gelöscht",
+    "inviteSuccess": "Einladung erfolgreich gesendet",
+    "activateSuccess": "Benutzer erfolgreich aktiviert",
+    "deactivateSuccess": "Benutzer erfolgreich deaktiviert",
+    "suspendSuccess": "Benutzer erfolgreich gesperrt",
+    "resetPasswordSuccess": "E-Mail zum Zurücksetzen des Passworts wurde gesendet"
+  },
+  "confirmDelete": {
+    "title": "Benutzer löschen",
+    "message": "Sind Sie sicher, dass Sie {{name}} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "typeToConfirm": "Geben Sie die E-Mail des Benutzers zur Bestätigung ein"
+  },
+  "empty": {
+    "title": "Noch keine Benutzer",
+    "message": "Erstellen Sie Ihren ersten Benutzer oder laden Sie jemanden ein.",
+    "action": "Benutzer erstellen"
+  },
+  "filters": {
+    "status": "Status",
+    "role": "Rolle",
+    "all": "Alle"
+  }
+}

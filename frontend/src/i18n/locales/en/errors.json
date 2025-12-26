@@ -1,0 +1,49 @@
+{
+  "general": {
+    "title": "Something went wrong",
+    "message": "An unexpected error occurred. Please try again.",
+    "retry": "Try Again",
+    "goHome": "Go to Dashboard"
+  },
+  "network": {
+    "title": "Connection Error",
+    "message": "Unable to connect to the server. Please check your internet connection.",
+    "offline": "You are offline"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "code": "404",
+    "message": "The page you're looking for doesn't exist or has been moved.",
+    "goHome": "Go to Dashboard"
+  },
+  "forbidden": {
+    "title": "Access Denied",
+    "code": "403",
+    "message": "You don't have permission to access this resource.",
+    "goHome": "Go to Dashboard"
+  },
+  "serverError": {
+    "title": "Server Error",
+    "code": "500",
+    "message": "Something went wrong on our end. Please try again later.",
+    "goHome": "Go to Dashboard"
+  },
+  "unauthorized": {
+    "title": "Session Expired",
+    "code": "401",
+    "message": "Your session has expired. Please sign in again.",
+    "signIn": "Sign In"
+  },
+  "api": {
+    "badRequest": "Invalid request. Please check your input.",
+    "conflict": "This resource already exists.",
+    "notFound": "The requested resource was not found.",
+    "rateLimited": "Too many requests. Please wait a moment.",
+    "serverError": "Server error. Please try again later.",
+    "validationError": "Please fix the errors below.",
+    "invalidCredentials": "Invalid email or password.",
+    "emailExists": "An account with this email already exists.",
+    "tokenExpired": "Your session has expired. Please sign in again.",
+    "insufficientPermissions": "You don't have permission to perform this action."
+  }
+}

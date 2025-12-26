@@ -1,0 +1,49 @@
+{
+  "general": {
+    "title": "Etwas ist schiefgelaufen",
+    "message": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "retry": "Erneut versuchen",
+    "goHome": "Zum Dashboard"
+  },
+  "network": {
+    "title": "Verbindungsfehler",
+    "message": "Verbindung zum Server nicht möglich. Bitte überprüfen Sie Ihre Internetverbindung.",
+    "offline": "Sie sind offline"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "code": "404",
+    "message": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "goHome": "Zum Dashboard"
+  },
+  "forbidden": {
+    "title": "Zugriff verweigert",
+    "code": "403",
+    "message": "Sie haben keine Berechtigung, auf diese Ressource zuzugreifen.",
+    "goHome": "Zum Dashboard"
+  },
+  "serverError": {
+    "title": "Serverfehler",
+    "code": "500",
+    "message": "Auf unserer Seite ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
+    "goHome": "Zum Dashboard"
+  },
+  "unauthorized": {
+    "title": "Sitzung abgelaufen",
+    "code": "401",
+    "message": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+    "signIn": "Anmelden"
+  },
+  "api": {
+    "badRequest": "Ungültige Anfrage. Bitte überprüfen Sie Ihre Eingabe.",
+    "conflict": "Diese Ressource existiert bereits.",
+    "notFound": "Die angeforderte Ressource wurde nicht gefunden.",
+    "rateLimited": "Zu viele Anfragen. Bitte warten Sie einen Moment.",
+    "serverError": "Serverfehler. Bitte versuchen Sie es später erneut.",
+    "validationError": "Bitte korrigieren Sie die Fehler unten.",
+    "invalidCredentials": "Ungültige E-Mail oder Passwort.",
+    "emailExists": "Ein Konto mit dieser E-Mail existiert bereits.",
+    "tokenExpired": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+    "insufficientPermissions": "Sie haben keine Berechtigung, diese Aktion durchzuführen."
+  }
+}
