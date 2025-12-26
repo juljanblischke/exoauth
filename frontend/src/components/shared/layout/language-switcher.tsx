@@ -14,7 +14,7 @@ const languages = [
 ]
 
 export function LanguageSwitcher() {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
 
   return (
     <DropdownMenu>

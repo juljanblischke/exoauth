@@ -15,6 +15,7 @@ namespace ExoAuth.Api.Controllers;
 
 [Route("api/system/users")]
 [Authorize]
+[RateLimit]
 public sealed class SystemUsersController : ApiControllerBase
 {
     /// <summary>

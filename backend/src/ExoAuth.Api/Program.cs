@@ -5,6 +5,7 @@ using ExoAuth.Application;
 using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Infrastructure;
 using ExoAuth.Infrastructure.Persistence;
+using ExoAuth.Infrastructure.Persistence.Seeders;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -76,6 +77,10 @@ try
     {
         Log.Information("Database is up to date - no migrations to apply");
     }
+
+    // Seed system permissions
+    var permissionSeeder = scope.ServiceProvider.GetRequiredService<SystemPermissionSeeder>();
+    await permissionSeeder.SeedAsync();
 }
 catch (Exception ex)
 {

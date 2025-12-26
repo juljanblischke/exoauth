@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { formatDistanceToNow, format, parseISO } from 'date-fns'
+import { formatDistanceToNow, format, parseISO, type Locale } from 'date-fns'
 import { de, enUS } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'

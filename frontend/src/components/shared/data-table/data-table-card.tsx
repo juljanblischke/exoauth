@@ -25,6 +25,7 @@ interface DataTableCardProps<TData> {
   actions?: RowAction<TData>[]
   isSelected?: boolean
   onSelect?: () => void
+  onClick?: () => void
 }
 
 export function DataTableCard<TData>({
@@ -36,6 +37,7 @@ export function DataTableCard<TData>({
   actions = [],
   isSelected = false,
   onSelect,
+  onClick,
 }: DataTableCardProps<TData>) {
   const primaryValue = String(data[primaryField] ?? '')
   const secondaryValue = secondaryField ? String(data[secondaryField] ?? '') : undefined
@@ -51,8 +53,13 @@ export function DataTableCard<TData>({
     <div
       className={cn(
         'rounded-lg border bg-card p-4 shadow-sm transition-colors',
-        isSelected && 'border-primary bg-primary/5'
+        isSelected && 'border-primary bg-primary/5',
+        onClick && 'cursor-pointer hover:bg-muted/50 active:bg-muted'
       )}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => e.key === 'Enter' && onClick() : undefined}
     >
       <div className="flex items-start gap-3">
         {onSelect && (
@@ -63,30 +70,38 @@ export function DataTableCard<TData>({
           />
         )}
 
-        {avatar && (
-          <UserAvatar
-            name={avatar.name}
-            email={avatar.email}
-            imageUrl={avatar.imageUrl}
-            size="md"
-          />
-        )}
-
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="font-medium truncate">{primaryValue}</p>
-              {secondaryValue && (
-                <p className="text-sm text-muted-foreground truncate">
-                  {secondaryValue}
-                </p>
+              {(secondaryValue || avatar) && (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  {avatar && (
+                    <UserAvatar
+                      name={avatar.name}
+                      email={avatar.email}
+                      imageUrl={avatar.imageUrl}
+                      size="sm"
+                    />
+                  )}
+                  {secondaryValue && (
+                    <p className="text-sm text-muted-foreground truncate">
+                      {secondaryValue}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
 
             {visibleActions.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <MoreHorizontal className="h-4 w-4" />
                     <span className="sr-only">Open menu</span>
                   </Button>
@@ -102,7 +117,10 @@ export function DataTableCard<TData>({
                       <div key={action.label}>
                         {action.separator && index > 0 && <DropdownMenuSeparator />}
                         <DropdownMenuItem
-                          onClick={() => action.onClick(data)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            action.onClick(data)
+                          }}
                           disabled={isDisabled}
                           className={cn(
                             action.variant === 'destructive' &&

@@ -3,6 +3,17 @@
     "name": "ExoAuth",
     "copyright": "All rights reserved."
   },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {{name}}!",
+    "welcomeGeneric": "Welcome back!",
+    "stats": {
+      "totalUsers": "Total Users",
+      "activeSessions": "Active Sessions",
+      "organizations": "Organizations",
+      "projects": "Projects"
+    }
+  },
   "actions": {
     "save": "Save",
     "cancel": "Cancel",
@@ -55,6 +66,8 @@
     "noData": "No data available",
     "loading": "Loading data...",
     "selected": "{{count}} selected",
+    "totalRows": "{{count}} row",
+    "totalRows_other": "{{count}} rows",
     "selectAll": "Select all",
     "selectRow": "Select row",
     "rowsPerPage": "Rows per page",
@@ -123,5 +136,15 @@
     "documentation": "Documentation",
     "support": "Contact Support",
     "feedback": "Send Feedback"
+  },
+  "filters": {
+    "dateRange": "Date Range"
+  },
+  "unsavedChanges": {
+    "title": "Unsaved Changes",
+    "description": "You have unsaved changes. Are you sure you want to leave? Your changes will be lost.",
+    "continueEditing": "Continue Editing",
+    "discard": "Discard Changes",
+    "save": "Save Changes"
   }
 }

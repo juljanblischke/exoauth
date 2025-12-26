@@ -917,7 +917,161 @@ await _messageBus.PublishAsync(new SendEmailMessage(
 | `system.token.refreshed` | Token erneuert | userId |
 | `system.login.blocked` | User wegen zu vieler Versuche blockiert | email, attempts |
 
-## 15. Nach Completion
+## 15. Force Re-Auth on Permission Change
+
+### Warum?
+
+Wenn Permissions geändert werden, hat der User noch bis zu 15 Minuten Zugriff mit alten Permissions (Access Token Lifetime). Das ist ein Sicherheitsrisiko.
+
+**Lösung:** Force Re-Auth Flag in Redis → User wird sofort ausgeloggt.
+
+### Flow
+
+```
+1. Admin ändert User Permissions
+   → Permissions in DB aktualisiert
+   → Permission Cache invalidiert
+   → Redis: SET user:force-reauth:{userId} "1" (TTL: 15 min)
+   → Alle Refresh Tokens revoked + blacklisted
+
+2. User macht nächsten Request (sofort)
+   → Middleware checkt: EXISTS user:force-reauth:{userId}?
+   → Key existiert → 401 Unauthorized
+
+3. User versucht Refresh
+   → Refresh Token revoked → 401
+
+4. User muss neu einloggen
+   → Bei erfolgreichem Login: DEL user:force-reauth:{userId}
+   → Neue Permissions aus DB
+   → Alles gut ✅
+```
+
+### Redis Keys
+
+| Key | Wert | TTL | Zweck |
+|-----|------|-----|-------|
+| `user:force-reauth:{userId}` | `"1"` | 15 min | Erzwingt Re-Login nach Permission-Änderung |
+
+### Files zu erstellen
+
+| Datei | Pfad | Beschreibung |
+|-------|------|--------------|
+| IForceReauthService.cs | `src/ExoAuth.Application/Common/Interfaces/IForceReauthService.cs` | Interface |
+| ForceReauthService.cs | `src/ExoAuth.Infrastructure/Services/ForceReauthService.cs` | Redis Implementation |
+| ForceReauthMiddleware.cs | `src/ExoAuth.Api/Middleware/ForceReauthMiddleware.cs` | Middleware für Check |
+
+### Files zu ändern
+
+| Datei | Was ändern? |
+|-------|-------------|
+| `UpdateSystemUserPermissionsHandler.cs` | Force-Reauth setzen + Refresh Tokens revoken |
+| `LoginHandler.cs` | Force-Reauth Key löschen bei erfolgreichem Login |
+| `DependencyInjection.cs` | ForceReauthService registrieren |
+| `Program.cs` | ForceReauthMiddleware hinzufügen |
+
+### Warum kein Version Counter?
+
+| Approach | Problem |
+|----------|---------|
+| Version Counter im JWT | Wächst ewig (1, 2, 3... 923232), muss in JWT gespeichert werden |
+| Timestamp Vergleich | Edge Cases, Zeitzone-Probleme |
+| **Force-Reauth Flag** | ✅ Simpel, selbst-löschend (TTL), kein State im JWT nötig |
+
+### Skalierung
+
+- Key existiert nur wenn Permission geändert wurde (nicht für alle User)
+- Redis `EXISTS` = O(1), ~0.1ms
+- Auto-Cleanup via TTL (15 min)
+- 100.000 Users, 5 Permission-Änderungen = 5 Keys
+
+### Implementation Reihenfolge
+
+1. [ ] **Interface**: IForceReauthService erstellen
+2. [ ] **Service**: ForceReauthService implementieren
+3. [ ] **Middleware**: ForceReauthMiddleware erstellen
+4. [ ] **Handler**: UpdateSystemUserPermissionsHandler updaten (set flag + revoke tokens)
+5. [ ] **Handler**: LoginHandler updaten (clear flag on login)
+6. [ ] **DI**: Service registrieren
+7. [ ] **Program.cs**: Middleware hinzufügen
+8. [ ] **Tests**: Unit Tests schreiben
+
+---
+
+## 16. Error Audit Logging
+
+### Warum?
+
+Für Security Auditing müssen nicht nur erfolgreiche Aktionen, sondern auch Fehler/Zugriffsverweigerungen geloggt werden.
+
+### Was wird geloggt?
+
+| Error Type | HTTP Status | Log to AuditLog? | Warum |
+|------------|-------------|------------------|-------|
+| Failed Login | 401 | ✅ Bereits implementiert | Brute Force Detection |
+| Forbidden | 403 | ✅ Ja | Unauthorized Access Attempts |
+| Internal Error | 500 | ✅ Ja | System Health Monitoring |
+| Validation | 400 | ❌ Nein | Zu noisy, User-Fehler |
+| Not Found | 404 | ❌ Nein | Zu noisy, nicht security-relevant |
+| Unauthorized | 401 | ⚠️ Nur bei Force-Reauth | Normale Token-Expiry ist zu noisy |
+
+### Neue Audit Actions
+
+| Action | Wann | Details |
+|--------|------|---------|
+| `system.access.forbidden` | 403 Response | userId, endpoint, requiredPermission, ipAddress |
+| `system.error.internal` | 500 Response | endpoint, errorType, requestId, ipAddress |
+| `system.access.forced_reauth` | Force-Reauth 401 | userId, endpoint, ipAddress |
+
+### Files zu ändern
+
+| Datei | Was ändern? |
+|-------|-------------|
+| `ExceptionMiddleware.cs` | AuditService injecten, bei 403/500 loggen |
+| `ForceReauthMiddleware.cs` | Bei Force-Reauth 401 loggen |
+| `AuditActions.cs` | Neue Action Constants hinzufügen |
+
+### Implementation
+
+```csharp
+// In ExceptionMiddleware - bei 403:
+await _auditService.LogAsync(
+    AuditActions.AccessForbidden,
+    userId,        // aus JWT falls vorhanden
+    null,
+    null,
+    new {
+        Endpoint = context.Request.Path,
+        RequiredPermission = ...,
+        IpAddress = GetIpAddress(context)
+    }
+);
+
+// Bei 500:
+await _auditService.LogAsync(
+    AuditActions.InternalError,
+    userId,
+    null,
+    null,
+    new {
+        Endpoint = context.Request.Path,
+        ErrorType = exception.GetType().Name,
+        RequestId = context.TraceIdentifier,
+        IpAddress = GetIpAddress(context)
+    }
+);
+```
+
+### Implementation Reihenfolge
+
+1. [ ] **Constants**: Neue AuditActions hinzufügen
+2. [ ] **Middleware**: ExceptionMiddleware updaten (inject AuditService)
+3. [ ] **Middleware**: ForceReauthMiddleware mit Audit Logging
+4. [ ] **Tests**: Unit Tests für Audit Logging
+
+---
+
+## 17. Nach Completion
 
 - [ ] Alle Tests grün
 - [ ] `task_standards_backend.md` aktualisiert (neue Files, Packages, File Tree)
@@ -944,8 +1098,10 @@ await _messageBus.PublishAsync(new SendEmailMessage(
 - **Token Blacklist**: Revoked Refresh Tokens in Redis für schnelle Prüfung
 - **Graceful Degradation**: Bei Redis-Ausfall Fallback auf DB
 - **Email Templates**: EN + DE, simple `{{variable}}` replacement, via RabbitMQ
+- **Force Re-Auth**: Bei Permission-Änderung sofortige Invalidierung via Redis Flag (Section 15)
+- **Error Audit Logging**: 403/500 Errors werden in SystemAuditLog geloggt für Security Auditing (Section 16)
 
 ---
 
 **Letzte Änderung:** 2025-12-26
-**Status:** In Progress (Unit Tests ✅ 106 Tests, Integration Tests pending)
+**Status:** In Progress (Unit Tests ✅ 106 Tests, Force Re-Auth pending, Error Audit Logging pending, Integration Tests pending)

@@ -6,11 +6,15 @@
   "editUser": "Edit User",
   "deleteUser": "Delete User",
   "userDetails": "User Details",
+  "search": {
+    "placeholder": "Search users..."
+  },
   "fields": {
     "name": "Name",
     "email": "Email",
     "role": "Role",
     "status": "Status",
+    "emailVerified": "Email Verified",
     "createdAt": "Created",
     "updatedAt": "Last Updated",
     "lastLogin": "Last Login",
@@ -29,13 +33,27 @@
     "pending": "Pending Invite",
     "suspended": "Suspended"
   },
+  "emailVerified": {
+    "verified": "Verified",
+    "pending": "Pending"
+  },
   "actions": {
     "activate": "Activate",
     "deactivate": "Deactivate",
     "suspend": "Suspend",
     "resetPassword": "Reset Password",
     "resendInvite": "Resend Invite",
-    "revokeInvite": "Revoke Invite"
+    "revokeInvite": "Revoke Invite",
+    "permissions": "Permissions"
+  },
+  "invite": {
+    "description": "Send an invitation to join the team",
+    "submit": "Send Invitation"
+  },
+  "permissions": {
+    "title": "Manage Permissions",
+    "success": "Permissions updated successfully",
+    "none": "No permissions assigned"
   },
   "messages": {
     "createSuccess": "User created successfully",

@@ -32,7 +32,7 @@ export function DataTableRowActions<TData>({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
         <Button
           variant="ghost"
           className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
@@ -41,7 +41,7 @@ export function DataTableRowActions<TData>({
           <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[160px]">
+      <DropdownMenuContent align="end" className="w-[160px]" onClick={(e) => e.stopPropagation()}>
         {visibleActions.map((action, index) => {
           const isDisabled =
             typeof action.disabled === 'function'

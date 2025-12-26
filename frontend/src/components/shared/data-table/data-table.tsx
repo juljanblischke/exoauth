@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -42,6 +42,7 @@ interface DataTableProps<TData, TValue> {
   filters?: TableFilter[]
   activeFilters?: ActiveFilter[]
   onFilterChange?: (filters: ActiveFilter[]) => void
+  toolbarContent?: React.ReactNode
   emptyState?: {
     title: string
     description?: string
@@ -66,6 +67,7 @@ interface DataTableProps<TData, TValue> {
   initialColumnVisibility?: VisibilityState
   onSortingChange?: (sorting: SortingState) => void
   onColumnVisibilityChange?: (visibility: VisibilityState) => void
+  onRowClick?: (row: TData) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -81,20 +83,26 @@ export function DataTable<TData, TValue>({
   filters,
   activeFilters = [],
   onFilterChange,
+  toolbarContent,
   emptyState,
   enableRowSelection = false,
   onRowSelectionChange,
   bulkActions = [],
   rowActions = [],
   mobileCard,
-  tableId,
+  // tableId reserved for future table preferences feature
+  tableId: _tableId,
   initialSorting = [],
   initialColumnVisibility = {},
   onSortingChange,
   onColumnVisibilityChange,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation('common')
   const isMobile = useMediaQuery('(max-width: 768px)')
+
+  // Silence unused variable warning - tableId reserved for future table preferences
+  void _tableId
   const [sorting, setSorting] = useState<SortingState>(initialSorting)
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(initialColumnVisibility)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
@@ -127,11 +135,14 @@ export function DataTable<TData, TValue>({
     ? [selectionColumn, ...columns]
     : columns
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    enableMultiSort: true,
+    enableSortingRemoval: true,
     onSortingChange: (updater) => {
       const newSorting = typeof updater === 'function' ? updater(sorting) : updater
       setSorting(newSorting)
@@ -153,9 +164,16 @@ export function DataTable<TData, TValue>({
 
   const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original)
 
+  // Use ref to store callback to avoid stale closures and infinite loops
+  const onRowSelectionChangeRef = useRef(onRowSelectionChange)
   useEffect(() => {
-    onRowSelectionChange?.(selectedRows)
-  }, [rowSelection])
+    onRowSelectionChangeRef.current = onRowSelectionChange
+  }, [onRowSelectionChange])
+
+  useEffect(() => {
+    const rows = table.getFilteredSelectedRowModel().rows.map((row) => row.original)
+    onRowSelectionChangeRef.current?.(rows)
+  }, [rowSelection, table])
 
   const clearSelection = () => {
     setRowSelection({})
@@ -172,6 +190,7 @@ export function DataTable<TData, TValue>({
           activeFilters={activeFilters}
           onFilterChange={onFilterChange}
           table={table}
+          content={toolbarContent}
         />
 
         {isLoading ? (
@@ -212,6 +231,7 @@ export function DataTable<TData, TValue>({
                       }
                     : undefined
                 }
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
               />
             ))}
           </div>
@@ -245,6 +265,7 @@ export function DataTable<TData, TValue>({
         activeFilters={activeFilters}
         onFilterChange={onFilterChange}
         table={table}
+        content={toolbarContent}
       />
 
       <div className="rounded-md border">
@@ -256,10 +277,6 @@ export function DataTable<TData, TValue>({
                   <TableHead
                     key={header.id}
                     style={{ width: header.getSize() }}
-                    className={cn(
-                      header.column.getCanSort() && 'cursor-pointer select-none'
-                    )}
-                    onClick={header.column.getToggleSortingHandler()}
                   >
                     {header.isPlaceholder
                       ? null
@@ -309,8 +326,10 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                   className={cn(
-                    row.getIsSelected() && 'bg-muted/50'
+                    row.getIsSelected() && 'bg-muted/50',
+                    onRowClick && 'cursor-pointer hover:bg-muted/50'
                   )}
+                  onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

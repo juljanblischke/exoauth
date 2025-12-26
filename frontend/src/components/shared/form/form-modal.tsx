@@ -55,10 +55,13 @@ export function FormModal({
 }: FormModalProps) {
   const { t } = useTranslation('common')
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false)
+  const [modalHiddenForWarning, setModalHiddenForWarning] = useState(false)
 
   const handleOpenChange = useCallback(
     (isOpen: boolean) => {
       if (!isOpen && isDirty) {
+        // Hide modal and show warning
+        setModalHiddenForWarning(true)
         setShowUnsavedWarning(true)
       } else {
         onOpenChange(isOpen)
@@ -69,12 +72,20 @@ export function FormModal({
 
   const handleDiscard = useCallback(() => {
     setShowUnsavedWarning(false)
+    setModalHiddenForWarning(false)
     onOpenChange(false)
     onCancel?.()
   }, [onOpenChange, onCancel])
 
+  const handleContinueEditing = useCallback(() => {
+    // Close warning and reopen modal
+    setShowUnsavedWarning(false)
+    setModalHiddenForWarning(false)
+  }, [])
+
   const handleCancel = useCallback(() => {
     if (isDirty) {
+      setModalHiddenForWarning(true)
       setShowUnsavedWarning(true)
     } else {
       onOpenChange(false)
@@ -90,7 +101,11 @@ export function FormModal({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className={cn(sizeClasses[size], className)}>
+        <DialogContent
+          className={cn(sizeClasses[size], className)}
+          hideOverlay={modalHiddenForWarning}
+          style={modalHiddenForWarning ? { opacity: 0, pointerEvents: 'none' } : undefined}
+        >
           <form onSubmit={handleSubmit}>
             <DialogHeader>
               <DialogTitle>{title}</DialogTitle>
@@ -102,7 +117,7 @@ export function FormModal({
             <div className="py-4">{children}</div>
 
             {showFooter && (
-              <DialogFooter className="gap-2 sm:gap-0">
+              <DialogFooter className="gap-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -125,7 +140,7 @@ export function FormModal({
       <UnsavedWarning
         hasUnsavedChanges={isDirty}
         open={showUnsavedWarning}
-        onOpenChange={setShowUnsavedWarning}
+        onOpenChange={handleContinueEditing}
         onDiscard={handleDiscard}
       />
     </>

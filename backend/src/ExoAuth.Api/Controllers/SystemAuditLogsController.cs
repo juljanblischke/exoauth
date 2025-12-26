@@ -11,6 +11,7 @@ namespace ExoAuth.Api.Controllers;
 
 [Route("api/system/audit-logs")]
 [Authorize]
+[RateLimit]
 public sealed class SystemAuditLogsController : ApiControllerBase
 {
     /// <summary>

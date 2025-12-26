@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { useTranslation } from 'react-i18next'
 import { Loader2 } from 'lucide-react'
@@ -25,30 +25,42 @@ export function DataTablePagination({
     rootMargin: '100px',
   })
 
+  // Store latest callback in ref to avoid stale closures
   const loadMoreRef = useRef(onLoadMore)
-  loadMoreRef.current = onLoadMore
+  useEffect(() => {
+    loadMoreRef.current = onLoadMore
+  }, [onLoadMore])
+
+  // Stable callback that uses the ref
+  const handleLoadMore = useCallback(() => {
+    loadMoreRef.current?.()
+  }, [])
 
   useEffect(() => {
-    if (inView && hasMore && !isLoading && loadMoreRef.current) {
-      loadMoreRef.current()
+    if (inView && hasMore && !isLoading) {
+      handleLoadMore()
     }
-  }, [inView, hasMore, isLoading])
+  }, [inView, hasMore, isLoading, handleLoadMore])
+
+  const showInfo = totalSelected > 0 || totalRows > 0
+
+  if (!showInfo && !hasMore) {
+    return null
+  }
 
   return (
-    <div className="flex items-center justify-between px-2 py-4">
-      <div className="flex-1 text-sm text-muted-foreground">
-        {totalSelected > 0 ? (
-          <span>
-            {t('table.selected', { count: totalSelected })}
-          </span>
-        ) : totalRows > 0 ? (
-          <span>
-            {totalRows} {totalRows === 1 ? 'row' : 'rows'}
-          </span>
-        ) : null}
-      </div>
+    <div className="border-t">
+      <div className="flex items-center justify-center gap-4 px-4 py-3">
+        {showInfo && (
+          <div className="text-sm text-muted-foreground">
+            {totalSelected > 0 ? (
+              <span>{t('table.selected', { count: totalSelected })}</span>
+            ) : (
+              <span>{t('table.totalRows', { count: totalRows })}</span>
+            )}
+          </div>
+        )}
 
-      <div className="flex items-center gap-2">
         {hasMore && (
           <div ref={ref} className="flex items-center gap-2">
             {isLoading ? (

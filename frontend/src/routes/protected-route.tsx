@@ -16,7 +16,7 @@ export function ProtectedRoute({
   requiredPermissions = [],
   requireAll = false,
 }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, hasPermission, hasAnyPermission, hasAllPermissions } = useAuth()
+  const { isAuthenticated, isLoading, hasAnyPermission, hasAllPermissions } = useAuth()
   const navigate = useNavigate()
 
   const permissions = requiredPermission

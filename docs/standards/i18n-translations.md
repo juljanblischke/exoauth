@@ -14,6 +14,7 @@ frontend/src/i18n/
     │   ├── auth.json           # Authentication
     │   ├── navigation.json     # Navigation & menus
     │   ├── users.json          # User management
+    │   ├── auditLogs.json      # Audit logs
     │   ├── errors.json         # Error messages
     │   └── validation.json     # Form validation
     └── de/
@@ -21,6 +22,7 @@ frontend/src/i18n/
         ├── auth.json
         ├── navigation.json
         ├── users.json
+        ├── auditLogs.json
         ├── errors.json
         └── validation.json
 ```
@@ -35,6 +37,13 @@ frontend/src/i18n/
 |-----|----|----|
 | `app.name` | ExoAuth | ExoAuth |
 | `app.copyright` | All rights reserved. | Alle Rechte vorbehalten. |
+| `dashboard.title` | Dashboard | Dashboard |
+| `dashboard.welcome` | Welcome back, {{name}}! | Willkommen zurück, {{name}}! |
+| `dashboard.welcomeGeneric` | Welcome back! | Willkommen zurück! |
+| `dashboard.stats.totalUsers` | Total Users | Gesamtbenutzer |
+| `dashboard.stats.activeSessions` | Active Sessions | Aktive Sitzungen |
+| `dashboard.stats.organizations` | Organizations | Organisationen |
+| `dashboard.stats.projects` | Projects | Projekte |
 | `actions.save` | Save | Speichern |
 | `actions.cancel` | Cancel | Abbrechen |
 | `actions.delete` | Delete | Löschen |
@@ -80,6 +89,7 @@ frontend/src/i18n/
 | `table.noData` | No data available | Keine Daten vorhanden |
 | `table.loading` | Loading data... | Daten werden geladen... |
 | `table.selected` | {{count}} selected | {{count}} ausgewählt |
+| `table.totalRows` | {{count}} row(s) | {{count}} Zeile(n) |
 | `table.selectAll` | Select all | Alle auswählen |
 | `table.selectRow` | Select row | Zeile auswählen |
 | `table.rowsPerPage` | Rows per page | Zeilen pro Seite |
@@ -122,6 +132,12 @@ frontend/src/i18n/
 | `help.documentation` | Documentation | Dokumentation |
 | `help.support` | Contact Support | Support kontaktieren |
 | `help.feedback` | Send Feedback | Feedback senden |
+| `unsavedChanges.title` | Unsaved Changes | Ungespeicherte Änderungen |
+| `unsavedChanges.description` | You have unsaved changes. Are you sure you want to leave? Your changes will be lost. | Sie haben ungespeicherte Änderungen. Möchten Sie wirklich verlassen? Ihre Änderungen gehen verloren. |
+| `unsavedChanges.continueEditing` | Continue Editing | Weiter bearbeiten |
+| `unsavedChanges.discard` | Discard Changes | Änderungen verwerfen |
+| `unsavedChanges.save` | Save Changes | Änderungen speichern |
+| `filters.dateRange` | Date Range | Zeitraum |
 
 ---
 
@@ -140,13 +156,19 @@ frontend/src/i18n/
 | `login.noAccount` | Don't have an account? | Noch kein Konto? |
 | `login.register` | Register | Registrieren |
 | `register.title` | Create Account | Konto erstellen |
+| `register.subtitle` | Enter your details to create a new account | Geben Sie Ihre Daten ein, um ein neues Konto zu erstellen |
+| `register.firstName` | First name | Vorname |
+| `register.lastName` | Last name | Nachname |
 | `register.name` | Full Name | Vollständiger Name |
 | `register.confirmPassword` | Confirm Password | Passwort bestätigen |
 | `register.createAccount` | Create Account | Konto erstellen |
+| `register.creating` | Creating account... | Wird erstellt... |
 | `register.hasAccount` | Already have an account? | Bereits ein Konto? |
 | `invite.title` | Accept Invitation | Einladung annehmen |
 | `invite.subtitle` | You've been invited to join {{organization}} | Sie wurden eingeladen, {{organization}} beizutreten |
+| `invite.setPassword` | Set your password to complete registration | Legen Sie Ihr Passwort fest, um die Registrierung abzuschließen |
 | `invite.accept` | Accept Invitation | Einladung annehmen |
+| `invite.accepting` | Accepting... | Wird angenommen... |
 | `invite.expired` | This invitation has expired | Diese Einladung ist abgelaufen |
 | `invite.invalid` | This invitation is invalid | Diese Einladung ist ungültig |
 | `forgotPassword.title` | Forgot Password | Passwort vergessen |
@@ -167,6 +189,12 @@ frontend/src/i18n/
 | `mfa.code` | Verification Code | Verifizierungscode |
 | `mfa.verify` | Verify | Verifizieren |
 | `mfa.useBackupCode` | Use backup code | Backup-Code verwenden |
+| `password.requirements` | Password requirements | Passwortanforderungen |
+| `password.minLength` | At least 12 characters | Mindestens 12 Zeichen |
+| `password.uppercase` | One uppercase letter | Ein Großbuchstabe |
+| `password.lowercase` | One lowercase letter | Ein Kleinbuchstabe |
+| `password.digit` | One number | Eine Zahl |
+| `password.special` | One special character | Ein Sonderzeichen |
 
 ---
 
@@ -224,6 +252,7 @@ frontend/src/i18n/
 | `fields.email` | Email | E-Mail |
 | `fields.role` | Role | Rolle |
 | `fields.status` | Status | Status |
+| `fields.emailVerified` | Email Verified | E-Mail verifiziert |
 | `fields.createdAt` | Created | Erstellt |
 | `fields.updatedAt` | Last Updated | Zuletzt aktualisiert |
 | `fields.lastLogin` | Last Login | Letzte Anmeldung |
@@ -235,6 +264,15 @@ frontend/src/i18n/
 | `status.inactive` | Inactive | Inaktiv |
 | `status.pending` | Pending Invite | Einladung ausstehend |
 | `status.suspended` | Suspended | Gesperrt |
+| `emailVerified.verified` | Verified | Verifiziert |
+| `emailVerified.pending` | Pending | Ausstehend |
+| `search.placeholder` | Search users... | Benutzer suchen... |
+| `invite.description` | Send an invitation to join the team | Senden Sie eine Einladung zum Team |
+| `invite.submit` | Send Invitation | Einladung senden |
+| `permissions.title` | Manage Permissions | Berechtigungen verwalten |
+| `permissions.success` | Permissions updated successfully | Berechtigungen erfolgreich aktualisiert |
+| `permissions.none` | No permissions assigned | Keine Berechtigungen zugewiesen |
+| `actions.permissions` | Permissions | Berechtigungen |
 | `actions.activate` | Activate | Aktivieren |
 | `actions.deactivate` | Deactivate | Deaktivieren |
 | `actions.suspend` | Suspend | Sperren |
@@ -254,7 +292,61 @@ frontend/src/i18n/
 
 ---
 
+### auditLogs.json
+
+| Key | EN | DE |
+|-----|----|----|
+| `title` | Audit Logs | Audit-Protokolle |
+| `subtitle` | View system activity and security events | Systemaktivitäten und Sicherheitsereignisse anzeigen |
+| `fields.time` | Time | Zeit |
+| `fields.user` | User | Benutzer |
+| `fields.action` | Action | Aktion |
+| `fields.entity` | Entity | Entität |
+| `fields.ipAddress` | IP Address | IP-Adresse |
+| `fields.userAgent` | User Agent | User Agent |
+| `fields.details` | Details | Details |
+| `filters.action` | Action | Aktion |
+| `filters.user` | User | Benutzer |
+| `filters.dateRange` | Date Range | Zeitraum |
+| `filters.entityType` | Entity Type | Entitätstyp |
+| `details.title` | Audit Log Details | Audit-Protokoll Details |
+| `details.description` | View detailed information about this event | Detaillierte Informationen zu diesem Ereignis anzeigen |
+| `details.type` | Type | Typ |
+| `system` | System | System |
+| `empty.title` | No audit logs yet | Noch keine Audit-Protokolle |
+| `empty.description` | Audit logs will appear here as system activity occurs | Audit-Protokolle werden hier angezeigt, sobald Systemaktivitäten auftreten |
+
+---
+
 ### errors.json
+
+#### Error Codes (Backend API Errors)
+
+| Key | EN | DE |
+|-----|----|----|
+| `codes.UNKNOWN_ERROR` | An unknown error occurred. Please try again. | Ein unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut. |
+| `codes.RATE_LIMIT_EXCEEDED` | Too many requests. Please slow down. | Zu viele Anfragen. Bitte langsamer. |
+| `codes.AUTH_INVALID_CREDENTIALS` | Invalid email or password | Ungültige E-Mail oder Passwort |
+| `codes.AUTH_USER_INACTIVE` | User account is inactive | Benutzerkonto ist deaktiviert |
+| `codes.AUTH_TOKEN_EXPIRED` | Session expired | Sitzung abgelaufen |
+| `codes.AUTH_REFRESH_TOKEN_INVALID` | Session invalid | Sitzung ungültig |
+| `codes.AUTH_REGISTRATION_CLOSED` | Registration closed. Please contact an administrator. | Registrierung geschlossen. Kontaktieren Sie einen Administrator. |
+| `codes.AUTH_EMAIL_EXISTS` | Email is already in use | E-Mail wird bereits verwendet |
+| `codes.AUTH_PASSWORD_TOO_WEAK` | Password does not meet requirements | Passwort erfüllt die Anforderungen nicht |
+| `codes.AUTH_TOO_MANY_ATTEMPTS` | Too many attempts. Please wait 15 minutes. | Zu viele Versuche. Bitte 15 Minuten warten. |
+| `codes.AUTH_INVITE_EXPIRED` | Invitation expired. Please request a new one. | Einladung abgelaufen. Bitte neue anfordern. |
+| `codes.AUTH_INVITE_INVALID` | Invalid invitation link | Ungültiger Einladungslink |
+| `codes.SYSTEM_USER_NOT_FOUND` | User not found | Benutzer nicht gefunden |
+| `codes.SYSTEM_PERMISSION_NOT_FOUND` | Permission not found | Berechtigung nicht gefunden |
+| `codes.SYSTEM_LAST_PERMISSION_HOLDER` | Cannot remove - last user with this permission | Kann nicht entfernen - letzter Benutzer mit dieser Berechtigung |
+| `codes.SYSTEM_CANNOT_DELETE_SELF` | Cannot delete yourself | Kann sich selbst nicht löschen |
+| `codes.SYSTEM_FORBIDDEN` | No permission for this action | Keine Berechtigung für diese Aktion |
+| `codes.VALIDATION_REQUIRED` | This field is required | Dieses Feld ist erforderlich |
+| `codes.VALIDATION_INVALID_FORMAT` | Invalid format | Ungültiges Format |
+| `codes.VALIDATION_MIN_LENGTH` | Minimum {{min}} characters required | Mindestens {{min}} Zeichen erforderlich |
+| `codes.VALIDATION_MAX_LENGTH` | Maximum {{max}} characters allowed | Maximal {{max}} Zeichen erlaubt |
+
+#### General Errors
 
 | Key | EN | DE |
 |-----|----|----|

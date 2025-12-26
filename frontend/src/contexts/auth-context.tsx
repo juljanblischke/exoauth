@@ -1,8 +1,10 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useContext,
   useCallback,
   useMemo,
+  useEffect,
   type ReactNode,
 } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -31,6 +33,17 @@ interface AuthContextValue extends AuthState {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 const AUTH_QUERY_KEY = ['auth', 'me'] as const
+const AUTH_SESSION_KEY = 'exoauth_has_session'
+
+// Check if user might have a session (logged in before)
+const hasSession = () => localStorage.getItem(AUTH_SESSION_KEY) === 'true'
+const setSession = (value: boolean) => {
+  if (value) {
+    localStorage.setItem(AUTH_SESSION_KEY, 'true')
+  } else {
+    localStorage.removeItem(AUTH_SESSION_KEY)
+  }
+}
 
 interface AuthProviderProps {
   children: ReactNode
@@ -39,16 +52,45 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const queryClient = useQueryClient()
 
-  // Fetch current user
+  // Listen for session expired events from axios interceptor
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      console.log('[Auth] Session expired event received, clearing user data')
+      queryClient.setQueryData(AUTH_QUERY_KEY, null)
+      queryClient.clear()
+    }
+
+    window.addEventListener('auth:session-expired', handleSessionExpired)
+    return () => {
+      window.removeEventListener('auth:session-expired', handleSessionExpired)
+    }
+  }, [queryClient])
+
+  // Fetch current user - only if we might have a session
   const {
     data: user,
     isLoading,
     refetch: refetchUser,
   } = useQuery({
     queryKey: AUTH_QUERY_KEY,
-    queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<User>>('/auth/me')
-      return extractData(response)
+    queryFn: async (): Promise<User | null> => {
+      // Skip API call if user never logged in
+      if (!hasSession()) {
+        console.log('[Auth] No session flag, skipping /auth/me')
+        return null
+      }
+      try {
+        console.log('[Auth] Fetching /auth/me...')
+        const response = await apiClient.get<ApiResponse<User>>('/auth/me')
+        const user = extractData(response)
+        console.log('[Auth] /auth/me success:', user.email)
+        return user
+      } catch (error) {
+        // Session expired or invalid - clear the flag
+        console.error('[Auth] /auth/me failed:', error)
+        setSession(false)
+        return null
+      }
     },
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -64,6 +106,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return extractData(response)
     },
     onSuccess: (data) => {
+      setSession(true)
       queryClient.setQueryData(AUTH_QUERY_KEY, data.user)
     },
   })
@@ -78,6 +121,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return extractData(response)
     },
     onSuccess: (data) => {
+      setSession(true)
       queryClient.setQueryData(AUTH_QUERY_KEY, data.user)
     },
   })
@@ -90,6 +134,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return extractData(response)
     },
     onSuccess: () => {
+      setSession(false)
       queryClient.setQueryData(AUTH_QUERY_KEY, null)
       queryClient.clear()
     },
@@ -125,7 +170,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!user?.permissions) return false
       return user.permissions.includes(permission)
     },
-    [user?.permissions]
+    [user]
   )
 
   const hasAnyPermission = useCallback(
@@ -133,7 +178,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!user?.permissions) return false
       return permissions.some((p) => user.permissions.includes(p))
     },
-    [user?.permissions]
+    [user]
   )
 
   const hasAllPermissions = useCallback(
@@ -141,7 +186,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!user?.permissions) return false
       return permissions.every((p) => user.permissions.includes(p))
     },
-    [user?.permissions]
+    [user]
   )
 
   const value = useMemo<AuthContextValue>(

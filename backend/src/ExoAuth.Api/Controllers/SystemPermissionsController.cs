@@ -9,6 +9,7 @@ namespace ExoAuth.Api.Controllers;
 
 [Route("api/system/permissions")]
 [Authorize]
+[RateLimit]
 public sealed class SystemPermissionsController : ApiControllerBase
 {
     /// <summary>

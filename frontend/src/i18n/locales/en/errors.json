@@ -1,4 +1,27 @@
 {
+  "codes": {
+    "UNKNOWN_ERROR": "An unknown error occurred. Please try again.",
+    "RATE_LIMIT_EXCEEDED": "Too many requests. Please slow down.",
+    "AUTH_INVALID_CREDENTIALS": "Invalid email or password",
+    "AUTH_USER_INACTIVE": "User account is inactive",
+    "AUTH_TOKEN_EXPIRED": "Session expired",
+    "AUTH_REFRESH_TOKEN_INVALID": "Session invalid",
+    "AUTH_REGISTRATION_CLOSED": "Registration closed. Please contact an administrator.",
+    "AUTH_EMAIL_EXISTS": "Email is already in use",
+    "AUTH_PASSWORD_TOO_WEAK": "Password does not meet requirements",
+    "AUTH_TOO_MANY_ATTEMPTS": "Too many attempts. Please wait 15 minutes.",
+    "AUTH_INVITE_EXPIRED": "Invitation expired. Please request a new one.",
+    "AUTH_INVITE_INVALID": "Invalid invitation link",
+    "SYSTEM_USER_NOT_FOUND": "User not found",
+    "SYSTEM_PERMISSION_NOT_FOUND": "Permission not found",
+    "SYSTEM_LAST_PERMISSION_HOLDER": "Cannot remove - last user with this permission",
+    "SYSTEM_CANNOT_DELETE_SELF": "Cannot delete yourself",
+    "SYSTEM_FORBIDDEN": "No permission for this action",
+    "VALIDATION_REQUIRED": "This field is required",
+    "VALIDATION_INVALID_FORMAT": "Invalid format",
+    "VALIDATION_MIN_LENGTH": "Minimum {{min}} characters required",
+    "VALIDATION_MAX_LENGTH": "Maximum {{max}} characters allowed"
+  },
   "general": {
     "title": "Something went wrong",
     "message": "An unexpected error occurred. Please try again.",

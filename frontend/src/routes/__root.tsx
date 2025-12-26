@@ -1,7 +1,28 @@
-import { createRootRoute, createRoute, Outlet } from '@tanstack/react-router'
+/* eslint-disable react-refresh/only-export-components */
+import { createRootRoute, createRoute, Outlet, Navigate } from '@tanstack/react-router'
 import { AppLayout } from '@/components/shared/layout'
+import { LoadingSpinner } from '@/components/shared/feedback'
+import { useAuth, usePermissions } from '@/contexts/auth-context'
 import { NotFoundPage } from './not-found'
-import { useAuth } from '@/contexts/auth-context'
+import { ForbiddenPage } from './forbidden'
+import { LoginPage } from './login'
+import { RegisterPage } from './register'
+import { IndexRedirect } from './index-page'
+import { DashboardPage } from './dashboard'
+import { UsersPage } from './users'
+import { InvitePage } from './invite'
+import { AuditLogsPage } from './audit-logs'
+
+// Permission-protected page wrapper
+function withPermission(Component: React.ComponentType, permission: string) {
+  return function ProtectedPage() {
+    const { hasPermission } = usePermissions()
+    if (!hasPermission(permission)) {
+      return <Navigate to="/forbidden" />
+    }
+    return <Component />
+  }
+}
 
 // Root route - wraps everything
 const rootRoute = createRootRoute({
@@ -20,6 +41,37 @@ const authLayoutRoute = createRoute({
   component: () => <Outlet />,
 })
 
+// Login route
+const loginRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/login',
+  component: LoginPage,
+})
+
+// Register route
+const registerRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/register',
+  component: RegisterPage,
+})
+
+// Forbidden route
+const forbiddenRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/forbidden',
+  component: ForbiddenPage,
+})
+
+// Invite route - for accepting invitations
+const inviteRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/invite',
+  component: InvitePage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    token: (search.token as string) || '',
+  }),
+})
+
 // App layout - for authenticated pages (with sidebar)
 const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -28,12 +80,33 @@ const appLayoutRoute = createRoute({
 })
 
 function AppLayoutWrapper() {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />
+  }
+
   return (
     <AppLayout>
       <Outlet />
     </AppLayout>
   )
 }
+
+// Index route - redirect based on auth status
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  component: IndexRedirect,
+})
 
 // Dashboard route
 const dashboardRoute = createRoute({
@@ -42,84 +115,18 @@ const dashboardRoute = createRoute({
   component: DashboardPage,
 })
 
-function DashboardPage() {
-  const { user } = useAuth()
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back{user?.firstName ? `, ${user.firstName}` : ''}!
-        </p>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">Total Users</h3>
-          <p className="text-2xl font-bold">--</p>
-        </div>
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">Active Sessions</h3>
-          <p className="text-2xl font-bold">--</p>
-        </div>
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">Organizations</h3>
-          <p className="text-2xl font-bold">--</p>
-        </div>
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">Projects</h3>
-          <p className="text-2xl font-bold">--</p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Index route - redirect to dashboard
-const indexRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/',
-  component: () => {
-    // Redirect to dashboard
-    window.location.href = '/dashboard'
-    return null
-  },
-})
-
-// Users route (placeholder)
+// Users route (requires system:users:read)
 const usersRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/users',
-  component: () => (
-    <div>
-      <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-      <p className="text-muted-foreground">Manage system users</p>
-    </div>
-  ),
+  component: withPermission(UsersPage, 'system:users:read'),
 })
 
-// Permissions route (placeholder)
-const permissionsRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
-  path: '/permissions',
-  component: () => (
-    <div>
-      <h1 className="text-3xl font-bold tracking-tight">Permissions</h1>
-      <p className="text-muted-foreground">Manage permissions</p>
-    </div>
-  ),
-})
-
-// Audit logs route (placeholder)
+// Audit Logs route (requires system:audit:read)
 const auditLogsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/audit-logs',
-  component: () => (
-    <div>
-      <h1 className="text-3xl font-bold tracking-tight">Audit Logs</h1>
-      <p className="text-muted-foreground">View audit logs</p>
-    </div>
-  ),
+  component: withPermission(AuditLogsPage, 'system:audit:read'),
 })
 
 // Settings route (placeholder)
@@ -127,9 +134,9 @@ const settingsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/settings',
   component: () => (
-    <div>
+    <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-      <p className="text-muted-foreground">Application settings</p>
+      <p className="text-muted-foreground">Coming soon...</p>
     </div>
   ),
 })
@@ -137,11 +144,15 @@ const settingsRoute = createRoute({
 // Build the route tree
 export const routeTree = rootRoute.addChildren([
   indexRoute,
-  authLayoutRoute,
+  authLayoutRoute.addChildren([
+    loginRoute,
+    registerRoute,
+    forbiddenRoute,
+    inviteRoute,
+  ]),
   appLayoutRoute.addChildren([
     dashboardRoute,
     usersRoute,
-    permissionsRoute,
     auditLogsRoute,
     settingsRoute,
   ]),

@@ -9,6 +9,7 @@ import enNavigation from './locales/en/navigation.json'
 import enUsers from './locales/en/users.json'
 import enErrors from './locales/en/errors.json'
 import enValidation from './locales/en/validation.json'
+import enAuditLogs from './locales/en/auditLogs.json'
 
 // DE imports
 import deCommon from './locales/de/common.json'
@@ -17,6 +18,7 @@ import deNavigation from './locales/de/navigation.json'
 import deUsers from './locales/de/users.json'
 import deErrors from './locales/de/errors.json'
 import deValidation from './locales/de/validation.json'
+import deAuditLogs from './locales/de/auditLogs.json'
 
 export const defaultNS = 'common'
 export const resources = {
@@ -27,6 +29,7 @@ export const resources = {
     users: enUsers,
     errors: enErrors,
     validation: enValidation,
+    auditLogs: enAuditLogs,
   },
   de: {
     common: deCommon,
@@ -35,6 +38,7 @@ export const resources = {
     users: deUsers,
     errors: deErrors,
     validation: deValidation,
+    auditLogs: deAuditLogs,
   },
 } as const
 
@@ -45,7 +49,7 @@ i18n
     resources,
     fallbackLng: 'en',
     defaultNS,
-    ns: ['common', 'auth', 'navigation', 'users', 'errors', 'validation'],
+    ns: ['common', 'auth', 'navigation', 'users', 'errors', 'validation', 'auditLogs'],
     interpolation: {
       escapeValue: false,
     },

@@ -43,14 +43,14 @@ export function DataTableColumnToggle<TData>({
         <DropdownMenuLabel>{t('table.showColumns')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {columns.map((column) => {
+          const label = (column.columnDef.meta as { label?: string })?.label || column.id
           return (
             <DropdownMenuCheckboxItem
               key={column.id}
-              className="capitalize"
               checked={column.getIsVisible()}
               onCheckedChange={(value) => column.toggleVisibility(!!value)}
             >
-              {column.id}
+              {label}
             </DropdownMenuCheckboxItem>
           )
         })}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
@@ -8,23 +8,29 @@ const COOKIE_CONSENT_KEY = 'exoauth-cookie-consent'
 
 type ConsentStatus = 'pending' | 'accepted' | 'rejected'
 
+function getInitialStatus(): ConsentStatus {
+  if (typeof window === 'undefined') return 'pending'
+  const stored = localStorage.getItem(COOKIE_CONSENT_KEY)
+  if (stored === 'accepted' || stored === 'rejected') {
+    return stored
+  }
+  return 'pending'
+}
+
+function getInitialVisibility(): boolean {
+  if (typeof window === 'undefined') return false
+  const stored = localStorage.getItem(COOKIE_CONSENT_KEY)
+  return stored !== 'accepted' && stored !== 'rejected'
+}
+
 interface CookieConsentProps {
   className?: string
 }
 
 export function CookieConsent({ className }: CookieConsentProps) {
   const { t } = useTranslation('common')
-  const [status, setStatus] = useState<ConsentStatus>('pending')
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    const stored = localStorage.getItem(COOKIE_CONSENT_KEY)
-    if (stored === 'accepted' || stored === 'rejected') {
-      setStatus(stored as ConsentStatus)
-    } else {
-      setIsVisible(true)
-    }
-  }, [])
+  const [status, setStatus] = useState<ConsentStatus>(getInitialStatus)
+  const [isVisible, setIsVisible] = useState(getInitialVisibility)
 
   const handleAccept = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted')

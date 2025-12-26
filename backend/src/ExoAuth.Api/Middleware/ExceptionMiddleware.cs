@@ -1,3 +1,4 @@
+using ExoAuth.Application.Common.Exceptions;
 using ExoAuth.Application.Common.Models;
 using FluentValidation;
 using System.Text.Json;
@@ -37,6 +38,8 @@ public sealed class ExceptionMiddleware
         var (statusCode, response) = exception switch
         {
             ValidationException validationEx => HandleValidationException(validationEx),
+            AuthException authEx => HandleAuthException(authEx),
+            Application.Common.Exceptions.SystemException systemEx => HandleSystemException(systemEx),
             UnauthorizedAccessException => HandleUnauthorizedException(),
             KeyNotFoundException => HandleNotFoundException(),
             _ => HandleUnknownException(exception)
@@ -69,6 +72,24 @@ public sealed class ExceptionMiddleware
 
         return (StatusCodes.Status400BadRequest,
             ApiResponse<object>.Error("Validation failed", StatusCodes.Status400BadRequest, errors));
+    }
+
+    private static (int, ApiResponse<object>) HandleAuthException(AuthException exception)
+    {
+        return (exception.StatusCode,
+            ApiResponse<object>.Error(
+                exception.Message,
+                exception.StatusCode,
+                ApiError.Create(exception.ErrorCode, exception.Message)));
+    }
+
+    private static (int, ApiResponse<object>) HandleSystemException(Application.Common.Exceptions.SystemException exception)
+    {
+        return (exception.StatusCode,
+            ApiResponse<object>.Error(
+                exception.Message,
+                exception.StatusCode,
+                ApiError.Create(exception.ErrorCode, exception.Message)));
     }
 
     private static (int, ApiResponse<object>) HandleUnauthorizedException()

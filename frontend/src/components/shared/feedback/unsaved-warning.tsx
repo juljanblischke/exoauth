@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,8 +18,6 @@ interface UnsavedWarningProps {
   onOpenChange: (open: boolean) => void
   onDiscard: () => void
   onSave?: () => void
-  title?: string
-  description?: string
 }
 
 export function UnsavedWarning({
@@ -27,9 +26,9 @@ export function UnsavedWarning({
   onOpenChange,
   onDiscard,
   onSave,
-  title = 'Unsaved changes',
-  description = 'You have unsaved changes. Are you sure you want to leave? Your changes will be lost.',
 }: UnsavedWarningProps) {
+  const { t } = useTranslation('common')
+
   const handleBeforeUnload = useCallback(
     (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -51,20 +50,20 @@ export function UnsavedWarning({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogTitle>{t('unsavedChanges.title')}</AlertDialogTitle>
+          <AlertDialogDescription>{t('unsavedChanges.description')}</AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="gap-2 sm:gap-0">
-          <AlertDialogCancel>Continue editing</AlertDialogCancel>
+        <AlertDialogFooter className="gap-2">
+          <AlertDialogCancel>{t('unsavedChanges.continueEditing')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onDiscard}
             className={buttonVariants({ variant: 'destructive' })}
           >
-            Discard changes
+            {t('unsavedChanges.discard')}
           </AlertDialogAction>
           {onSave && (
             <AlertDialogAction onClick={onSave}>
-              Save changes
+              {t('unsavedChanges.save')}
             </AlertDialogAction>
           )}
         </AlertDialogFooter>

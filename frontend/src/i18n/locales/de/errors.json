@@ -1,4 +1,27 @@
 {
+  "codes": {
+    "UNKNOWN_ERROR": "Ein unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "RATE_LIMIT_EXCEEDED": "Zu viele Anfragen. Bitte langsamer.",
+    "AUTH_INVALID_CREDENTIALS": "Ungültige E-Mail oder Passwort",
+    "AUTH_USER_INACTIVE": "Benutzerkonto ist deaktiviert",
+    "AUTH_TOKEN_EXPIRED": "Sitzung abgelaufen",
+    "AUTH_REFRESH_TOKEN_INVALID": "Sitzung ungültig",
+    "AUTH_REGISTRATION_CLOSED": "Registrierung geschlossen. Kontaktieren Sie einen Administrator.",
+    "AUTH_EMAIL_EXISTS": "E-Mail wird bereits verwendet",
+    "AUTH_PASSWORD_TOO_WEAK": "Passwort erfüllt die Anforderungen nicht",
+    "AUTH_TOO_MANY_ATTEMPTS": "Zu viele Versuche. Bitte 15 Minuten warten.",
+    "AUTH_INVITE_EXPIRED": "Einladung abgelaufen. Bitte neue anfordern.",
+    "AUTH_INVITE_INVALID": "Ungültiger Einladungslink",
+    "SYSTEM_USER_NOT_FOUND": "Benutzer nicht gefunden",
+    "SYSTEM_PERMISSION_NOT_FOUND": "Berechtigung nicht gefunden",
+    "SYSTEM_LAST_PERMISSION_HOLDER": "Kann nicht entfernen - letzter Benutzer mit dieser Berechtigung",
+    "SYSTEM_CANNOT_DELETE_SELF": "Kann sich selbst nicht löschen",
+    "SYSTEM_FORBIDDEN": "Keine Berechtigung für diese Aktion",
+    "VALIDATION_REQUIRED": "Dieses Feld ist erforderlich",
+    "VALIDATION_INVALID_FORMAT": "Ungültiges Format",
+    "VALIDATION_MIN_LENGTH": "Mindestens {{min}} Zeichen erforderlich",
+    "VALIDATION_MAX_LENGTH": "Maximal {{max}} Zeichen erlaubt"
+  },
   "general": {
     "title": "Etwas ist schiefgelaufen",
     "message": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",

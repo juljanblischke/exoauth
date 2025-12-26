@@ -1,3 +1,4 @@
+using ExoAuth.Api.Filters;
 using ExoAuth.Application.Features.Auth.Commands.AcceptInvite;
 using ExoAuth.Application.Features.Auth.Commands.Login;
 using ExoAuth.Application.Features.Auth.Commands.Logout;
@@ -13,10 +14,18 @@ namespace ExoAuth.Api.Controllers;
 [Route("api/auth")]
 public sealed class AuthController : ApiControllerBase
 {
+    private readonly IConfiguration _configuration;
+
+    public AuthController(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
     /// <summary>
     /// Register a new user. First user becomes a SystemUser with all permissions.
     /// </summary>
     [HttpPost("register")]
+    [RateLimit(5)]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -41,6 +50,7 @@ public sealed class AuthController : ApiControllerBase
     /// Login with email and password.
     /// </summary>
     [HttpPost("login")]
+    [RateLimit(5)]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
@@ -59,6 +69,7 @@ public sealed class AuthController : ApiControllerBase
     /// Refresh access token using refresh token.
     /// </summary>
     [HttpPost("refresh")]
+    [RateLimit(10)]
     [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Refresh(RefreshTokenRequest? request, CancellationToken ct)
@@ -85,6 +96,7 @@ public sealed class AuthController : ApiControllerBase
     /// Logout and revoke refresh token.
     /// </summary>
     [HttpPost("logout")]
+    [RateLimit(10)]
     [ProducesResponseType(typeof(LogoutResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Logout(LogoutRequest? request, CancellationToken ct)
     {
@@ -113,6 +125,7 @@ public sealed class AuthController : ApiControllerBase
     /// </summary>
     [HttpGet("me")]
     [Authorize]
+    [RateLimit]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Me(CancellationToken ct)
@@ -128,6 +141,7 @@ public sealed class AuthController : ApiControllerBase
     /// Accept an invitation and create account.
     /// </summary>
     [HttpPost("accept-invite")]
+    [RateLimit(5)]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AcceptInvite(AcceptInviteRequest request, CancellationToken ct)
@@ -143,11 +157,13 @@ public sealed class AuthController : ApiControllerBase
 
     private void SetAuthCookies(string accessToken, string refreshToken)
     {
+        var secureCookies = _configuration.GetValue("Cookies:Secure", true);
+
         var accessCookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
+            Secure = secureCookies,
+            SameSite = secureCookies ? SameSiteMode.Strict : SameSiteMode.Lax,
             Path = "/api",
             MaxAge = TimeSpan.FromMinutes(15)
         };
@@ -155,8 +171,8 @@ public sealed class AuthController : ApiControllerBase
         var refreshCookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
+            Secure = secureCookies,
+            SameSite = secureCookies ? SameSiteMode.Strict : SameSiteMode.Lax,
             Path = "/api/auth",
             MaxAge = TimeSpan.FromDays(30)
         };
@@ -167,11 +183,13 @@ public sealed class AuthController : ApiControllerBase
 
     private void ClearAuthCookies()
     {
+        var secureCookies = _configuration.GetValue("Cookies:Secure", true);
+
         var accessCookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
+            Secure = secureCookies,
+            SameSite = secureCookies ? SameSiteMode.Strict : SameSiteMode.Lax,
             Path = "/api",
             MaxAge = TimeSpan.Zero
         };
@@ -179,8 +197,8 @@ public sealed class AuthController : ApiControllerBase
         var refreshCookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
+            Secure = secureCookies,
+            SameSite = secureCookies ? SameSiteMode.Strict : SameSiteMode.Lax,
             Path = "/api/auth",
             MaxAge = TimeSpan.Zero
         };
@@ -205,11 +223,11 @@ public sealed record LoginRequest(
 );
 
 public sealed record RefreshTokenRequest(
-    string RefreshToken
+    string? RefreshToken = null
 );
 
 public sealed record LogoutRequest(
-    string RefreshToken
+    string? RefreshToken = null
 );
 
 public sealed record AcceptInviteRequest(

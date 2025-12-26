@@ -6,11 +6,15 @@
   "editUser": "Benutzer bearbeiten",
   "deleteUser": "Benutzer löschen",
   "userDetails": "Benutzerdetails",
+  "search": {
+    "placeholder": "Benutzer suchen..."
+  },
   "fields": {
     "name": "Name",
     "email": "E-Mail",
     "role": "Rolle",
     "status": "Status",
+    "emailVerified": "E-Mail verifiziert",
     "createdAt": "Erstellt",
     "updatedAt": "Zuletzt aktualisiert",
     "lastLogin": "Letzte Anmeldung",
@@ -29,13 +33,27 @@
     "pending": "Einladung ausstehend",
     "suspended": "Gesperrt"
   },
+  "emailVerified": {
+    "verified": "Verifiziert",
+    "pending": "Ausstehend"
+  },
   "actions": {
     "activate": "Aktivieren",
     "deactivate": "Deaktivieren",
     "suspend": "Sperren",
     "resetPassword": "Passwort zurücksetzen",
     "resendInvite": "Einladung erneut senden",
-    "revokeInvite": "Einladung widerrufen"
+    "revokeInvite": "Einladung widerrufen",
+    "permissions": "Berechtigungen"
+  },
+  "invite": {
+    "description": "Senden Sie eine Einladung zum Team",
+    "submit": "Einladung senden"
+  },
+  "permissions": {
+    "title": "Berechtigungen verwalten",
+    "success": "Berechtigungen erfolgreich aktualisiert",
+    "none": "Keine Berechtigungen zugewiesen"
   },
   "messages": {
     "createSuccess": "Benutzer erfolgreich erstellt",

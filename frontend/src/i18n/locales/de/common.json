@@ -3,6 +3,17 @@
     "name": "ExoAuth",
     "copyright": "Alle Rechte vorbehalten."
   },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Willkommen zurück, {{name}}!",
+    "welcomeGeneric": "Willkommen zurück!",
+    "stats": {
+      "totalUsers": "Gesamtbenutzer",
+      "activeSessions": "Aktive Sitzungen",
+      "organizations": "Organisationen",
+      "projects": "Projekte"
+    }
+  },
   "actions": {
     "save": "Speichern",
     "cancel": "Abbrechen",
@@ -55,6 +66,8 @@
     "noData": "Keine Daten vorhanden",
     "loading": "Daten werden geladen...",
     "selected": "{{count}} ausgewählt",
+    "totalRows": "{{count}} Zeile",
+    "totalRows_other": "{{count}} Zeilen",
     "selectAll": "Alle auswählen",
     "selectRow": "Zeile auswählen",
     "rowsPerPage": "Zeilen pro Seite",
@@ -123,5 +136,15 @@
     "documentation": "Dokumentation",
     "support": "Support kontaktieren",
     "feedback": "Feedback senden"
+  },
+  "filters": {
+    "dateRange": "Zeitraum"
+  },
+  "unsavedChanges": {
+    "title": "Ungespeicherte Änderungen",
+    "description": "Sie haben ungespeicherte Änderungen. Möchten Sie wirklich verlassen? Ihre Änderungen gehen verloren.",
+    "continueEditing": "Weiter bearbeiten",
+    "discard": "Änderungen verwerfen",
+    "save": "Änderungen speichern"
   }
 }

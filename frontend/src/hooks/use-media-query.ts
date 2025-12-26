@@ -1,36 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useSyncExternalStore, useCallback } from 'react'
 
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia(query).matches
-    }
-    return false
-  })
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      const mediaQuery = window.matchMedia(query)
+      mediaQuery.addEventListener('change', callback)
+      return () => mediaQuery.removeEventListener('change', callback)
+    },
+    [query]
+  )
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    const mediaQuery = window.matchMedia(query)
-
-    const handleChange = (event: MediaQueryListEvent) => {
-      setMatches(event.matches)
-    }
-
-    // Set initial value
-    setMatches(mediaQuery.matches)
-
-    // Listen for changes
-    mediaQuery.addEventListener('change', handleChange)
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange)
-    }
+  const getSnapshot = useCallback(() => {
+    return window.matchMedia(query).matches
   }, [query])
 
-  return matches
+  const getServerSnapshot = useCallback(() => {
+    // Default to false on server
+    return false
+  }, [])
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }
 
 // Predefined breakpoint hooks

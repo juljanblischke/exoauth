@@ -1,7 +1,6 @@
 import { useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, X } from 'lucide-react'
-import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 
 interface PasswordStrengthProps {

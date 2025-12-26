@@ -518,6 +518,39 @@ public class {Name}Configuration : IEntityTypeConfiguration<{Name}>
 
 ---
 
+## API Security Checkliste
+
+Bei jedem neuen Endpoint MUSS geprüft werden:
+
+### Rate Limiting
+
+| Frage | Wenn Ja |
+|-------|---------|
+| Kann der Endpoint ohne Auth aufgerufen werden? | `[RateLimit(10)]` |
+| Ist es ein sensitiver Endpoint (Login, Register, Password Reset)? | `[RateLimit(5)]` |
+| Ist es ein normaler Auth-geschützter Endpoint? | `[RateLimit]` (nutzt Default: 100/min) |
+| Ist es ein interner/Admin Endpoint? | `[RateLimit]` oder höheres Limit |
+
+**Wichtig:** Rate Limiting schützt auch bei 401/403 Responses vor Spam/DoS!
+
+```csharp
+// Beispiele
+[RateLimit(5)]   // Streng: Login, Register, AcceptInvite
+[RateLimit(10)]  // Moderat: Refresh, Logout
+[RateLimit]      // Default (100/min): Auth-geschützte Endpoints
+```
+
+### Brute Force vs Rate Limiting
+
+| Schutz | Zweck | Key | TTL |
+|--------|-------|-----|-----|
+| **Brute Force** | Schutz einzelner Accounts vor Password-Guessing | `login:attempts:{email}` | 15 min |
+| **Rate Limiting** | Schutz API vor Spam/DoS (auch bei 401s!) | `rate_limit:{ip}:{endpoint}` | 1 min |
+
+**Beide sind nötig!** Brute Force schützt Accounts, Rate Limiting schützt die API.
+
+---
+
 ## Regeln für Task Erstellung
 
 1. **IMMER** zuerst diese Datei lesen
@@ -525,8 +558,9 @@ public class {Name}Configuration : IEntityTypeConfiguration<{Name}>
 3. **IMMER** die Reihenfolge einhalten: Domain → Application → Infrastructure → Api
 4. **IMMER** Tests mit einplanen
 5. **IMMER** am Ende diese Datei updaten
-6. **NIE** Packages doppelt installieren
-7. **NIE** Files überschreiben ohne zu fragen
+6. **IMMER** Rate Limiting für neue Endpoints prüfen (siehe API Security Checkliste)
+7. **NIE** Packages doppelt installieren
+8. **NIE** Files überschreiben ohne zu fragen
 
 ---
 
