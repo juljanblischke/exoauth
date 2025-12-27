@@ -8,6 +8,8 @@ import {
   type ReactNode,
 } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import apiClient, { extractData } from '@/lib/axios'
 import type {
   User,
@@ -51,20 +53,31 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const queryClient = useQueryClient()
+  const { t } = useTranslation()
 
   // Listen for session expired events from axios interceptor
   useEffect(() => {
     const handleSessionExpired = () => {
-      console.log('[Auth] Session expired event received, clearing user data')
       queryClient.setQueryData(AUTH_QUERY_KEY, null)
       queryClient.clear()
     }
 
+    const handleForceReauth = () => {
+      queryClient.setQueryData(AUTH_QUERY_KEY, null)
+      queryClient.clear()
+      toast.warning(t('forceReauth.title'), {
+        description: t('forceReauth.description'),
+      })
+      window.location.href = '/login'
+    }
+
     window.addEventListener('auth:session-expired', handleSessionExpired)
+    window.addEventListener('auth:force-reauth', handleForceReauth)
     return () => {
       window.removeEventListener('auth:session-expired', handleSessionExpired)
+      window.removeEventListener('auth:force-reauth', handleForceReauth)
     }
-  }, [queryClient])
+  }, [queryClient, t])
 
   // Fetch current user - only if we might have a session
   const {
@@ -76,18 +89,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     queryFn: async (): Promise<User | null> => {
       // Skip API call if user never logged in
       if (!hasSession()) {
-        console.log('[Auth] No session flag, skipping /auth/me')
         return null
       }
       try {
-        console.log('[Auth] Fetching /auth/me...')
         const response = await apiClient.get<ApiResponse<User>>('/auth/me')
         const user = extractData(response)
-        console.log('[Auth] /auth/me success:', user.email)
         return user
       } catch (error) {
         // Session expired or invalid - clear the flag
-        console.error('[Auth] /auth/me failed:', error)
         setSession(false)
         return null
       }

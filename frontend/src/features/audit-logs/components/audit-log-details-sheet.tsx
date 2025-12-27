@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Clock, User, Activity, Globe, Monitor, FileJson, Box } from 'lucide-react'
+import { Clock, User, UserCheck, Activity, Globe, Monitor, FileJson, Box } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -61,7 +61,7 @@ export function AuditLogDetailsSheet({
         {/* Content */}
         <ScrollArea className="flex-1">
           <div className="p-6 space-y-6">
-            {/* User Section */}
+            {/* User Section (Actor) */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <User className="h-4 w-4" />
@@ -91,6 +91,33 @@ export function AuditLogDetailsSheet({
                 </p>
               )}
             </div>
+
+            {/* Target User Section */}
+            {log.targetUserId && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <UserCheck className="h-4 w-4" />
+                  {t('auditLogs:fields.targetUser')}
+                </div>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-auto p-3 -ml-3"
+                  onClick={() => onUserClick?.(log.targetUserId!)}
+                >
+                  <div className="flex items-center gap-3">
+                    <UserAvatar
+                      name={log.targetUserFullName || ''}
+                      email={log.targetUserEmail || ''}
+                      size="sm"
+                    />
+                    <div className="text-left">
+                      <p className="font-medium">{log.targetUserFullName}</p>
+                      <p className="text-sm text-muted-foreground">{log.targetUserEmail}</p>
+                    </div>
+                  </div>
+                </Button>
+              </div>
+            )}
 
             {/* Time Section */}
             <div className="space-y-2">

@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { Edit, Shield, Trash2 } from 'lucide-react'
 import { type SortingState } from '@tanstack/react-table'
 import { DataTable } from '@/components/shared/data-table'
+import { SelectFilter, type SelectFilterOption } from '@/components/shared/form'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { useDebounce } from '@/hooks'
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth, usePermissions } from '@/contexts/auth-context'
+import { useSystemPermissions } from '@/features/permissions'
 import { useSystemUsers } from '../hooks'
 import { useUsersColumns } from './users-table-columns'
 import type { SystemUserDto } from '../types'
@@ -29,9 +31,17 @@ interface UsersTableProps {
 export function UsersTable({ onEdit, onPermissions, onDelete, onRowClick }: UsersTableProps) {
   const { t } = useTranslation()
   const { user: currentUser } = useAuth()
+  const { hasPermission } = usePermissions()
   const [search, setSearch] = useState('')
   const [sorting, setSorting] = useState<SortingState>([])
+  const [permissionFilters, setPermissionFilters] = useState<string[]>([])
   const debouncedSearch = useDebounce(search, 300)
+
+  // Check if user can read permissions (to show the filter)
+  const canReadPermissions = hasPermission('system:permissions:read')
+
+  // Fetch permissions for filter options (only if user has permission)
+  const { data: permissionGroups } = useSystemPermissions()
 
   // Convert sorting state to backend format (e.g., "fullName:asc,createdAt:desc")
   const sortParam = useMemo(() => {
@@ -53,6 +63,7 @@ export function UsersTable({ onEdit, onPermissions, onDelete, onRowClick }: User
   } = useSystemUsers({
     search: debouncedSearch || undefined,
     sort: sortParam,
+    permissionIds: permissionFilters.length > 0 ? permissionFilters : undefined,
   })
 
   const users = useMemo(
@@ -106,6 +117,28 @@ export function UsersTable({ onEdit, onPermissions, onDelete, onRowClick }: User
     }
   }, [hasNextPage, isFetching, fetchNextPage])
 
+  // Build permission filter options from all permission groups
+  const permissionOptions: SelectFilterOption[] = useMemo(() => {
+    if (!permissionGroups) return []
+    return permissionGroups.flatMap((group) =>
+      group.permissions.map((permission) => ({
+        label: `${permission.name}`,
+        value: permission.id,
+      }))
+    )
+  }, [permissionGroups])
+
+  // Only show filter if user has permission to read permissions
+  const filterContent = canReadPermissions && permissionOptions.length > 0 ? (
+    <SelectFilter
+      label={t('users:actions.permissions')}
+      options={permissionOptions}
+      multiple
+      values={permissionFilters}
+      onValuesChange={setPermissionFilters}
+    />
+  ) : null
+
   return (
     <DataTable
       columns={columns}
@@ -119,6 +152,7 @@ export function UsersTable({ onEdit, onPermissions, onDelete, onRowClick }: User
       onSearch={setSearch}
       initialSorting={sorting}
       onSortingChange={setSorting}
+      toolbarContent={filterContent}
       emptyState={{
         title: t('users:empty.title'),
         description: t('users:empty.message'),

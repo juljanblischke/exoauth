@@ -59,6 +59,7 @@ export interface SystemUsersQueryParams {
   limit?: number
   sort?: string
   search?: string
+  permissionIds?: string[]
 }
 
 // Form schemas
@@ -90,3 +91,6 @@ export interface EditUserFormData {
   lastName: string
   isActive: boolean
 }
+
+// Re-export invite types
+export * from './invites'

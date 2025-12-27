@@ -71,27 +71,35 @@ Bug fixes (Audit Log User Sheet, Invite Page Redirect), Invitations Management T
 ### Akzeptanzkriterien
 
 **Bugs:**
-- [ ] Audit Log User Sheet zeigt korrekte lastLoginAt (aus API, nicht aus Prop)
-- [ ] Invite Page: Auto-logout wenn bereits eingeloggt, dann Invite-Seite anzeigen
+- [x] Audit Log User Sheet zeigt korrekte lastLoginAt (aus API, nicht aus Prop)
+- [x] Invite Page: Auto-logout wenn bereits eingeloggt, dann Invite-Seite anzeigen
 
 **Invitations Tab:**
-- [ ] Tab-Navigation zwischen Users und Invitations
-- [ ] Invitations Table mit Pagination, Search, Status-Filter
-- [ ] Status Badge (pending=warning, accepted=success, expired=muted, revoked=error)
-- [ ] Row Actions: View Details, Resend, Revoke
-- [ ] Invite Details Sheet mit allen Infos
-- [ ] Resend zeigt Toast bei Erfolg oder Cooldown-Error
-- [ ] Revoke zeigt Confirm Dialog, dann Toast bei Erfolg
+- [x] Tab-Navigation zwischen Users und Invitations
+- [x] Invitations Table mit Pagination, Search, Status-Filter
+- [x] Status Badge (pending=warning, accepted=success, expired=muted, revoked=error)
+- [x] Row Actions: View Details, Resend, Revoke
+- [x] Invite Details Sheet mit allen Infos
+- [x] Resend zeigt Toast bei Erfolg oder Cooldown-Error
+- [x] Revoke zeigt Confirm Dialog, dann Toast bei Erfolg
 - [ ] Badge auf Tab zeigt Anzahl pending Invites
 
+**Table Filters (Multi-Select):**
+- [x] UsersTable: Permission filter with multi-select (requires `system:permissions:read`)
+- [x] InvitationsTable: Status filter (pending, accepted, expired, revoked)
+- [x] AuditLogsTable: Action filter with multi-select
+- [x] AuditLogsTable: User filter with multi-select (requires `system:users:read`)
+- [x] AuditLogsTable: Target user shown in details sheet
+- [x] SelectFilter component updated to support multi-select mode
+
 **Security:**
-- [ ] 401 mit force-reauth Header → Toast + Redirect zu /login
-- [ ] Auth Context cleared bei force-reauth
+- [x] 401 mit force-reauth Header → Toast + Redirect zu /login
+- [x] Auth Context cleared bei force-reauth
 
 **Legal Pages:**
-- [ ] /imprint Route existiert mit Placeholder-Content
-- [ ] /privacy Route existiert mit Placeholder-Content
-- [ ] /terms Route existiert mit Placeholder-Content
+- [x] /imprint Route existiert mit Placeholder-Content
+- [x] /privacy Route existiert mit Placeholder-Content
+- [x] /terms Route existiert mit Placeholder-Content
 - [ ] Footer Links funktionieren
 
 ### Edge Cases / Error Handling
@@ -199,28 +207,28 @@ Bug fixes (Audit Log User Sheet, Invite Page Redirect), Invitations Management T
 ## 8. Implementation Reihenfolge
 
 ### Phase 1: Bug Fixes
-1. [ ] **Bug Fix**: user-details-sheet.tsx - lastLoginAt aus API response nutzen
-2. [ ] **Bug Fix**: invite.tsx - Auto-logout wenn authenticated
+1. [X] **Bug Fix**: user-details-sheet.tsx - lastLoginAt aus API response nutzen
+2. [X] **Bug Fix**: invite.tsx - Auto-logout wenn authenticated
 
 ### Phase 2: Force Re-Auth
-3. [ ] **Axios**: 401 force-reauth detection + handling
-4. [ ] **Auth Context**: Ensure logout clears everything
-5. [ ] **Toast**: Force-reauth message
+3. [X] **Axios**: 401 force-reauth detection + handling
+4. [X] **Auth Context**: Ensure logout clears everything
+5. [X] **Toast**: Force-reauth message
 
 ### Phase 3: Invitations Feature
-6. [ ] **Shadcn**: Tabs component installieren
-7. [ ] **Types**: Invite types definieren
-8. [ ] **API**: invites-api.ts erstellen
-9. [ ] **Hooks**: useSystemInvites, useSystemInvite, useRevokeInvite, useResendInvite
-10. [ ] **Components**: InvitationsTable, Columns, InviteDetailsSheet
-11. [ ] **Components**: UsersPageTabs
-12. [ ] **Route**: users.tsx mit Tabs updaten
-13. [ ] **i18n**: Translations für Invites
+6. [X] **Shadcn**: Tabs component installieren
+7. [X] **Types**: Invite types definieren
+8. [X] **API**: invites-api.ts erstellen
+9. [X] **Hooks**: useSystemInvites, useSystemInvite, useRevokeInvite, useResendInvite
+10. [X] **Components**: InvitationsTable, Columns, InviteDetailsSheet
+11. [X] **Components**: UsersPageTabs
+12. [X] **Route**: users.tsx mit Tabs updaten
+13. [X] **i18n**: Translations für Invites
 
 ### Phase 4: Legal Pages
-14. [ ] **Routes**: imprint.tsx, privacy.tsx, terms.tsx erstellen
-15. [ ] **Router**: Routes registrieren
-16. [ ] **i18n**: Legal page translations
+14. [X] **Routes**: legal.tsx mit ImprintPage, PrivacyPage, TermsPage erstellen
+15. [X] **Router**: Routes registrieren (/imprint, /privacy, /terms)
+16. [X] **i18n**: Legal page translations
 
 ### Phase 5: Cleanup
 17. [ ] **Exports**: Barrel exports updaten
@@ -294,7 +302,7 @@ Bug fixes (Audit Log User Sheet, Invite Page Redirect), Invitations Management T
 }
 ```
 
-### common.json (neu)
+### common.json (hinzugefügt)
 
 ```json
 {
@@ -306,6 +314,20 @@ Bug fixes (Audit Log User Sheet, Invite Page Redirect), Invitations Management T
   "forceReauth": {
     "title": "Session expired",
     "description": "Your permissions were changed. Please log in again."
+  },
+  "filters": {
+    "dateRange": "Date Range",
+    "selected": "{{count}} selected"
+  }
+}
+```
+
+### auditLogs.json (hinzugefügt)
+
+```json
+{
+  "fields": {
+    "targetUser": "Target User"
   }
 }
 ```
@@ -324,5 +346,5 @@ Bug fixes (Audit Log User Sheet, Invite Page Redirect), Invitations Management T
 ---
 
 **Letzte Änderung:** 2025-12-27
-**Status:** Planning Complete
+**Status:** Phase 3 Complete - Phase 4 & 5 Pending
 **Abhängigkeit:** Backend Task 005 (complete)

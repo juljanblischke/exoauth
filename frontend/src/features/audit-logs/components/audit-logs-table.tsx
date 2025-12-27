@@ -6,7 +6,9 @@ import { DataTable } from '@/components/shared/data-table'
 import { DateRangePicker, SelectFilter } from '@/components/shared/form'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { Badge } from '@/components/ui/badge'
+import { usePermissions } from '@/contexts/auth-context'
 import { UserDetailsSheet } from '@/features/users/components/user-details-sheet'
+import { useSystemUsers } from '@/features/users/hooks'
 import type { SystemUserDto } from '@/features/users/types'
 import { useAuditLogs, useAuditLogFilters } from '../hooks'
 import { useAuditLogsColumns } from './audit-logs-table-columns'
@@ -20,10 +22,11 @@ const sortFieldMap: Record<string, string> = {
 
 export function AuditLogsTable() {
   const { t } = useTranslation()
+  const { hasPermission } = usePermissions()
   const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }])
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
-  const [actionFilter, setActionFilter] = useState<string | undefined>()
-  const [userFilter, setUserFilter] = useState<string | undefined>()
+  const [actionFilters, setActionFilters] = useState<string[]>([])
+  const [userFilters, setUserFilters] = useState<string[]>([])
 
   // Audit log details sheet
   const [selectedLog, setSelectedLog] = useState<SystemAuditLogDto | null>(null)
@@ -33,7 +36,13 @@ export function AuditLogsTable() {
   const [selectedUser, setSelectedUser] = useState<SystemUserDto | null>(null)
   const [userSheetOpen, setUserSheetOpen] = useState(false)
 
+  // Check if user can read users (to show the user filter)
+  const canReadUsers = hasPermission('system:users:read')
+
   const { data: filtersData } = useAuditLogFilters()
+
+  // Fetch users for filter (only if user has permission) - uses first page
+  const { data: usersData } = useSystemUsers({ limit: 100 })
 
   const fromDate = dateRange?.from?.toISOString()
   const toDate = dateRange?.to?.toISOString()
@@ -57,8 +66,8 @@ export function AuditLogsTable() {
     hasNextPage,
   } = useAuditLogs({
     sort: sortParam,
-    action: actionFilter,
-    userId: userFilter,
+    actions: actionFilters.length > 0 ? actionFilters : undefined,
+    involvedUserIds: userFilters.length > 0 ? userFilters : undefined,
     from: fromDate,
     to: toDate,
   })
@@ -79,13 +88,15 @@ export function AuditLogsTable() {
     }))
   }, [filtersData])
 
+  // Build user filter options from users API (paginated, first page)
   const userOptions: SelectFilterOption[] = useMemo(() => {
-    if (!filtersData?.users) return []
-    return filtersData.users.map((user) => ({
+    if (!usersData?.pages) return []
+    const users = usersData.pages.flatMap((page) => page.users)
+    return users.map((user) => ({
       label: user.fullName || user.email,
       value: user.id,
     }))
-  }, [filtersData])
+  }, [usersData])
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetching) {
@@ -99,23 +110,24 @@ export function AuditLogsTable() {
   }, [])
 
   const handleUserClick = useCallback((userId: string) => {
-    // Find user info from the selected log or filters data
-    const userInfo = filtersData?.users.find(u => u.id === userId)
+    // Find user info from the users data or selected log
+    const users = usersData?.pages?.flatMap((page) => page.users) ?? []
+    const userInfo = users.find(u => u.id === userId)
     const user: SystemUserDto = {
       id: userId,
       email: userInfo?.email || selectedLog?.userEmail || '',
-      firstName: '',
-      lastName: '',
+      firstName: userInfo?.firstName || '',
+      lastName: userInfo?.lastName || '',
       fullName: userInfo?.fullName || selectedLog?.userFullName || '',
-      isActive: true,
-      emailVerified: true,
-      lastLoginAt: null,
-      createdAt: selectedLog?.createdAt || new Date().toISOString(),
-      updatedAt: null,
+      isActive: userInfo?.isActive ?? true,
+      emailVerified: userInfo?.emailVerified ?? true,
+      lastLoginAt: userInfo?.lastLoginAt || null,
+      createdAt: userInfo?.createdAt || selectedLog?.createdAt || new Date().toISOString(),
+      updatedAt: userInfo?.updatedAt || null,
     }
     setSelectedUser(user)
     setUserSheetOpen(true)
-  }, [filtersData?.users, selectedLog])
+  }, [usersData, selectedLog])
 
   const filterContent = (
     <>
@@ -123,16 +135,18 @@ export function AuditLogsTable() {
         <SelectFilter
           label={t('auditLogs:filters.action')}
           options={actionOptions}
-          value={actionFilter}
-          onChange={setActionFilter}
+          multiple
+          values={actionFilters}
+          onValuesChange={setActionFilters}
         />
       )}
-      {userOptions.length > 0 && (
+      {canReadUsers && userOptions.length > 0 && (
         <SelectFilter
           label={t('auditLogs:filters.user')}
           options={userOptions}
-          value={userFilter}
-          onChange={setUserFilter}
+          multiple
+          values={userFilters}
+          onValuesChange={setUserFilters}
         />
       )}
       <DateRangePicker

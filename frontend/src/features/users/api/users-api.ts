@@ -24,6 +24,7 @@ export const usersApi = {
         limit: params.limit || 20,
         sort: params.sort,
         search: params.search,
+        permissionIds: params.permissionIds?.join(','),
       },
     })
     const pagination: CursorPaginationMeta = (data.meta?.pagination as unknown as CursorPaginationMeta) ?? {

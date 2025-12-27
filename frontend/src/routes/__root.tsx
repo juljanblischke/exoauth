@@ -12,6 +12,7 @@ import { DashboardPage } from './dashboard'
 import { UsersPage } from './users'
 import { InvitePage } from './invite'
 import { AuditLogsPage } from './audit-logs'
+import { ImprintPage, PrivacyPage, TermsPage } from './legal'
 
 // Permission-protected page wrapper
 function withPermission(Component: React.ComponentType, permission: string) {
@@ -70,6 +71,25 @@ const inviteRoute = createRoute({
   validateSearch: (search: Record<string, unknown>) => ({
     token: (search.token as string) || '',
   }),
+})
+
+// Legal pages - public, no auth required
+const imprintRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/imprint',
+  component: ImprintPage,
+})
+
+const privacyRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/privacy',
+  component: PrivacyPage,
+})
+
+const termsRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/terms',
+  component: TermsPage,
 })
 
 // App layout - for authenticated pages (with sidebar)
@@ -149,6 +169,9 @@ export const routeTree = rootRoute.addChildren([
     registerRoute,
     forbiddenRoute,
     inviteRoute,
+    imprintRoute,
+    privacyRoute,
+    termsRoute,
   ]),
   appLayoutRoute.addChildren([
     dashboardRoute,

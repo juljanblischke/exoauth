@@ -55,6 +55,9 @@ export function UserDetailsSheet({
 
   if (!user) return null
 
+  // Use API data when available, fall back to prop for immediate display
+  const displayUser = userDetails ?? user
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
@@ -67,26 +70,48 @@ export function UserDetailsSheet({
         <div className="space-y-6 p-6 pb-0 shrink-0">
           {/* User header */}
           <div className="flex items-start gap-4">
-            <UserAvatar name={user.fullName} email={user.email} size="lg" />
+            {isLoading ? (
+              <Skeleton className="h-12 w-12 rounded-full" />
+            ) : (
+              <UserAvatar name={displayUser.fullName} email={displayUser.email} size="lg" />
+            )}
             <div className="flex-1 space-y-1">
-              <h2 className="text-xl font-semibold">{user.fullName}</h2>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Mail className="h-3.5 w-3.5" />
-                {user.email}
-              </div>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-4 w-48" />
+                </>
+              ) : (
+                <>
+                  <h2 className="text-xl font-semibold">{displayUser.fullName}</h2>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="h-3.5 w-3.5" />
+                    {displayUser.email}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           {/* Status badges */}
           <div className="flex flex-wrap gap-2">
-            <StatusBadge
-              status={user.isActive ? 'success' : 'error'}
-              label={user.isActive ? t('users:status.active') : t('users:status.inactive')}
-            />
-            <StatusBadge
-              status={user.emailVerified ? 'success' : 'warning'}
-              label={user.emailVerified ? t('users:emailVerified.verified') : t('users:emailVerified.pending')}
-            />
+            {isLoading ? (
+              <>
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-5 w-20" />
+              </>
+            ) : (
+              <>
+                <StatusBadge
+                  status={displayUser.isActive ? 'success' : 'error'}
+                  label={displayUser.isActive ? t('users:status.active') : t('users:status.inactive')}
+                />
+                <StatusBadge
+                  status={displayUser.emailVerified ? 'success' : 'warning'}
+                  label={displayUser.emailVerified ? t('users:emailVerified.verified') : t('users:emailVerified.pending')}
+                />
+              </>
+            )}
           </div>
 
           {/* Details */}
@@ -97,8 +122,10 @@ export function UserDetailsSheet({
                 {t('users:fields.lastLogin')}
               </div>
               <div className="text-sm font-medium">
-                {user.lastLoginAt ? (
-                  <RelativeTime date={user.lastLoginAt} />
+                {isLoading ? (
+                  <Skeleton className="h-4 w-20" />
+                ) : displayUser.lastLoginAt ? (
+                  <RelativeTime date={displayUser.lastLoginAt} />
                 ) : (
                   <span className="text-muted-foreground">-</span>
                 )}
@@ -111,7 +138,11 @@ export function UserDetailsSheet({
                 {t('users:fields.createdAt')}
               </div>
               <div className="text-sm font-medium">
-                <RelativeTime date={user.createdAt} />
+                {isLoading ? (
+                  <Skeleton className="h-4 w-20" />
+                ) : (
+                  <RelativeTime date={displayUser.createdAt} />
+                )}
               </div>
             </div>
           </div>

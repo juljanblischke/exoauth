@@ -6,8 +6,9 @@ export const AUDIT_LOGS_KEY = ['system', 'audit-logs'] as const
 
 interface UseAuditLogsOptions {
   sort?: string
-  action?: string
-  userId?: string
+  search?: string
+  actions?: string[]
+  involvedUserIds?: string[]
   from?: string
   to?: string
   entityType?: string
@@ -16,17 +17,18 @@ interface UseAuditLogsOptions {
 }
 
 export function useAuditLogs(options: UseAuditLogsOptions = {}) {
-  const { sort, action, userId, from, to, entityType, entityId, limit = 20 } = options
+  const { sort, search, actions, involvedUserIds, from, to, entityType, entityId, limit = 20 } = options
 
   return useInfiniteQuery({
-    queryKey: [...AUDIT_LOGS_KEY, { sort, action, userId, from, to, entityType, entityId }],
+    queryKey: [...AUDIT_LOGS_KEY, { sort, search, actions, involvedUserIds, from, to, entityType, entityId }],
     queryFn: async ({ pageParam }) => {
       const params: AuditLogsQueryParams = {
         cursor: pageParam as string | undefined,
         limit,
         sort,
-        action,
-        userId,
+        search,
+        actions,
+        involvedUserIds,
         from,
         to,
         entityType,

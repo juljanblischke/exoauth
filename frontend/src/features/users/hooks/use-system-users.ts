@@ -8,19 +8,21 @@ interface UseSystemUsersOptions {
   search?: string
   sort?: string
   limit?: number
+  permissionIds?: string[]
 }
 
 export function useSystemUsers(options: UseSystemUsersOptions = {}) {
-  const { search, sort, limit = 20 } = options
+  const { search, sort, limit = 20, permissionIds } = options
 
   return useInfiniteQuery({
-    queryKey: [...SYSTEM_USERS_KEY, { search, sort }],
+    queryKey: [...SYSTEM_USERS_KEY, { search, sort, permissionIds }],
     queryFn: async ({ pageParam }) => {
       const params: SystemUsersQueryParams = {
         cursor: pageParam as string | undefined,
         limit,
         search,
         sort,
+        permissionIds,
       }
       return usersApi.getAll(params)
     },

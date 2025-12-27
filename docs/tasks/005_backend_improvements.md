@@ -379,3 +379,6 @@ public string GetStatus()
 
 **Letzte Änderung:** 2025-12-27
 **Status:** In Progress (Phase 6 complete)
+
+
+permission list also needed :D

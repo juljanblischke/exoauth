@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Navigate, useSearch } from '@tanstack/react-router'
+import { useSearch } from '@tanstack/react-router'
 import { LoadingSpinner } from '@/components/shared/feedback'
 import { useAuth } from '@/contexts/auth-context'
 import { AcceptInviteForm } from '@/features/auth'
@@ -11,20 +12,26 @@ interface InviteSearch {
 export function InvitePage() {
   const { t } = useTranslation('auth')
   const { token } = useSearch({ strict: false }) as InviteSearch
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, logout } = useAuth()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  // Show loading while checking auth status
-  if (isLoading) {
+  // Auto-logout if user is authenticated (so they can accept invite with new account)
+  useEffect(() => {
+    if (isAuthenticated && !isLoggingOut) {
+      setIsLoggingOut(true)
+      logout().finally(() => {
+        setIsLoggingOut(false)
+      })
+    }
+  }, [isAuthenticated, isLoggingOut, logout])
+
+  // Show loading while checking auth status or logging out
+  if (isLoading || isLoggingOut || isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     )
-  }
-
-  // Redirect to dashboard if already authenticated
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" />
   }
 
   // Show error if no token provided

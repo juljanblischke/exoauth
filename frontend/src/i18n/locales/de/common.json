@@ -106,7 +106,24 @@
     "imprint": "Impressum",
     "privacy": "Datenschutz",
     "terms": "AGB",
-    "cookies": "Cookie-Richtlinie"
+    "cookies": "Cookie-Richtlinie",
+    "backToHome": "Zurück zur Startseite",
+    "lastUpdated": "Zuletzt aktualisiert",
+    "imprintPage": {
+      "title": "Impressum",
+      "subtitle": "Rechtliche Angaben zum Betreiber dieser Website",
+      "placeholder": "Dies ist ein Platzhalter für den Impressum-Inhalt. Bitte ersetzen Sie diesen durch Ihre tatsächlichen rechtlichen Angaben."
+    },
+    "privacyPage": {
+      "title": "Datenschutzerklärung",
+      "subtitle": "Wie wir Ihre Daten erheben, verwenden und schützen",
+      "placeholder": "Dies ist ein Platzhalter für die Datenschutzerklärung. Bitte ersetzen Sie diesen durch Ihre tatsächliche Datenschutzerklärung."
+    },
+    "termsPage": {
+      "title": "Allgemeine Geschäftsbedingungen",
+      "subtitle": "Bedingungen für die Nutzung unserer Dienste",
+      "placeholder": "Dies ist ein Platzhalter für die AGB. Bitte ersetzen Sie diesen durch Ihre tatsächlichen Geschäftsbedingungen."
+    }
   },
   "theme": {
     "label": "Design",
@@ -138,7 +155,10 @@
     "feedback": "Feedback senden"
   },
   "filters": {
-    "dateRange": "Zeitraum"
+    "dateRange": "Zeitraum",
+    "selected": "{{count}} ausgewählt",
+    "selected_one": "{{count}} ausgewählt",
+    "selected_other": "{{count}} ausgewählt"
   },
   "unsavedChanges": {
     "title": "Ungespeicherte Änderungen",
@@ -146,5 +166,9 @@
     "continueEditing": "Weiter bearbeiten",
     "discard": "Änderungen verwerfen",
     "save": "Änderungen speichern"
+  },
+  "forceReauth": {
+    "title": "Sitzung abgelaufen",
+    "description": "Ihre Berechtigungen wurden geändert. Bitte melden Sie sich erneut an."
   }
 }

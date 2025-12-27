@@ -113,6 +113,17 @@ frontend/src/i18n/
 | `legal.privacy` | Privacy Policy | Datenschutz |
 | `legal.terms` | Terms of Service | AGB |
 | `legal.cookies` | Cookie Policy | Cookie-Richtlinie |
+| `legal.backToHome` | Back to Home | Zurück zur Startseite |
+| `legal.lastUpdated` | Last updated | Zuletzt aktualisiert |
+| `legal.imprintPage.title` | Imprint | Impressum |
+| `legal.imprintPage.subtitle` | Legal information about the operator... | Rechtliche Angaben zum Betreiber... |
+| `legal.imprintPage.placeholder` | This is a placeholder for the imprint... | Dies ist ein Platzhalter für den Impressum... |
+| `legal.privacyPage.title` | Privacy Policy | Datenschutzerklärung |
+| `legal.privacyPage.subtitle` | How we collect, use, and protect your data | Wie wir Ihre Daten erheben, verwenden und schützen |
+| `legal.privacyPage.placeholder` | This is a placeholder for the privacy... | Dies ist ein Platzhalter für die Datenschutzerklärung... |
+| `legal.termsPage.title` | Terms of Service | Allgemeine Geschäftsbedingungen |
+| `legal.termsPage.subtitle` | Terms and conditions for using our services | Bedingungen für die Nutzung unserer Dienste |
+| `legal.termsPage.placeholder` | This is a placeholder for the terms... | Dies ist ein Platzhalter für die AGB... |
 | `theme.label` | Theme | Design |
 | `theme.light` | Light | Hell |
 | `theme.dark` | Dark | Dunkel |
@@ -138,6 +149,9 @@ frontend/src/i18n/
 | `unsavedChanges.discard` | Discard Changes | Änderungen verwerfen |
 | `unsavedChanges.save` | Save Changes | Änderungen speichern |
 | `filters.dateRange` | Date Range | Zeitraum |
+| `filters.selected` | {{count}} selected | {{count}} ausgewählt |
+| `forceReauth.title` | Session Expired | Sitzung abgelaufen |
+| `forceReauth.description` | Your permissions were changed. Please log in again. | Ihre Berechtigungen wurden geändert. Bitte melden Sie sich erneut an. |
 
 ---
 
@@ -289,6 +303,35 @@ frontend/src/i18n/
 | `filters.status` | Status | Status |
 | `filters.role` | Role | Rolle |
 | `filters.all` | All | Alle |
+| `tabs.users` | Users | Benutzer |
+| `tabs.invitations` | Invitations | Einladungen |
+| `invites.title` | Invitations | Einladungen |
+| `invites.search` | Search invitations... | Einladungen suchen... |
+| `invites.empty.title` | No invitations | Keine Einladungen |
+| `invites.empty.description` | Invite users to get started | Laden Sie Benutzer ein, um loszulegen |
+| `invites.status.pending` | Pending | Ausstehend |
+| `invites.status.accepted` | Accepted | Angenommen |
+| `invites.status.expired` | Expired | Abgelaufen |
+| `invites.status.revoked` | Revoked | Widerrufen |
+| `invites.fields.email` | Email | E-Mail |
+| `invites.fields.name` | Name | Name |
+| `invites.fields.status` | Status | Status |
+| `invites.fields.expiresAt` | Expires | Läuft ab |
+| `invites.fields.createdAt` | Invited | Eingeladen |
+| `invites.fields.invitedBy` | Invited by | Eingeladen von |
+| `invites.fields.acceptedAt` | Accepted at | Angenommen am |
+| `invites.fields.revokedAt` | Revoked at | Widerrufen am |
+| `invites.fields.resentAt` | Last resent | Zuletzt erneut gesendet |
+| `invites.actions.resend` | Resend | Erneut senden |
+| `invites.actions.revoke` | Revoke | Widerrufen |
+| `invites.actions.viewDetails` | View details | Details anzeigen |
+| `invites.resend.success` | Invitation resent successfully | Einladung erfolgreich erneut gesendet |
+| `invites.resend.cooldown` | Please wait before resending | Bitte warten Sie, bevor Sie erneut senden |
+| `invites.revoke.confirm.title` | Revoke invitation? | Einladung widerrufen? |
+| `invites.revoke.confirm.description` | This will invalidate the invitation link... | Dies macht den Einladungslink ungültig... |
+| `invites.revoke.success` | Invitation revoked | Einladung widerrufen |
+| `invites.details.title` | Invitation Details | Einladungsdetails |
+| `invites.details.permissions` | Permissions | Berechtigungen |
 
 ---
 
@@ -300,6 +343,7 @@ frontend/src/i18n/
 | `subtitle` | View system activity and security events | Systemaktivitäten und Sicherheitsereignisse anzeigen |
 | `fields.time` | Time | Zeit |
 | `fields.user` | User | Benutzer |
+| `fields.targetUser` | Target User | Zielbenutzer |
 | `fields.action` | Action | Aktion |
 | `fields.entity` | Entity | Entität |
 | `fields.ipAddress` | IP Address | IP-Adresse |
@@ -433,4 +477,4 @@ function MyComponent() {
 
 ---
 
-**Last Updated:** 2025-12-26
+**Last Updated:** 2025-12-27

@@ -4,6 +4,7 @@
   "fields": {
     "time": "Zeit",
     "user": "Benutzer",
+    "targetUser": "Zielbenutzer",
     "action": "Aktion",
     "entity": "Entität",
     "ipAddress": "IP-Adresse",

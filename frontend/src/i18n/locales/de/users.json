@@ -9,6 +9,55 @@
   "search": {
     "placeholder": "Benutzer suchen..."
   },
+  "tabs": {
+    "users": "Benutzer",
+    "invitations": "Einladungen"
+  },
+  "invites": {
+    "title": "Einladungen",
+    "search": "Einladungen suchen...",
+    "empty": {
+      "title": "Keine Einladungen",
+      "description": "Laden Sie Benutzer ein, um loszulegen"
+    },
+    "status": {
+      "pending": "Ausstehend",
+      "accepted": "Angenommen",
+      "expired": "Abgelaufen",
+      "revoked": "Widerrufen"
+    },
+    "fields": {
+      "email": "E-Mail",
+      "name": "Name",
+      "status": "Status",
+      "expiresAt": "Läuft ab",
+      "createdAt": "Eingeladen",
+      "invitedBy": "Eingeladen von",
+      "acceptedAt": "Angenommen am",
+      "revokedAt": "Widerrufen am",
+      "resentAt": "Zuletzt erneut gesendet"
+    },
+    "actions": {
+      "resend": "Erneut senden",
+      "revoke": "Widerrufen",
+      "viewDetails": "Details anzeigen"
+    },
+    "resend": {
+      "success": "Einladung erfolgreich erneut gesendet",
+      "cooldown": "Bitte warten Sie, bevor Sie erneut senden"
+    },
+    "revoke": {
+      "confirm": {
+        "title": "Einladung widerrufen?",
+        "description": "Dies macht den Einladungslink ungültig. Der Benutzer kann die Einladung nicht mehr annehmen."
+      },
+      "success": "Einladung widerrufen"
+    },
+    "details": {
+      "title": "Einladungsdetails",
+      "permissions": "Berechtigungen"
+    }
+  },
   "fields": {
     "name": "Name",
     "email": "E-Mail",

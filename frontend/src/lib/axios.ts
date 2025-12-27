@@ -52,6 +52,14 @@ apiClient.interceptors.response.use(
 
     // Handle 401 Unauthorized - attempt token refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Check for force re-auth header (permissions changed, don't try refresh)
+      const forceReauth = error.response.headers['x-force-reauth']
+      if (forceReauth === 'true' || forceReauth === '1') {
+        localStorage.removeItem('exoauth_has_session')
+        window.dispatchEvent(new CustomEvent('auth:force-reauth'))
+        return Promise.reject(transformError(error))
+      }
+
       // Don't try to refresh for login/register/refresh endpoints (would cause infinite loop)
       const noRefreshEndpoints = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout']
       const isNoRefreshEndpoint = noRefreshEndpoints.some(ep => originalRequest.url?.includes(ep))
@@ -72,20 +80,17 @@ apiClient.interceptors.response.use(
 
       try {
         // Call refresh endpoint - cookies are sent automatically
-        console.log('[Auth] Attempting token refresh...')
         await axios.post(
           `${API_BASE_URL}/auth/refresh`,
           {},
           { withCredentials: true }
         )
 
-        console.log('[Auth] Token refresh successful')
         processQueue(null)
 
         // Retry original request with new cookies
         return apiClient(originalRequest)
       } catch (refreshError) {
-        console.error('[Auth] Token refresh failed:', refreshError)
         processQueue(refreshError as Error)
 
         // Clear session flag so auth context knows we're logged out

@@ -106,7 +106,24 @@
     "imprint": "Imprint",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "cookies": "Cookie Policy"
+    "cookies": "Cookie Policy",
+    "backToHome": "Back to Home",
+    "lastUpdated": "Last updated",
+    "imprintPage": {
+      "title": "Imprint",
+      "subtitle": "Legal information about the operator of this website",
+      "placeholder": "This is a placeholder for the imprint content. Please replace with your actual legal information."
+    },
+    "privacyPage": {
+      "title": "Privacy Policy",
+      "subtitle": "How we collect, use, and protect your data",
+      "placeholder": "This is a placeholder for the privacy policy content. Please replace with your actual privacy policy."
+    },
+    "termsPage": {
+      "title": "Terms of Service",
+      "subtitle": "Terms and conditions for using our services",
+      "placeholder": "This is a placeholder for the terms of service content. Please replace with your actual terms."
+    }
   },
   "theme": {
     "label": "Theme",
@@ -138,7 +155,10 @@
     "feedback": "Send Feedback"
   },
   "filters": {
-    "dateRange": "Date Range"
+    "dateRange": "Date Range",
+    "selected": "{{count}} selected",
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected"
   },
   "unsavedChanges": {
     "title": "Unsaved Changes",
@@ -146,5 +166,9 @@
     "continueEditing": "Continue Editing",
     "discard": "Discard Changes",
     "save": "Save Changes"
+  },
+  "forceReauth": {
+    "title": "Session Expired",
+    "description": "Your permissions were changed. Please log in again."
   }
 }

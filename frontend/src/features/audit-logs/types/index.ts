@@ -4,6 +4,9 @@ export interface SystemAuditLogDto {
   userId: string | null
   userEmail: string | null
   userFullName: string | null
+  targetUserId: string | null
+  targetUserEmail: string | null
+  targetUserFullName: string | null
   action: string
   entityType: string | null
   entityId: string | null
@@ -16,15 +19,8 @@ export interface SystemAuditLogDto {
 // Filter DTOs
 export interface AuditLogFiltersDto {
   actions: string[]
-  users: AuditLogUserFilterDto[]
   earliestDate: string | null
   latestDate: string | null
-}
-
-export interface AuditLogUserFilterDto {
-  id: string
-  email: string
-  fullName: string
 }
 
 // Query params
@@ -32,8 +28,9 @@ export interface AuditLogsQueryParams {
   cursor?: string
   limit?: number
   sort?: string
-  action?: string
-  userId?: string
+  search?: string
+  actions?: string[]
+  involvedUserIds?: string[]
   from?: string
   to?: string
   entityType?: string

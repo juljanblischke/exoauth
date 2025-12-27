@@ -4,6 +4,7 @@
   "fields": {
     "time": "Time",
     "user": "User",
+    "targetUser": "Target User",
     "action": "Action",
     "entity": "Entity",
     "ipAddress": "IP Address",
