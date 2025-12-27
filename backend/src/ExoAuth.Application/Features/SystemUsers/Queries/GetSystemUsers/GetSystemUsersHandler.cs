@@ -23,6 +23,7 @@ public sealed class GetSystemUsersHandler : IQueryHandler<GetSystemUsersQuery, C
             limit: limit,
             sortBy: query.Sort,
             search: query.Search,
+            permissionIds: query.PermissionIds,
             cancellationToken: ct
         );
 

@@ -95,6 +95,7 @@ public sealed class InviteSystemUserHandlerTests
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.UserInvited,
             inviterId,
+            It.IsAny<Guid?>(),
             "SystemInvite",
             It.IsAny<Guid?>(),
             It.IsAny<object?>(),

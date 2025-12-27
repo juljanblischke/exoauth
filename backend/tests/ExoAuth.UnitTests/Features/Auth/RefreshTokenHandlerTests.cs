@@ -102,6 +102,7 @@ public sealed class RefreshTokenHandlerTests
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.TokenRefreshed,
             It.IsAny<Guid?>(),
+            It.IsAny<Guid?>(),
             "SystemUser",
             It.IsAny<Guid?>(),
             It.IsAny<object?>(),

@@ -44,6 +44,7 @@ public sealed class LogoutHandler : ICommandHandler<LogoutCommand, LogoutRespons
             await _auditService.LogWithContextAsync(
                 AuditActions.UserLogout,
                 storedToken.UserId,
+                null, // targetUserId
                 "SystemUser",
                 storedToken.UserId,
                 null,

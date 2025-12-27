@@ -62,6 +62,7 @@ public sealed class UpdateSystemUserHandler : ICommandHandler<UpdateSystemUserCo
             await _auditService.LogWithContextAsync(
                 AuditActions.UserUpdated,
                 _currentUser.UserId,
+                user.Id, // targetUserId
                 "SystemUser",
                 user.Id,
                 new { Changes = changes },

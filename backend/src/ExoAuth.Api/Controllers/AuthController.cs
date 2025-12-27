@@ -6,6 +6,8 @@ using ExoAuth.Application.Features.Auth.Commands.RefreshToken;
 using ExoAuth.Application.Features.Auth.Commands.Register;
 using ExoAuth.Application.Features.Auth.Models;
 using ExoAuth.Application.Features.Auth.Queries.GetCurrentUser;
+using ExoAuth.Application.Features.SystemInvites.Models;
+using ExoAuth.Application.Features.SystemInvites.Queries.ValidateInvite;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -131,6 +133,21 @@ public sealed class AuthController : ApiControllerBase
     public async Task<IActionResult> Me(CancellationToken ct)
     {
         var query = new GetCurrentUserQuery();
+
+        var result = await Mediator.Send(query, ct);
+
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Validate an invitation token and get details.
+    /// </summary>
+    [HttpGet("invite")]
+    [RateLimit(10)]
+    [ProducesResponseType(typeof(InviteValidationDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ValidateInvite([FromQuery] string token, CancellationToken ct)
+    {
+        var query = new ValidateInviteQuery(token);
 
         var result = await Mediator.Send(query, ct);
 

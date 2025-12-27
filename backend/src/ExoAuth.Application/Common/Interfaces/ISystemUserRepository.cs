@@ -60,6 +60,7 @@ public interface ISystemUserRepository
         int limit,
         string? sortBy,
         string? search,
+        List<Guid>? permissionIds = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

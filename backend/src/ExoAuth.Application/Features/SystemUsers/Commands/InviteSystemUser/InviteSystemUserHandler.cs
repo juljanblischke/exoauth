@@ -94,6 +94,7 @@ public sealed class InviteSystemUserHandler : ICommandHandler<InviteSystemUserCo
         await _auditService.LogWithContextAsync(
             AuditActions.UserInvited,
             inviterId,
+            null, // targetUserId - no user yet
             "SystemInvite",
             invite.Id,
             new { invite.Email, PermissionCount = command.PermissionIds.Count },

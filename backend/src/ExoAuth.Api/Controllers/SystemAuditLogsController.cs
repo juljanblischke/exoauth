@@ -17,6 +17,9 @@ public sealed class SystemAuditLogsController : ApiControllerBase
     /// <summary>
     /// Get paginated list of system audit logs with filtering.
     /// </summary>
+    /// <param name="search">Search in actor and target user email/name</param>
+    /// <param name="actions">Comma-separated list of actions to filter by</param>
+    /// <param name="involvedUserIds">Comma-separated list of user IDs (matches actor OR target)</param>
     [HttpGet]
     [SystemPermission(SystemPermissions.AuditRead)]
     [ProducesResponseType(typeof(CursorPagedList<SystemAuditLogDto>), StatusCodes.Status200OK)]
@@ -26,20 +29,41 @@ public sealed class SystemAuditLogsController : ApiControllerBase
         [FromQuery] string? cursor = null,
         [FromQuery] int limit = 20,
         [FromQuery] string? sort = null,
-        [FromQuery] string? action = null,
-        [FromQuery] Guid? userId = null,
+        [FromQuery] string? search = null,
+        [FromQuery] string? actions = null,
+        [FromQuery] string? involvedUserIds = null,
         [FromQuery] DateTime? from = null,
         [FromQuery] DateTime? to = null,
         [FromQuery] string? entityType = null,
         [FromQuery] Guid? entityId = null,
         CancellationToken ct = default)
     {
+        // Parse comma-separated actions
+        List<string>? actionsList = null;
+        if (!string.IsNullOrWhiteSpace(actions))
+        {
+            actionsList = actions.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        }
+
+        // Parse comma-separated user IDs
+        List<Guid>? involvedUserIdsList = null;
+        if (!string.IsNullOrWhiteSpace(involvedUserIds))
+        {
+            involvedUserIdsList = involvedUserIds
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(id => Guid.TryParse(id, out var guid) ? guid : (Guid?)null)
+                .Where(g => g.HasValue)
+                .Select(g => g!.Value)
+                .ToList();
+        }
+
         var query = new GetSystemAuditLogsQuery(
             cursor,
             limit,
             sort,
-            action,
-            userId,
+            search,
+            actionsList,
+            involvedUserIdsList,
             from,
             to,
             entityType,

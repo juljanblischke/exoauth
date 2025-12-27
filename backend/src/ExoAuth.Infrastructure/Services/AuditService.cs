@@ -25,6 +25,7 @@ public sealed class AuditService : IAuditService
     public async Task LogAsync(
         string action,
         Guid? userId = null,
+        Guid? targetUserId = null,
         string? entityType = null,
         Guid? entityId = null,
         object? details = null,
@@ -35,6 +36,7 @@ public sealed class AuditService : IAuditService
             var auditLog = SystemAuditLog.Create(
                 action: action,
                 userId: userId,
+                targetUserId: targetUserId,
                 entityType: entityType,
                 entityId: entityId,
                 details: details
@@ -43,7 +45,7 @@ public sealed class AuditService : IAuditService
             await _context.SystemAuditLogs.AddAsync(auditLog, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogDebug("Audit log created: {Action} by {UserId}", action, userId);
+            _logger.LogDebug("Audit log created: {Action} by {UserId} targeting {TargetUserId}", action, userId, targetUserId);
         }
         catch (Exception ex)
         {
@@ -55,6 +57,7 @@ public sealed class AuditService : IAuditService
     public async Task LogWithContextAsync(
         string action,
         Guid? userId = null,
+        Guid? targetUserId = null,
         string? entityType = null,
         Guid? entityId = null,
         object? details = null,
@@ -80,6 +83,7 @@ public sealed class AuditService : IAuditService
             var auditLog = SystemAuditLog.Create(
                 action: action,
                 userId: userId,
+                targetUserId: targetUserId,
                 entityType: entityType,
                 entityId: entityId,
                 ipAddress: ipAddress,
@@ -90,7 +94,7 @@ public sealed class AuditService : IAuditService
             await _context.SystemAuditLogs.AddAsync(auditLog, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogDebug("Audit log created: {Action} by {UserId} from {IpAddress}", action, userId, ipAddress);
+            _logger.LogDebug("Audit log created: {Action} by {UserId} targeting {TargetUserId} from {IpAddress}", action, userId, targetUserId, ipAddress);
         }
         catch (Exception ex)
         {

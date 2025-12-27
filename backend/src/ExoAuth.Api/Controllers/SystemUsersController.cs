@@ -31,9 +31,22 @@ public sealed class SystemUsersController : ApiControllerBase
         [FromQuery] int limit = 20,
         [FromQuery] string? sort = null,
         [FromQuery] string? search = null,
+        [FromQuery] string? permissionIds = null,
         CancellationToken ct = default)
     {
-        var query = new GetSystemUsersQuery(cursor, limit, sort, search);
+        // Parse comma-separated permission IDs
+        List<Guid>? parsedPermissionIds = null;
+        if (!string.IsNullOrWhiteSpace(permissionIds))
+        {
+            parsedPermissionIds = permissionIds
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(id => Guid.TryParse(id, out var guid) ? guid : (Guid?)null)
+                .Where(g => g.HasValue)
+                .Select(g => g!.Value)
+                .ToList();
+        }
+
+        var query = new GetSystemUsersQuery(cursor, limit, sort, search, parsedPermissionIds);
 
         var result = await Mediator.Send(query, ct);
 

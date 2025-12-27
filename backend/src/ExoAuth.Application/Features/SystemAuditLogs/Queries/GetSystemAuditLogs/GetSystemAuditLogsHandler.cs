@@ -24,18 +24,39 @@ public sealed class GetSystemAuditLogsHandler : IQueryHandler<GetSystemAuditLogs
 
         var queryable = _context.SystemAuditLogs
             .Include(l => l.User)
+            .Include(l => l.TargetUser)
             .AsNoTracking()
             .AsQueryable();
 
         // Apply filters
-        if (!string.IsNullOrWhiteSpace(query.Action))
+        if (query.Actions is { Count: > 0 })
         {
-            queryable = queryable.Where(l => l.Action == query.Action);
+            queryable = queryable.Where(l => query.Actions.Contains(l.Action));
         }
 
-        if (query.UserId.HasValue)
+        // InvolvedUserIds: find logs where user is actor OR target
+        if (query.InvolvedUserIds is { Count: > 0 })
         {
-            queryable = queryable.Where(l => l.UserId == query.UserId.Value);
+            queryable = queryable.Where(l =>
+                (l.UserId.HasValue && query.InvolvedUserIds.Contains(l.UserId.Value)) ||
+                (l.TargetUserId.HasValue && query.InvolvedUserIds.Contains(l.TargetUserId.Value))
+            );
+        }
+
+        // Search: search in actor and target user email/name
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var searchLower = query.Search.ToLowerInvariant();
+            queryable = queryable.Where(l =>
+                (l.User != null && (
+                    l.User.Email.ToLower().Contains(searchLower) ||
+                    l.User.FullName.ToLower().Contains(searchLower)
+                )) ||
+                (l.TargetUser != null && (
+                    l.TargetUser.Email.ToLower().Contains(searchLower) ||
+                    l.TargetUser.FullName.ToLower().Contains(searchLower)
+                ))
+            );
         }
 
         if (query.From.HasValue)
@@ -91,6 +112,9 @@ public sealed class GetSystemAuditLogsHandler : IQueryHandler<GetSystemAuditLogs
                 l.UserId,
                 l.User != null ? l.User.Email : null,
                 l.User != null ? l.User.FullName : null,
+                l.TargetUserId,
+                l.TargetUser != null ? l.TargetUser.Email : null,
+                l.TargetUser != null ? l.TargetUser.FullName : null,
                 l.Action,
                 l.EntityType,
                 l.EntityId,

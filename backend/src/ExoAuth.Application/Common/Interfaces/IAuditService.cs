@@ -10,6 +10,7 @@ public interface IAuditService
     /// </summary>
     /// <param name="action">The action performed.</param>
     /// <param name="userId">The user who performed the action (null for system/anonymous).</param>
+    /// <param name="targetUserId">The user who was affected by the action.</param>
     /// <param name="entityType">The type of entity affected.</param>
     /// <param name="entityId">The ID of the entity affected.</param>
     /// <param name="details">Additional details about the action.</param>
@@ -17,6 +18,7 @@ public interface IAuditService
     Task LogAsync(
         string action,
         Guid? userId = null,
+        Guid? targetUserId = null,
         string? entityType = null,
         Guid? entityId = null,
         object? details = null,
@@ -28,6 +30,7 @@ public interface IAuditService
     Task LogWithContextAsync(
         string action,
         Guid? userId = null,
+        Guid? targetUserId = null,
         string? entityType = null,
         Guid? entityId = null,
         object? details = null,
@@ -55,4 +58,15 @@ public static class AuditActions
 
     // Security actions
     public const string LoginBlocked = "system.login.blocked";
+
+    // Invite actions
+    public const string InviteRevoked = "system.invite.revoked";
+    public const string InviteResent = "system.invite.resent";
+
+    // Force re-auth actions
+    public const string ForceReauthTriggered = "system.access.forced_reauth";
+
+    // Error audit actions
+    public const string AccessForbidden = "system.access.forbidden";
+    public const string ErrorInternal = "system.error.internal";
 }

@@ -14,6 +14,8 @@ public sealed class SystemAuditLogConfiguration : IEntityTypeConfiguration<Syste
 
         builder.Property(x => x.UserId);
 
+        builder.Property(x => x.TargetUserId);
+
         builder.Property(x => x.Action)
             .IsRequired()
             .HasMaxLength(100);
@@ -43,8 +45,14 @@ public sealed class SystemAuditLogConfiguration : IEntityTypeConfiguration<Syste
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasOne(x => x.TargetUser)
+            .WithMany()
+            .HasForeignKey(x => x.TargetUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Indexes
         builder.HasIndex(x => x.UserId);
+        builder.HasIndex(x => x.TargetUserId);
         builder.HasIndex(x => x.Action);
         builder.HasIndex(x => x.EntityType);
         builder.HasIndex(x => x.CreatedAt);

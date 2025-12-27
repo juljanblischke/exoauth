@@ -98,6 +98,7 @@ public sealed class RegisterHandlerTests
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.UserRegistered,
             It.IsAny<Guid?>(),
+            It.IsAny<Guid?>(),
             "SystemUser",
             It.IsAny<Guid?>(),
             It.IsAny<object?>(),

@@ -11,5 +11,6 @@ public sealed record GetSystemUsersQuery(
     string? Cursor = null,
     int Limit = 20,
     string? Sort = null,
-    string? Search = null
+    string? Search = null,
+    List<Guid>? PermissionIds = null
 ) : IQuery<CursorPagedList<SystemUserDto>>;

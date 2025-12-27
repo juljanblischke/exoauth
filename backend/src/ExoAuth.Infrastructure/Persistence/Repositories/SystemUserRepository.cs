@@ -91,6 +91,7 @@ public sealed class SystemUserRepository : ISystemUserRepository
         int limit,
         string? sortBy,
         string? search,
+        List<Guid>? permissionIds = null,
         CancellationToken cancellationToken = default)
     {
         var query = _context.SystemUsers.AsQueryable();
@@ -103,6 +104,15 @@ public sealed class SystemUserRepository : ISystemUserRepository
                 u.Email.Contains(searchLower) ||
                 u.FirstName.ToLower().Contains(searchLower) ||
                 u.LastName.ToLower().Contains(searchLower));
+        }
+
+        // Permission filter - users must have ALL specified permissions
+        if (permissionIds is { Count: > 0 })
+        {
+            foreach (var permissionId in permissionIds)
+            {
+                query = query.Where(u => u.Permissions.Any(p => p.SystemPermissionId == permissionId));
+            }
         }
 
         // Get total count before pagination

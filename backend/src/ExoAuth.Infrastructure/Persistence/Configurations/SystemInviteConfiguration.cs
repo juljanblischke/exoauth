@@ -37,6 +37,10 @@ public sealed class SystemInviteConfiguration : IEntityTypeConfiguration<SystemI
 
         builder.Property(x => x.AcceptedAt);
 
+        builder.Property(x => x.RevokedAt);
+
+        builder.Property(x => x.ResentAt);
+
         builder.Property(x => x.InvitedBy)
             .IsRequired();
 
@@ -58,5 +62,6 @@ public sealed class SystemInviteConfiguration : IEntityTypeConfiguration<SystemI
         builder.HasIndex(x => x.Email);
         builder.HasIndex(x => x.ExpiresAt);
         builder.HasIndex(x => x.AcceptedAt);
+        builder.HasIndex(x => x.RevokedAt);
     }
 }

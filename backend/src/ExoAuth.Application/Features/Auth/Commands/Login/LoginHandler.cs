@@ -14,6 +14,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
     private readonly ITokenService _tokenService;
     private readonly IBruteForceProtectionService _bruteForceService;
     private readonly IPermissionCacheService _permissionCache;
+    private readonly IForceReauthService _forceReauthService;
     private readonly IAuditService _auditService;
 
     public LoginHandler(
@@ -23,6 +24,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         ITokenService tokenService,
         IBruteForceProtectionService bruteForceService,
         IPermissionCacheService permissionCache,
+        IForceReauthService forceReauthService,
         IAuditService auditService)
     {
         _context = context;
@@ -31,6 +33,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         _tokenService = tokenService;
         _bruteForceService = bruteForceService;
         _permissionCache = permissionCache;
+        _forceReauthService = forceReauthService;
         _auditService = auditService;
     }
 
@@ -43,9 +46,10 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         {
             await _auditService.LogWithContextAsync(
                 AuditActions.LoginBlocked,
-                null,
-                null,
-                null,
+                null, // userId
+                null, // targetUserId
+                null, // entityType
+                null, // entityId
                 new { Email = email, Reason = "Too many failed attempts" },
                 ct
             );
@@ -74,6 +78,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             await _auditService.LogWithContextAsync(
                 AuditActions.UserLoginFailed,
                 user.Id,
+                null, // targetUserId
                 "SystemUser",
                 user.Id,
                 new { Reason = "User inactive" },
@@ -84,6 +89,9 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
 
         // Reset brute force counter on successful login
         await _bruteForceService.ResetAsync(email, ct);
+
+        // Clear force re-auth flag if set
+        await _forceReauthService.ClearFlagAsync(user.Id, ct);
 
         // Get permissions (with caching)
         var permissions = await _permissionCache.GetOrSetPermissionsAsync(
@@ -119,6 +127,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         await _auditService.LogWithContextAsync(
             AuditActions.UserLogin,
             user.Id,
+            null, // targetUserId
             "SystemUser",
             user.Id,
             null,
@@ -149,9 +158,10 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
 
         await _auditService.LogWithContextAsync(
             AuditActions.UserLoginFailed,
-            null,
-            null,
-            null,
+            null, // userId
+            null, // targetUserId
+            null, // entityType
+            null, // entityId
             new { Email = email, Reason = reason, Attempts = attempts, IsBlocked = isBlocked },
             ct
         );
@@ -160,9 +170,10 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         {
             await _auditService.LogWithContextAsync(
                 AuditActions.LoginBlocked,
-                null,
-                null,
-                null,
+                null, // userId
+                null, // targetUserId
+                null, // entityType
+                null, // entityId
                 new { Email = email, Attempts = attempts },
                 ct
             );

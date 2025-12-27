@@ -105,6 +105,7 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
         await _auditService.LogWithContextAsync(
             AuditActions.UserInviteAccepted,
             user.Id,
+            null, // targetUserId
             "SystemUser",
             user.Id,
             new { InviteId = invite.Id, InvitedBy = invite.InvitedBy },

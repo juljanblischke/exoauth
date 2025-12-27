@@ -57,6 +57,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors();
 app.UseAuthentication();
+app.UseMiddleware<ForceReauthMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

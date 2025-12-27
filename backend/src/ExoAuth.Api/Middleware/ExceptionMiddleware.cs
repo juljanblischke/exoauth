@@ -1,7 +1,10 @@
+using System.Security.Claims;
+using System.Text.Json;
 using ExoAuth.Application.Common.Exceptions;
+using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Application.Common.Models;
 using FluentValidation;
-using System.Text.Json;
+using Serilog;
 
 namespace ExoAuth.Api.Middleware;
 
@@ -21,7 +24,7 @@ public sealed class ExceptionMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, IAuditService auditService)
     {
         try
         {
@@ -29,11 +32,11 @@ public sealed class ExceptionMiddleware
         }
         catch (Exception ex)
         {
-            await HandleExceptionAsync(context, ex);
+            await HandleExceptionAsync(context, ex, auditService);
         }
     }
 
-    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception, IAuditService auditService)
     {
         var (statusCode, response) = exception switch
         {
@@ -54,11 +57,72 @@ public sealed class ExceptionMiddleware
             _logger.LogWarning("Request failed with status {StatusCode}: {Message}", statusCode, exception.Message);
         }
 
+        // Audit log for 403 and 500 errors
+        await LogErrorAuditAsync(context, statusCode, exception, auditService);
+
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = statusCode;
 
         var json = JsonSerializer.Serialize(response, JsonOptions);
         await context.Response.WriteAsync(json);
+    }
+
+    private static async Task LogErrorAuditAsync(HttpContext context, int statusCode, Exception exception, IAuditService auditService)
+    {
+        try
+        {
+            // Get user ID from claims if authenticated
+            Guid? userId = null;
+            var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(userIdClaim, out var parsedUserId))
+            {
+                userId = parsedUserId;
+            }
+
+            var endpoint = $"{context.Request.Method} {context.Request.Path}";
+            var requestId = context.TraceIdentifier;
+
+            if (statusCode == StatusCodes.Status403Forbidden)
+            {
+                await auditService.LogWithContextAsync(
+                    AuditActions.AccessForbidden,
+                    userId,
+                    null,
+                    null,
+                    null,
+                    new
+                    {
+                        Endpoint = endpoint,
+                        RequestId = requestId,
+                        ErrorCode = (exception as Application.Common.Exceptions.SystemException)?.ErrorCode ?? "FORBIDDEN"
+                    },
+                    context.RequestAborted
+                );
+            }
+            else if (statusCode >= 500)
+            {
+                await auditService.LogWithContextAsync(
+                    AuditActions.ErrorInternal,
+                    userId,
+                    null,
+                    null,
+                    null,
+                    new
+                    {
+                        Endpoint = endpoint,
+                        RequestId = requestId,
+                        ErrorType = exception.GetType().Name
+                    },
+                    context.RequestAborted
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            // Don't let audit logging failures break the response
+            // Just log and continue
+            Log.Warning(ex, "Failed to write error audit log");
+        }
     }
 
     private static (int, ApiResponse<object>) HandleValidationException(ValidationException exception)

@@ -15,6 +15,7 @@ public static class ErrorCodes
     public const string AuthInvalidCredentials = "AUTH_INVALID_CREDENTIALS";
     public const string AuthUserInactive = "AUTH_USER_INACTIVE";
     public const string AuthRefreshTokenInvalid = "AUTH_REFRESH_TOKEN_INVALID";
+    public const string AuthForceReauth = "AUTH_FORCE_REAUTH";
 
     // Authorization Errors (403)
     public const string AuthForbidden = "AUTH_FORBIDDEN";
@@ -41,6 +42,14 @@ public static class ErrorCodes
     // System Business Errors (400)
     public const string SystemLastPermissionHolder = "SYSTEM_LAST_PERMISSION_HOLDER";
     public const string SystemCannotDeleteSelf = "SYSTEM_CANNOT_DELETE_SELF";
+
+    // Invite Errors (400/404/429)
+    public const string InviteNotFound = "INVITE_NOT_FOUND";
+    public const string InviteAlreadyRevoked = "INVITE_ALREADY_REVOKED";
+    public const string InviteAlreadyAccepted = "INVITE_ALREADY_ACCEPTED";
+    public const string InviteResendCooldown = "INVITE_RESEND_COOLDOWN";
+    public const string InviteExpired = "INVITE_EXPIRED";
+    public const string InviteRevoked = "INVITE_REVOKED";
 
     // Server Errors (500)
     public const string InternalError = "INTERNAL_ERROR";

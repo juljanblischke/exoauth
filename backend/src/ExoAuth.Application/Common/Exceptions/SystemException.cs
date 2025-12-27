@@ -80,3 +80,25 @@ public sealed class SystemForbiddenException : SystemException
     {
     }
 }
+
+/// <summary>
+/// Generic not found exception.
+/// </summary>
+public sealed class NotFoundException : SystemException
+{
+    public NotFoundException(string errorCode, string message)
+        : base(errorCode, message, 404)
+    {
+    }
+}
+
+/// <summary>
+/// Generic business logic exception.
+/// </summary>
+public sealed class BusinessException : SystemException
+{
+    public BusinessException(string errorCode, string message, int statusCode = 400)
+        : base(errorCode, message, statusCode)
+    {
+    }
+}

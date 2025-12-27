@@ -17,6 +17,7 @@ public sealed class LoginHandlerTests
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<IBruteForceProtectionService> _mockBruteForceService;
     private readonly Mock<IPermissionCacheService> _mockPermissionCache;
+    private readonly Mock<IForceReauthService> _mockForceReauthService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly LoginHandler _handler;
 
@@ -28,6 +29,7 @@ public sealed class LoginHandlerTests
         _mockTokenService = new Mock<ITokenService>();
         _mockBruteForceService = new Mock<IBruteForceProtectionService>();
         _mockPermissionCache = new Mock<IPermissionCacheService>();
+        _mockForceReauthService = new Mock<IForceReauthService>();
         _mockAuditService = new Mock<IAuditService>();
 
         // Default token service setup
@@ -40,6 +42,7 @@ public sealed class LoginHandlerTests
             _mockTokenService.Object,
             _mockBruteForceService.Object,
             _mockPermissionCache.Object,
+            _mockForceReauthService.Object,
             _mockAuditService.Object);
     }
 
@@ -85,6 +88,7 @@ public sealed class LoginHandlerTests
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.UserLogin,
             It.IsAny<Guid?>(),
+            It.IsAny<Guid?>(),
             It.IsAny<string?>(),
             It.IsAny<Guid?>(),
             It.IsAny<object?>(),
@@ -106,6 +110,7 @@ public sealed class LoginHandlerTests
 
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.LoginBlocked,
+            It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
             It.IsAny<string?>(),
             It.IsAny<Guid?>(),
@@ -200,12 +205,14 @@ public sealed class LoginHandlerTests
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.UserLoginFailed,
             It.IsAny<Guid?>(),
+            It.IsAny<Guid?>(),
             It.IsAny<string?>(),
             It.IsAny<Guid?>(),
             It.IsAny<object?>(),
             It.IsAny<CancellationToken>()), Times.Once);
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.LoginBlocked,
+            It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
             It.IsAny<string?>(),
             It.IsAny<Guid?>(),

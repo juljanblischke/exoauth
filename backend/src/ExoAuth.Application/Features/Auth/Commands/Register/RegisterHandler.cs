@@ -96,6 +96,7 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
         await _auditService.LogWithContextAsync(
             AuditActions.UserRegistered,
             user.Id,
+            null, // targetUserId
             "SystemUser",
             user.Id,
             new { user.Email, IsFirstUser = true },

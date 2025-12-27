@@ -5,6 +5,7 @@ namespace ExoAuth.Domain.Entities;
 public sealed class SystemAuditLog : BaseEntity
 {
     public Guid? UserId { get; private set; }
+    public Guid? TargetUserId { get; private set; }
     public string Action { get; private set; } = null!;
     public string? EntityType { get; private set; }
     public Guid? EntityId { get; private set; }
@@ -14,12 +15,14 @@ public sealed class SystemAuditLog : BaseEntity
 
     // Navigation properties
     public SystemUser? User { get; private set; }
+    public SystemUser? TargetUser { get; private set; }
 
     private SystemAuditLog() { } // EF Core
 
     public static SystemAuditLog Create(
         string action,
         Guid? userId = null,
+        Guid? targetUserId = null,
         string? entityType = null,
         Guid? entityId = null,
         string? ipAddress = null,
@@ -29,6 +32,7 @@ public sealed class SystemAuditLog : BaseEntity
         return new SystemAuditLog
         {
             UserId = userId,
+            TargetUserId = targetUserId,
             Action = action,
             EntityType = entityType,
             EntityId = entityId,

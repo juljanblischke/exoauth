@@ -144,6 +144,10 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(45)")
                         .HasColumnName("ip_address");
 
+                    b.Property<Guid?>("TargetUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_user_id");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -168,6 +172,9 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("EntityType")
                         .HasDatabaseName("i_x_system_audit_logs_entity_type");
+
+                    b.HasIndex("TargetUserId")
+                        .HasDatabaseName("i_x_system_audit_logs_target_user_id");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("i_x_system_audit_logs_user_id");
@@ -224,6 +231,14 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("permission_ids");
 
+                    b.Property<DateTime?>("ResentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resent_at");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -248,6 +263,9 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("InvitedBy")
                         .HasDatabaseName("i_x_system_invites_invited_by");
+
+                    b.HasIndex("RevokedAt")
+                        .HasDatabaseName("i_x_system_invites_revoked_at");
 
                     b.HasIndex("Token")
                         .IsUnique()
@@ -410,11 +428,19 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ExoAuth.Domain.Entities.SystemAuditLog", b =>
                 {
+                    b.HasOne("ExoAuth.Domain.Entities.SystemUser", "TargetUser")
+                        .WithMany()
+                        .HasForeignKey("TargetUserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("f_k_system_audit_logs_system_users_target_user_id");
+
                     b.HasOne("ExoAuth.Domain.Entities.SystemUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("f_k_system_audit_logs_system_users_user_id");
+
+                    b.Navigation("TargetUser");
 
                     b.Navigation("User");
                 });

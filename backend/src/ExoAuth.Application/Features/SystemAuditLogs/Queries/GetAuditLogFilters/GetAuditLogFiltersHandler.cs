@@ -25,23 +25,6 @@ public sealed class GetAuditLogFiltersHandler : IQueryHandler<GetAuditLogFilters
             .OrderBy(a => a)
             .ToListAsync(ct);
 
-        // Get users who have audit log entries
-        var userIds = await _context.SystemAuditLogs
-            .Where(l => l.UserId != null)
-            .Select(l => l.UserId!.Value)
-            .Distinct()
-            .ToListAsync(ct);
-
-        var users = await _context.SystemUsers
-            .Where(u => userIds.Contains(u.Id))
-            .OrderBy(u => u.Email)
-            .Select(u => new AuditLogUserFilterDto(
-                u.Id,
-                u.Email,
-                u.FullName
-            ))
-            .ToListAsync(ct);
-
         // Get date range
         var dateRange = await _context.SystemAuditLogs
             .GroupBy(_ => 1)
@@ -54,7 +37,6 @@ public sealed class GetAuditLogFiltersHandler : IQueryHandler<GetAuditLogFilters
 
         return new AuditLogFiltersDto(
             Actions: actions,
-            Users: users,
             EarliestDate: dateRange?.Earliest,
             LatestDate: dateRange?.Latest
         );

@@ -15,6 +15,8 @@ public sealed class UpdatePermissionsHandlerTests
     private readonly Mock<IAppDbContext> _mockContext;
     private readonly Mock<ISystemUserRepository> _mockUserRepository;
     private readonly Mock<IPermissionCacheService> _mockPermissionCache;
+    private readonly Mock<IForceReauthService> _mockForceReauthService;
+    private readonly Mock<ITokenBlacklistService> _mockTokenBlacklistService;
     private readonly Mock<ICurrentUserService> _mockCurrentUser;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly UpdateSystemUserPermissionsHandler _handler;
@@ -24,6 +26,8 @@ public sealed class UpdatePermissionsHandlerTests
         _mockContext = MockDbContext.Create();
         _mockUserRepository = new Mock<ISystemUserRepository>();
         _mockPermissionCache = new Mock<IPermissionCacheService>();
+        _mockForceReauthService = new Mock<IForceReauthService>();
+        _mockTokenBlacklistService = new Mock<ITokenBlacklistService>();
         _mockCurrentUser = new Mock<ICurrentUserService>();
         _mockAuditService = new Mock<IAuditService>();
 
@@ -31,6 +35,8 @@ public sealed class UpdatePermissionsHandlerTests
             _mockContext.Object,
             _mockUserRepository.Object,
             _mockPermissionCache.Object,
+            _mockForceReauthService.Object,
+            _mockTokenBlacklistService.Object,
             _mockCurrentUser.Object,
             _mockAuditService.Object);
     }
@@ -89,6 +95,7 @@ public sealed class UpdatePermissionsHandlerTests
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.UserPermissionsUpdated,
             currentUserId,
+            userId,
             "SystemUser",
             userId,
             It.IsAny<object?>(),

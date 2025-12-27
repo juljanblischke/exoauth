@@ -11,6 +11,8 @@ public sealed class SystemInvite : BaseEntity
     public JsonDocument PermissionIds { get; private set; } = null!;
     public DateTime ExpiresAt { get; private set; }
     public DateTime? AcceptedAt { get; private set; }
+    public DateTime? RevokedAt { get; private set; }
+    public DateTime? ResentAt { get; private set; }
     public Guid InvitedBy { get; private set; }
 
     // Navigation properties
@@ -42,9 +44,36 @@ public sealed class SystemInvite : BaseEntity
 
     public bool IsAccepted => AcceptedAt.HasValue;
 
+    public bool IsRevoked => RevokedAt.HasValue;
+
+    public string Status
+    {
+        get
+        {
+            if (RevokedAt.HasValue) return "revoked";
+            if (AcceptedAt.HasValue) return "accepted";
+            if (DateTime.UtcNow > ExpiresAt) return "expired";
+            return "pending";
+        }
+    }
+
     public void Accept()
     {
         AcceptedAt = DateTime.UtcNow;
+        SetUpdated();
+    }
+
+    public void Revoke()
+    {
+        RevokedAt = DateTime.UtcNow;
+        SetUpdated();
+    }
+
+    public void MarkResent(int newExpirationHours = 24)
+    {
+        ResentAt = DateTime.UtcNow;
+        ExpiresAt = DateTime.UtcNow.AddHours(newExpirationHours);
+        Token = GenerateToken();
         SetUpdated();
     }
 

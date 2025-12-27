@@ -10,6 +10,9 @@ public sealed record SystemAuditLogDto(
     Guid? UserId,
     string? UserEmail,
     string? UserFullName,
+    Guid? TargetUserId,
+    string? TargetUserEmail,
+    string? TargetUserFullName,
     string Action,
     string? EntityType,
     Guid? EntityId,
@@ -24,16 +27,6 @@ public sealed record SystemAuditLogDto(
 /// </summary>
 public sealed record AuditLogFiltersDto(
     IReadOnlyList<string> Actions,
-    IReadOnlyList<AuditLogUserFilterDto> Users,
     DateTime? EarliestDate,
     DateTime? LatestDate
-);
-
-/// <summary>
-/// User filter option for audit logs.
-/// </summary>
-public sealed record AuditLogUserFilterDto(
-    Guid Id,
-    string Email,
-    string FullName
 );

@@ -62,9 +62,10 @@ public sealed class DeleteSystemUserHandler : ICommandHandler<DeleteSystemUserCo
         await _auditService.LogWithContextAsync(
             AuditActions.UserDeleted,
             _currentUser.UserId,
+            command.Id, // targetUserId
             "SystemUser",
             command.Id,
-            new { DeletedBy = _currentUser.UserId },
+            null,
             ct
         );
 

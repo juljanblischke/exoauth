@@ -52,6 +52,7 @@ public static class DependencyInjection
         services.AddSingleton<IPermissionCacheService, PermissionCacheService>();
         services.AddSingleton<IBruteForceProtectionService, BruteForceProtectionService>();
         services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
+        services.AddSingleton<IForceReauthService, ForceReauthService>();
 
         // Email Services
         services.AddSingleton<IEmailTemplateService, EmailTemplateService>();

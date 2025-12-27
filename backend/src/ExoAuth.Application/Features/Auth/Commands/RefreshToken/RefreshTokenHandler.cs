@@ -101,6 +101,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
         await _auditService.LogWithContextAsync(
             AuditActions.TokenRefreshed,
             user.Id,
+            null, // targetUserId
             "SystemUser",
             user.Id,
             null,
