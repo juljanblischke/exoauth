@@ -48,8 +48,14 @@ vi.mock('../hooks', () => ({
 // Mock useAuth hook
 vi.mock('@/contexts/auth-context', () => ({
   useAuth: () => ({
-    user: { id: 'current-user', permissions: ['system:users:read', 'system:users:write'] },
-    hasPermission: (p: string) => ['system:users:read', 'system:users:write'].includes(p),
+    user: { id: 'current-user', permissions: ['system:users:read', 'system:users:write', 'system:permissions:read'] },
+    hasPermission: (p: string) => ['system:users:read', 'system:users:write', 'system:permissions:read'].includes(p),
+  }),
+  usePermissions: () => ({
+    permissions: ['system:users:read', 'system:users:write', 'system:permissions:read'],
+    hasPermission: (p: string) => ['system:users:read', 'system:users:write', 'system:permissions:read'].includes(p),
+    hasAnyPermission: (perms: string[]) => perms.some(p => ['system:users:read', 'system:users:write', 'system:permissions:read'].includes(p)),
+    hasAllPermissions: (perms: string[]) => perms.every(p => ['system:users:read', 'system:users:write', 'system:permissions:read'].includes(p)),
   }),
 }))
 

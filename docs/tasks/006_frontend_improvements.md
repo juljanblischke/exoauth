@@ -230,9 +230,13 @@ Bug fixes (Audit Log User Sheet, Invite Page Redirect), Invitations Management T
 15. [X] **Router**: Routes registrieren (/imprint, /privacy, /terms)
 16. [X] **i18n**: Legal page translations
 
-### Phase 5: Cleanup
-17. [ ] **Exports**: Barrel exports updaten
-18. [ ] **Standards**: task_standards_frontend.md aktualisieren
+### Phase 5: Cleanup & Enhancements
+17. [X] **Search**: Audit Logs search functionality added
+18. [X] **Scroll**: Audit Log Details Sheet scrolling fixed
+19. [X] **Invite Page**: Show invite details (inviter, permissions, expiry)
+20. [X] **Tests**: All component tests created and passing (79 tests)
+21. [X] **Exports**: Barrel exports updaten
+22. [X] **Standards**: task_standards_frontend.md aktualisiert
 
 ## 9. Tests
 
@@ -334,17 +338,17 @@ Bug fixes (Audit Log User Sheet, Invite Page Redirect), Invitations Management T
 
 ## 11. Nach Completion
 
-- [ ] Alle Tests grün
-- [ ] `task_standards_frontend.md` aktualisiert (neue Files, Components)
-- [ ] TypeScript keine Errors
-- [ ] Lint passed
-- [ ] Beide Bugs gefixt und verifiziert
-- [ ] Invitations Tab funktioniert
-- [ ] Legal Pages erreichbar
-- [ ] Force-reauth getestet
+- [x] Alle Tests grün (79 tests passing)
+- [x] `task_standards_frontend.md` aktualisiert (neue Files, Components)
+- [x] TypeScript keine Errors
+- [x] Lint passed
+- [x] Beide Bugs gefixt und verifiziert
+- [x] Invitations Tab funktioniert
+- [x] Legal Pages erreichbar
+- [x] Force-reauth getestet
 
 ---
 
-**Letzte Änderung:** 2025-12-27
-**Status:** Phase 3 Complete - Phase 4 & 5 Pending
+**Letzte Änderung:** 2025-12-28
+**Status:** ✅ COMPLETE - All phases done, standards updated
 **Abhängigkeit:** Backend Task 005 (complete)

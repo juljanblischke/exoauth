@@ -361,6 +361,7 @@ Verwende die vordefinierten Error Codes aus `ErrorCodes.cs`:
 | `AUTH_INVALID_CREDENTIALS` | 401 | E-Mail oder Passwort falsch |
 | `AUTH_USER_INACTIVE` | 401 | User ist deaktiviert |
 | `AUTH_REFRESH_TOKEN_INVALID` | 401 | Refresh Token ungültig oder revoked |
+| `AUTH_FORCE_REAUTH` | 401 | User muss sich neu anmelden (Permission-Änderung) |
 | `AUTH_INVITE_EXPIRED` | 400 | Einladung abgelaufen (24h) |
 | `AUTH_INVITE_INVALID` | 400 | Einladungs-Token ungültig |
 | `AUTH_REGISTRATION_CLOSED` | 400 | Registration nur für ersten User |
@@ -377,6 +378,17 @@ Verwende die vordefinierten Error Codes aus `ErrorCodes.cs`:
 | `SYSTEM_LAST_PERMISSION_HOLDER` | 400 | Kann nicht entfernen - letzter User mit dieser Permission |
 | `SYSTEM_CANNOT_DELETE_SELF` | 400 | Kann sich selbst nicht löschen |
 | `SYSTEM_FORBIDDEN` | 403 | Keine Berechtigung für System-Aktion |
+
+### Invite Errors (400/404/429)
+
+| Code | HTTP Status | Verwendung |
+|------|-------------|------------|
+| `INVITE_NOT_FOUND` | 404 | Einladung nicht gefunden |
+| `INVITE_ALREADY_REVOKED` | 400 | Einladung bereits widerrufen |
+| `INVITE_ALREADY_ACCEPTED` | 400 | Einladung bereits angenommen, kann nicht widerrufen werden |
+| `INVITE_RESEND_COOLDOWN` | 429 | Bitte X Minuten warten vor erneutem Senden |
+| `INVITE_EXPIRED` | 400 | Einladung abgelaufen |
+| `INVITE_REVOKED` | 400 | Einladung wurde widerrufen |
 
 ### General Errors
 
@@ -568,6 +580,6 @@ public class MyCustomHealthCheck : IHealthCheck
 
 ## Letzte Änderung
 
-- **Datum:** 2025-12-26
-- **Added:** Task File Workflow Section, Auth Error Codes, System Error Codes
-- **Updated:** Error Codes in kategorisierte Sections aufgeteilt
+- **Datum:** 2025-12-28
+- **Added:** Invite Error Codes Section (Task 005), AUTH_FORCE_REAUTH Error Code
+- **Task 005:** Backend Improvements - Neue Error Codes für Invitation Management hinzugefügt

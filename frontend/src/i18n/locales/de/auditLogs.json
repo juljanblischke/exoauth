@@ -1,6 +1,7 @@
 {
   "title": "Audit-Protokolle",
   "subtitle": "Systemaktivitäten und Sicherheitsereignisse anzeigen",
+  "searchPlaceholder": "Protokolle durchsuchen...",
   "fields": {
     "time": "Zeit",
     "user": "Benutzer",

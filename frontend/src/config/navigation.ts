@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   Users,
-  Shield,
   FileText,
   Settings,
   Building2,
@@ -37,12 +36,6 @@ export const navigation: NavSection[] = [
         href: '/users',
         icon: Users,
         permission: 'system:users:read',
-      },
-      {
-        label: 'navigation:items.permissions',
-        href: '/permissions',
-        icon: Shield,
-        permission: 'system:permissions:read',
       },
       {
         label: 'navigation:items.auditLogs',

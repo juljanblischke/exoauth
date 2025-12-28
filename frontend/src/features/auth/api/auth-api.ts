@@ -7,6 +7,7 @@ import type {
   RegisterRequest,
   AcceptInviteRequest,
   LogoutResponse,
+  InviteValidationDto,
 } from '../types'
 
 export const authApi = {
@@ -67,5 +68,16 @@ export const authApi = {
    */
   refresh: async (): Promise<void> => {
     await apiClient.post('/auth/refresh')
+  },
+
+  /**
+   * Validate an invitation token and get details (public endpoint)
+   */
+  validateInvite: async (token: string): Promise<InviteValidationDto> => {
+    const response = await apiClient.get<ApiResponse<InviteValidationDto>>(
+      '/auth/invite',
+      { params: { token } }
+    )
+    return extractData(response)
   },
 }

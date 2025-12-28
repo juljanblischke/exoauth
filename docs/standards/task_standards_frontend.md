@@ -154,12 +154,13 @@ frontend/
 │   │   └── router.tsx             ✅ TanStack Router Setup
 │   │
 │   ├── components/
-│   │   ├── ui/                    [SHADCN COMPONENTS - 20 total]
+│   │   ├── ui/                    [SHADCN COMPONENTS - 23 total]
 │   │   │   ├── alert-dialog.tsx   ✅
 │   │   │   ├── avatar.tsx         ✅
 │   │   │   ├── badge.tsx          ✅
 │   │   │   ├── breadcrumb.tsx     ✅
 │   │   │   ├── button.tsx         ✅
+│   │   │   ├── calendar.tsx       ✅ (Task 006)
 │   │   │   ├── checkbox.tsx       ✅
 │   │   │   ├── command.tsx        ✅
 │   │   │   ├── dialog.tsx         ✅
@@ -173,7 +174,9 @@ frontend/
 │   │   │   ├── sheet.tsx          ✅
 │   │   │   ├── skeleton.tsx       ✅
 │   │   │   ├── sonner.tsx         ✅
+│   │   │   ├── switch.tsx         ✅ (Task 006)
 │   │   │   ├── table.tsx          ✅
+│   │   │   ├── tabs.tsx           ✅ (Task 006)
 │   │   │   └── tooltip.tsx        ✅
 │   │   │
 │   │   └── shared/
@@ -217,6 +220,8 @@ frontend/
 │   │       │   ├── password-strength.tsx  ✅ Strength Indicator
 │   │       │   ├── form-sheet.tsx         ✅ Slide-out Form
 │   │       │   ├── form-modal.tsx         ✅ Modal Form
+│   │       │   ├── date-range-picker.tsx  ✅ Date Range Selection (Task 006)
+│   │       │   ├── select-filter.tsx      ✅ Multi-Select Filter (Task 006)
 │   │       │   └── index.ts               ✅ Barrel Export
 │   │       │
 │   │       ├── user-avatar.tsx        ✅ Initials Avatar
@@ -232,28 +237,105 @@ frontend/
 │   │   └── navigation.ts          ✅ Sidebar Items mit Permissions
 │   │
 │   ├── contexts/
-│   │   ├── auth-context.tsx       ✅ Auth State, User, Permissions
+│   │   ├── auth-context.tsx       ✅ Auth State, User, Permissions, Force-Reauth
 │   │   ├── theme-context.tsx      ✅ Dark/Light/System Mode
 │   │   ├── sidebar-context.tsx    ✅ Collapsed State
 │   │   └── index.ts               ✅ Barrel Export
 │   │
 │   ├── features/
-│   │   ├── auth/
-│   │   │   ├── api/               [LEER]
-│   │   │   ├── hooks/             [LEER]
-│   │   │   ├── components/        [LEER]
-│   │   │   └── types/             [LEER]
-│   │   ├── users/
-│   │   │   ├── api/               [LEER]
-│   │   │   ├── hooks/             [LEER]
-│   │   │   ├── components/        [LEER]
-│   │   │   └── types/             [LEER]
-│   │   ├── roles/
-│   │   │   ├── api/               [LEER]
-│   │   │   ├── hooks/             [LEER]
-│   │   │   ├── components/        [LEER]
-│   │   │   └── types/             [LEER]
-│   │   └── permissions/
+│   │   ├── auth/                  [AUTH FEATURE - Task 004/006]
+│   │   │   ├── api/
+│   │   │   │   └── auth-api.ts          ✅ Login, Register, Logout, Invite APIs
+│   │   │   ├── hooks/
+│   │   │   │   ├── use-login.ts         ✅ Login mutation
+│   │   │   │   ├── use-logout.ts        ✅ Logout mutation
+│   │   │   │   ├── use-register.ts      ✅ Register mutation
+│   │   │   │   ├── use-current-user.ts  ✅ Current user query
+│   │   │   │   ├── use-accept-invite.ts ✅ Accept invite mutation
+│   │   │   │   ├── use-validate-invite.ts ✅ Validate invite query (Task 006)
+│   │   │   │   └── index.ts             ✅ Barrel Export
+│   │   │   ├── components/
+│   │   │   │   ├── login-form.tsx           ✅ Login Form
+│   │   │   │   ├── register-form.tsx        ✅ Register Form
+│   │   │   │   ├── accept-invite-form.tsx   ✅ Accept Invite Form
+│   │   │   │   ├── password-requirements.tsx ✅ Password Requirements Display
+│   │   │   │   └── index.ts                 ✅ Barrel Export
+│   │   │   ├── types/
+│   │   │   │   └── index.ts             ✅ Auth Types
+│   │   │   ├── __tests__/
+│   │   │   │   ├── login-form.test.tsx      ✅
+│   │   │   │   ├── register-form.test.tsx   ✅
+│   │   │   │   └── use-login.test.ts        ✅
+│   │   │   └── index.ts                 ✅ Barrel Export
+│   │   │
+│   │   ├── users/                 [USERS FEATURE - Task 004/006]
+│   │   │   ├── api/
+│   │   │   │   ├── users-api.ts         ✅ Users CRUD APIs
+│   │   │   │   └── invites-api.ts       ✅ Invites APIs (Task 006)
+│   │   │   ├── hooks/
+│   │   │   │   ├── use-system-users.ts      ✅ Users list query
+│   │   │   │   ├── use-system-user.ts       ✅ Single user query
+│   │   │   │   ├── use-delete-user.ts       ✅ Delete mutation
+│   │   │   │   ├── use-invite-user.ts       ✅ Invite mutation
+│   │   │   │   ├── use-update-user.ts       ✅ Update mutation
+│   │   │   │   ├── use-update-permissions.ts ✅ Permissions mutation
+│   │   │   │   ├── use-system-invites.ts    ✅ Invites list query (Task 006)
+│   │   │   │   ├── use-system-invite.ts     ✅ Single invite query (Task 006)
+│   │   │   │   ├── use-revoke-invite.ts     ✅ Revoke mutation (Task 006)
+│   │   │   │   ├── use-resend-invite.ts     ✅ Resend mutation (Task 006)
+│   │   │   │   └── index.ts                 ✅ Barrel Export
+│   │   │   ├── components/
+│   │   │   │   ├── users-table.tsx              ✅ Users DataTable
+│   │   │   │   ├── users-table-columns.tsx      ✅ Column Definitions
+│   │   │   │   ├── user-details-sheet.tsx       ✅ User Details Sheet
+│   │   │   │   ├── user-edit-modal.tsx          ✅ Edit User Modal
+│   │   │   │   ├── user-invite-modal.tsx        ✅ Invite User Modal
+│   │   │   │   ├── user-permissions-modal.tsx   ✅ Permissions Modal
+│   │   │   │   ├── invitations-table.tsx        ✅ Invitations DataTable (Task 006)
+│   │   │   │   ├── invitations-table-columns.tsx ✅ Column Definitions (Task 006)
+│   │   │   │   ├── invite-details-sheet.tsx     ✅ Invite Details Sheet (Task 006)
+│   │   │   │   └── index.ts                     ✅ Barrel Export
+│   │   │   ├── types/
+│   │   │   │   ├── index.ts             ✅ User Types
+│   │   │   │   └── invites.ts           ✅ Invite Types (Task 006)
+│   │   │   ├── __tests__/
+│   │   │   │   ├── users-table.test.tsx         ✅
+│   │   │   │   ├── invitations-table.test.tsx   ✅ (Task 006)
+│   │   │   │   ├── invite-details-sheet.test.tsx ✅ (Task 006)
+│   │   │   │   ├── user-invite-modal.test.tsx   ✅
+│   │   │   │   ├── use-system-users.test.ts     ✅
+│   │   │   │   ├── use-revoke-invite.test.ts    ✅ (Task 006)
+│   │   │   │   └── use-resend-invite.test.ts    ✅ (Task 006)
+│   │   │   └── index.ts                 ✅ Barrel Export
+│   │   │
+│   │   ├── permissions/           [PERMISSIONS FEATURE - Task 004]
+│   │   │   ├── api/
+│   │   │   │   └── permissions-api.ts   ✅ Permissions API
+│   │   │   ├── hooks/
+│   │   │   │   ├── use-system-permissions.ts ✅ Permissions query
+│   │   │   │   └── index.ts             ✅ Barrel Export
+│   │   │   ├── types/
+│   │   │   │   └── index.ts             ✅ Permission Types
+│   │   │   ├── components/              [LEER]
+│   │   │   └── index.ts                 ✅ Barrel Export
+│   │   │
+│   │   ├── audit-logs/            [AUDIT LOGS FEATURE - Task 004/006]
+│   │   │   ├── api/
+│   │   │   │   └── audit-logs-api.ts    ✅ Audit Logs API
+│   │   │   ├── hooks/
+│   │   │   │   ├── use-audit-logs.ts        ✅ Audit logs query
+│   │   │   │   ├── use-audit-log-filters.ts ✅ Filter options query
+│   │   │   │   └── index.ts                 ✅ Barrel Export
+│   │   │   ├── components/
+│   │   │   │   ├── audit-logs-table.tsx         ✅ Audit Logs DataTable
+│   │   │   │   ├── audit-logs-table-columns.tsx ✅ Column Definitions
+│   │   │   │   ├── audit-log-details-sheet.tsx  ✅ Details Sheet
+│   │   │   │   └── index.ts                     ✅ Barrel Export
+│   │   │   ├── types/
+│   │   │   │   └── index.ts             ✅ Audit Log Types
+│   │   │   └── index.ts                 ✅ Barrel Export
+│   │   │
+│   │   └── roles/                 [ROLES FEATURE - Placeholder]
 │   │       ├── api/               [LEER]
 │   │       ├── hooks/             [LEER]
 │   │       ├── components/        [LEER]
@@ -275,6 +357,7 @@ frontend/
 │   │       │   ├── auth.json      ✅
 │   │       │   ├── navigation.json ✅
 │   │       │   ├── users.json     ✅
+│   │       │   ├── auditLogs.json ✅ (Task 006)
 │   │       │   ├── errors.json    ✅
 │   │       │   └── validation.json ✅
 │   │       └── de/
@@ -282,27 +365,35 @@ frontend/
 │   │           ├── auth.json      ✅
 │   │           ├── navigation.json ✅
 │   │           ├── users.json     ✅
+│   │           ├── auditLogs.json ✅ (Task 006)
 │   │           ├── errors.json    ✅
 │   │           └── validation.json ✅
 │   │
 │   ├── lib/
 │   │   ├── utils.ts               ✅ (cn helper)
-│   │   └── axios.ts               ✅ API Client mit Interceptors
+│   │   └── axios.ts               ✅ API Client mit Interceptors + Force-Reauth
 │   │
 │   ├── routes/
 │   │   ├── __root.tsx             ✅ Root Route mit Layout
 │   │   ├── protected-route.tsx    ✅ Auth & Permission Guard
+│   │   ├── index-page.tsx         ✅ Landing/Redirect Page
+│   │   ├── dashboard.tsx          ✅ Dashboard Page
+│   │   ├── login.tsx              ✅ Login Page
+│   │   ├── register.tsx           ✅ Register Page
+│   │   ├── invite.tsx             ✅ Accept Invite Page (Task 006)
+│   │   ├── users.tsx              ✅ Users Management Page
+│   │   ├── audit-logs.tsx         ✅ Audit Logs Page
+│   │   ├── legal.tsx              ✅ Imprint/Privacy/Terms Pages (Task 006)
 │   │   ├── not-found.tsx          ✅ 404 Page
 │   │   ├── forbidden.tsx          ✅ 403 Page
-│   │   ├── server-error.tsx       ✅ 500 Page
-│   │   ├── index.ts               ✅ Barrel Export
-│   │   └── dashboard/             [LEER - für Dashboard Routes]
+│   │   └── server-error.tsx       ✅ 500 Page
 │   │
 │   ├── styles/
 │   │   └── globals.css            ✅ Tailwind v4 @theme, Rose Theme, Print Styles, A11y
 │   │
 │   ├── test/
-│   │   └── setup.ts               [LEER]
+│   │   ├── setup.ts               ✅ Vitest Setup
+│   │   └── test-utils.tsx         ✅ Test Utilities & Wrappers
 │   │
 │   └── types/                     [GLOBAL TYPES]
 │       ├── auth.ts                ✅ User, Token, LoginCredentials
@@ -379,7 +470,7 @@ frontend/
 
 ## Shadcn/UI Komponenten
 
-### Installiert (20 Komponenten)
+### Installiert (23 Komponenten)
 | Komponente | Datei | Status |
 |------------|-------|--------|
 | Alert Dialog | `src/components/ui/alert-dialog.tsx` | ✅ |
@@ -387,6 +478,7 @@ frontend/
 | Badge | `src/components/ui/badge.tsx` | ✅ |
 | Breadcrumb | `src/components/ui/breadcrumb.tsx` | ✅ |
 | Button | `src/components/ui/button.tsx` | ✅ |
+| Calendar | `src/components/ui/calendar.tsx` | ✅ (Task 006) |
 | Checkbox | `src/components/ui/checkbox.tsx` | ✅ |
 | Command | `src/components/ui/command.tsx` | ✅ |
 | Dialog | `src/components/ui/dialog.tsx` | ✅ |
@@ -400,18 +492,19 @@ frontend/
 | Sheet | `src/components/ui/sheet.tsx` | ✅ |
 | Skeleton | `src/components/ui/skeleton.tsx` | ✅ |
 | Sonner (Toast) | `src/components/ui/sonner.tsx` | ✅ |
+| Switch | `src/components/ui/switch.tsx` | ✅ (Task 006) |
 | Table | `src/components/ui/table.tsx` | ✅ |
+| Tabs | `src/components/ui/tabs.tsx` | ✅ (Task 006) |
 | Tooltip | `src/components/ui/tooltip.tsx` | ✅ |
 
 ### Noch nicht installiert (bei Bedarf)
 Wenn benötigt, mit `npx shadcn@latest add [name]` installieren:
 
-- accordion, alert, aspect-ratio, calendar, card
+- accordion, alert, aspect-ratio, card
 - carousel, chart, collapsible, context-menu
 - date-picker, drawer, form, hover-card, menubar
 - navigation-menu, pagination, radio-group, resizable
-- select, slider, switch, tabs, textarea
-- toggle, toggle-group
+- select, slider, textarea, toggle, toggle-group
 
 ---
 
@@ -460,6 +553,8 @@ Wenn benötigt, mit `npx shadcn@latest add [name]` installieren:
 | PasswordStrength | `import { PasswordStrength } from '@/components/shared/form'` | Strength indicator |
 | FormSheet | `import { FormSheet } from '@/components/shared/form'` | Slide-out form |
 | FormModal | `import { FormModal } from '@/components/shared/form'` | Modal form |
+| DateRangePicker | `import { DateRangePicker } from '@/components/shared/form'` | Date range selection (Task 006) |
+| SelectFilter | `import { SelectFilter } from '@/components/shared/form'` | Multi-select filter (Task 006) |
 
 ### Utility (`@/components/shared`)
 | Component | Import | Beschreibung |
@@ -671,6 +766,10 @@ In der Task-Datei (`docs/tasks/XXX_*.md`):
 
 ## Letzte Änderung
 
-- **Datum:** 2025-12-26
-- **Status:** Foundation Complete - Alle Foundation Files erstellt (Task 003)
-- **Nächster Task:** Auth Feature implementieren (Login, Register, etc.)
+- **Datum:** 2025-12-28
+- **Status:** Auth, Users, Permissions, Audit-Logs Features Complete (Task 004/006)
+- **Completed Tasks:**
+  - Task 003: Foundation Complete
+  - Task 004: Auth, Users, Permissions, Audit-Logs Features
+  - Task 006: Frontend Improvements (Bugs, Invitations, Legal Pages, Security)
+- **Nächster Task:** Roles Feature, Device Management (Task 007)

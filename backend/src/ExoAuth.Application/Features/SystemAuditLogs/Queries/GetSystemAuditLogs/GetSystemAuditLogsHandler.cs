@@ -44,17 +44,20 @@ public sealed class GetSystemAuditLogsHandler : IQueryHandler<GetSystemAuditLogs
         }
 
         // Search: search in actor and target user email/name
+        // Note: FullName is a computed C# property, so we search FirstName and LastName separately
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var searchLower = query.Search.ToLowerInvariant();
             queryable = queryable.Where(l =>
                 (l.User != null && (
                     l.User.Email.ToLower().Contains(searchLower) ||
-                    l.User.FullName.ToLower().Contains(searchLower)
+                    l.User.FirstName.ToLower().Contains(searchLower) ||
+                    l.User.LastName.ToLower().Contains(searchLower)
                 )) ||
                 (l.TargetUser != null && (
                     l.TargetUser.Email.ToLower().Contains(searchLower) ||
-                    l.TargetUser.FullName.ToLower().Contains(searchLower)
+                    l.TargetUser.FirstName.ToLower().Contains(searchLower) ||
+                    l.TargetUser.LastName.ToLower().Contains(searchLower)
                 ))
             );
         }
@@ -105,16 +108,17 @@ public sealed class GetSystemAuditLogsHandler : IQueryHandler<GetSystemAuditLogs
         };
 
         // Fetch one extra to determine if there are more
+        // Note: FullName is computed in C# (FirstName + LastName) so we must compute it here
         var logs = await queryable
             .Take(limit + 1)
             .Select(l => new SystemAuditLogDto(
                 l.Id,
                 l.UserId,
                 l.User != null ? l.User.Email : null,
-                l.User != null ? l.User.FullName : null,
+                l.User != null ? l.User.FirstName + " " + l.User.LastName : null,
                 l.TargetUserId,
                 l.TargetUser != null ? l.TargetUser.Email : null,
-                l.TargetUser != null ? l.TargetUser.FullName : null,
+                l.TargetUser != null ? l.TargetUser.FirstName + " " + l.TargetUser.LastName : null,
                 l.Action,
                 l.EntityType,
                 l.EntityId,

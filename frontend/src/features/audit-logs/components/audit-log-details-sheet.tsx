@@ -35,7 +35,7 @@ export function AuditLogDetailsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg flex flex-col p-0">
+      <SheetContent className="w-full sm:max-w-lg flex flex-col p-0 overflow-hidden">
         <SheetHeader className="sr-only">
           <SheetTitle>{t('auditLogs:details.title')}</SheetTitle>
           <SheetDescription>{t('auditLogs:details.description')}</SheetDescription>
@@ -59,7 +59,7 @@ export function AuditLogDetailsSheet({
         </div>
 
         {/* Content */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="p-6 space-y-6">
             {/* User Section (Actor) */}
             <div className="space-y-3">

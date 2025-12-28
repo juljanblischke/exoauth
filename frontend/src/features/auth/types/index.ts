@@ -71,3 +71,25 @@ export interface AcceptInviteFormData {
   password: string
   confirmPassword: string
 }
+
+// Invite validation types (public endpoint)
+export interface InviterDto {
+  fullName: string
+}
+
+export interface InvitePermissionDto {
+  name: string
+  description: string
+}
+
+export interface InviteValidationDto {
+  valid: boolean
+  email: string | null
+  firstName: string | null
+  lastName: string | null
+  expiresAt: string | null
+  invitedBy: InviterDto | null
+  permissions: InvitePermissionDto[] | null
+  errorCode: string | null
+  errorMessage: string | null
+}

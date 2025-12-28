@@ -185,6 +185,13 @@ frontend/src/i18n/
 | `invite.accepting` | Accepting... | Wird angenommen... |
 | `invite.expired` | This invitation has expired | Diese Einladung ist abgelaufen |
 | `invite.invalid` | This invitation is invalid | Diese Einladung ist ungültig |
+| `invite.revoked` | This invitation has been revoked | Diese Einladung wurde widerrufen |
+| `invite.alreadyAccepted` | This invitation has already been accepted | Diese Einladung wurde bereits angenommen |
+| `invite.loading` | Loading invitation... | Einladung wird geladen... |
+| `invite.welcome` | Welcome, {{name}}! | Willkommen, {{name}}! |
+| `invite.invitedBy` | You were invited by {{name}} | Sie wurden von {{name}} eingeladen |
+| `invite.permissions` | You will receive the following permissions: | Sie erhalten folgende Berechtigungen: |
+| `invite.expiresAt` | Expires {{date}} | Läuft ab am {{date}} |
 | `forgotPassword.title` | Forgot Password | Passwort vergessen |
 | `forgotPassword.sendLink` | Send Reset Link | Link senden |
 | `forgotPassword.sent` | Reset link sent! | Link gesendet! |
@@ -341,6 +348,7 @@ frontend/src/i18n/
 |-----|----|----|
 | `title` | Audit Logs | Audit-Protokolle |
 | `subtitle` | View system activity and security events | Systemaktivitäten und Sicherheitsereignisse anzeigen |
+| `searchPlaceholder` | Search logs... | Protokolle durchsuchen... |
 | `fields.time` | Time | Zeit |
 | `fields.user` | User | Benutzer |
 | `fields.targetUser` | Target User | Zielbenutzer |
@@ -477,4 +485,4 @@ function MyComponent() {
 
 ---
 
-**Last Updated:** 2025-12-27
+**Last Updated:** 2025-12-28

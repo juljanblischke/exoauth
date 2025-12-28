@@ -7,6 +7,7 @@ import { DateRangePicker, SelectFilter } from '@/components/shared/form'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { Badge } from '@/components/ui/badge'
 import { usePermissions } from '@/contexts/auth-context'
+import { useDebounce } from '@/hooks'
 import { UserDetailsSheet } from '@/features/users/components/user-details-sheet'
 import { useSystemUsers } from '@/features/users/hooks'
 import type { SystemUserDto } from '@/features/users/types'
@@ -27,6 +28,8 @@ export function AuditLogsTable() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [actionFilters, setActionFilters] = useState<string[]>([])
   const [userFilters, setUserFilters] = useState<string[]>([])
+  const [searchValue, setSearchValue] = useState('')
+  const debouncedSearch = useDebounce(searchValue, 300)
 
   // Audit log details sheet
   const [selectedLog, setSelectedLog] = useState<SystemAuditLogDto | null>(null)
@@ -66,6 +69,7 @@ export function AuditLogsTable() {
     hasNextPage,
   } = useAuditLogs({
     sort: sortParam,
+    search: debouncedSearch || undefined,
     actions: actionFilters.length > 0 ? actionFilters : undefined,
     involvedUserIds: userFilters.length > 0 ? userFilters : undefined,
     from: fromDate,
@@ -166,6 +170,9 @@ export function AuditLogsTable() {
         isFetching={isFetching}
         hasMore={hasNextPage}
         onLoadMore={handleLoadMore}
+        searchValue={searchValue}
+        onSearch={setSearchValue}
+        searchPlaceholder={t('auditLogs:searchPlaceholder')}
         initialSorting={sorting}
         onSortingChange={setSorting}
         toolbarContent={filterContent}

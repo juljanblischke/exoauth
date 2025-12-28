@@ -54,11 +54,11 @@ interface DataTableProps<TData, TValue> {
   rowActions?: RowAction<TData>[]
   mobileCard?: {
     primaryField: keyof TData
-    secondaryField?: keyof TData
+    secondaryField?: keyof TData | ((row: TData) => string)
     tertiaryFields?: Array<{
       key: keyof TData
       label?: string
-      render?: (value: unknown) => React.ReactNode
+      render?: (value: unknown, row: TData) => React.ReactNode
     }>
     avatar?: (row: TData) => { name?: string; email?: string; imageUrl?: string }
   }

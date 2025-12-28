@@ -13,7 +13,6 @@ import {
 import {
   LayoutDashboard,
   Users,
-  Shield,
   FileText,
   Settings,
   Building2,
@@ -60,12 +59,6 @@ export function CommandMenu() {
       label: t('navigation:items.users'),
       icon: Users,
       href: '/users',
-      permission: 'system:users:read',
-    },
-    {
-      label: t('navigation:items.permissions'),
-      icon: Shield,
-      href: '/permissions',
       permission: 'system:users:read',
     },
     {

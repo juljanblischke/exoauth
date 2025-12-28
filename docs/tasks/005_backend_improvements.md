@@ -302,8 +302,8 @@ Keine neuen Packages erforderlich.
 ### Phase 7: Tests & Cleanup
 30. [x] **Tests**: Unit Tests für neue Features (129 Tests ✅)
 31. [x] **Application**: ErrorCodes.cs - Neue Codes hinzugefügt
-32. [ ] **Standards**: task_standards_backend.md aktualisieren
-33. [ ] **Standards**: coding_standards_backend.md aktualisieren (neue Error Codes)
+32. [x] **Standards**: task_standards_backend.md aktualisieren
+33. [x] **Standards**: coding_standards_backend.md aktualisieren (neue Error Codes)
 
 ## 10. Tests
 
@@ -369,16 +369,27 @@ public string GetStatus()
 
 ## 14. Nach Completion
 
-- [ ] Alle Unit Tests grün
-- [ ] `task_standards_backend.md` aktualisiert (neue Files)
-- [ ] `coding_standards_backend.md` aktualisiert (neue Error Codes)
-- [ ] Migration läuft durch
+- [x] Alle Unit Tests grün (129 Tests ✅)
+- [x] `task_standards_backend.md` aktualisiert (neue Files)
+- [x] `coding_standards_backend.md` aktualisiert (neue Error Codes)
+- [x] Migration läuft durch
 - [ ] Code reviewed
 
 ---
 
-**Letzte Änderung:** 2025-12-27
-**Status:** In Progress (Phase 6 complete)
+**Letzte Änderung:** 2025-12-28
+**Status:** ✅ Completed (Phase 7 done)
 
+## 15. Additional Changes (2025-12-28)
 
-permission list also needed :D
+### Bug Fix: EF Core FullName Translation Error
+**Problem**: `GetSystemAuditLogsHandler` threw 500 error because `FullName` is a computed C# property that EF Core cannot translate to SQL.
+
+**Fix** in `GetSystemAuditLogsHandler.cs`:
+- Select projection: Changed `l.User.FullName` → `l.User.FirstName + " " + l.User.LastName`
+- Search filter: Changed `FullName.ToLower().Contains()` → separate `FirstName` and `LastName` checks
+
+### New Permission: system:permissions:read
+- Added `PermissionsRead = "system:permissions:read"` to `SystemPermissions.cs`
+- Added to `SystemPermissions.All` for auto-seeding
+- Description: "View available permissions" (Category: Permissions)

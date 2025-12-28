@@ -77,11 +77,12 @@ export interface TableColumn<TData> {
 export interface MobileCardProps<TData> {
   data: TData
   primaryField: keyof TData
-  secondaryField?: keyof TData
+  secondaryField?: keyof TData | ((row: TData) => string)
+  avatar?: (row: TData) => { name: string; email?: string }
   tertiaryFields?: Array<{
     key: keyof TData
     label?: string
-    render?: (value: unknown) => React.ReactNode
+    render?: (value: unknown, row: TData) => React.ReactNode
   }>
   statusField?: keyof TData
   statusVariant?: (value: unknown) => 'default' | 'success' | 'warning' | 'destructive'

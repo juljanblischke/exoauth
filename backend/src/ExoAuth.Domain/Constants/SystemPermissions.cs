@@ -14,6 +14,9 @@ public static class SystemPermissions
     // Audit
     public const string AuditRead = "system:audit:read";
 
+    // Permissions
+    public const string PermissionsRead = "system:permissions:read";
+
     // Settings
     public const string SettingsRead = "system:settings:read";
     public const string SettingsUpdate = "system:settings:update";
@@ -43,6 +46,9 @@ public static class SystemPermissions
 
         // Audit
         (AuditRead, "View system audit logs", "Audit"),
+
+        // Permissions
+        (PermissionsRead, "View available permissions", "Permissions"),
 
         // Settings
         (SettingsRead, "View system settings", "Settings"),

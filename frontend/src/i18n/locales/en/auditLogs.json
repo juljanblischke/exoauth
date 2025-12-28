@@ -1,6 +1,7 @@
 {
   "title": "Audit Logs",
   "subtitle": "View system activity and security events",
+  "searchPlaceholder": "Search logs...",
   "fields": {
     "time": "Time",
     "user": "User",

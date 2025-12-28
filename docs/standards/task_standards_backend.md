@@ -193,7 +193,8 @@ backend/
 │   │   │   │   ├── IPermissionCacheService.cs   ✅
 │   │   │   │   ├── IBruteForceProtectionService.cs ✅
 │   │   │   │   ├── ITokenBlacklistService.cs    ✅
-│   │   │   │   └── IEmailTemplateService.cs     ✅
+│   │   │   │   ├── IEmailTemplateService.cs     ✅
+│   │   │   │   └── IForceReauthService.cs       ✅
 │   │   │   ├── Behaviors/
 │   │   │   │   └── ValidationBehavior.cs        ✅
 │   │   │   ├── Messages/
@@ -264,16 +265,36 @@ backend/
 │   │       │   │       └── GetSystemPermissionsHandler.cs ✅
 │   │       │   └── Models/
 │   │       │       └── SystemPermissionDto.cs             ✅
-│   │       └── SystemAuditLogs/
+│   │       ├── SystemAuditLogs/
+│   │       │   ├── Queries/
+│   │       │   │   ├── GetSystemAuditLogs/
+│   │       │   │   │   ├── GetSystemAuditLogsQuery.cs     ✅
+│   │       │   │   │   └── GetSystemAuditLogsHandler.cs   ✅
+│   │       │   │   └── GetAuditLogFilters/
+│   │       │   │       ├── GetAuditLogFiltersQuery.cs     ✅
+│   │       │   │       └── GetAuditLogFiltersHandler.cs   ✅
+│   │       │   └── Models/
+│   │       │       └── SystemAuditLogDto.cs               ✅
+│   │       └── SystemInvites/
+│   │           ├── Commands/
+│   │           │   ├── RevokeInvite/
+│   │           │   │   ├── RevokeInviteCommand.cs         ✅
+│   │           │   │   └── RevokeInviteHandler.cs         ✅
+│   │           │   └── ResendInvite/
+│   │           │       ├── ResendInviteCommand.cs         ✅
+│   │           │       └── ResendInviteHandler.cs         ✅
 │   │           ├── Queries/
-│   │           │   ├── GetSystemAuditLogs/
-│   │           │   │   ├── GetSystemAuditLogsQuery.cs     ✅
-│   │           │   │   └── GetSystemAuditLogsHandler.cs   ✅
-│   │           │   └── GetAuditLogFilters/
-│   │           │       ├── GetAuditLogFiltersQuery.cs     ✅
-│   │           │       └── GetAuditLogFiltersHandler.cs   ✅
+│   │           │   ├── GetSystemInvites/
+│   │           │   │   ├── GetSystemInvitesQuery.cs       ✅
+│   │           │   │   └── GetSystemInvitesHandler.cs     ✅
+│   │           │   ├── GetSystemInvite/
+│   │           │   │   ├── GetSystemInviteQuery.cs        ✅
+│   │           │   │   └── GetSystemInviteHandler.cs      ✅
+│   │           │   └── ValidateInvite/
+│   │           │       ├── ValidateInviteQuery.cs         ✅
+│   │           │       └── ValidateInviteHandler.cs       ✅
 │   │           └── Models/
-│   │               └── SystemAuditLogDto.cs               ✅
+│   │               └── SystemInviteDto.cs                 ✅
 │   │
 │   ├── ExoAuth.Infrastructure/
 │   │   ├── ExoAuth.Infrastructure.csproj
@@ -308,7 +329,8 @@ backend/
 │   │   │   ├── EmailTemplateService.cs          ✅
 │   │   │   ├── PermissionCacheService.cs        ✅
 │   │   │   ├── BruteForceProtectionService.cs   ✅
-│   │   │   └── TokenBlacklistService.cs         ✅
+│   │   │   ├── TokenBlacklistService.cs         ✅
+│   │   │   └── ForceReauthService.cs            ✅
 │   │   └── Sessions/                            [LEER]
 │   │
 │   └── ExoAuth.Api/
@@ -323,10 +345,12 @@ backend/
 │       │   ├── AuthController.cs                ✅
 │       │   ├── SystemUsersController.cs         ✅
 │       │   ├── SystemPermissionsController.cs   ✅
-│       │   └── SystemAuditLogsController.cs     ✅
+│       │   ├── SystemAuditLogsController.cs     ✅
+│       │   └── SystemInvitesController.cs       ✅
 │       ├── Middleware/
 │       │   ├── ExceptionMiddleware.cs           ✅
-│       │   └── RequestLoggingMiddleware.cs      ✅
+│       │   ├── RequestLoggingMiddleware.cs      ✅
+│       │   └── ForceReauthMiddleware.cs         ✅
 │       ├── Filters/
 │       │   ├── RateLimitAttribute.cs            ✅
 │       │   ├── RateLimitFilter.cs               ✅
@@ -352,15 +376,20 @@ backend/
         │   │   ├── RegisterHandlerTests.cs      ✅
         │   │   ├── LoginHandlerTests.cs         ✅
         │   │   └── RefreshTokenHandlerTests.cs  ✅
-        │   └── SystemUsers/
-        │       ├── InviteSystemUserHandlerTests.cs      ✅
-        │       └── UpdatePermissionsHandlerTests.cs     ✅
+        │   ├── SystemUsers/
+        │   │   ├── InviteSystemUserHandlerTests.cs      ✅
+        │   │   └── UpdatePermissionsHandlerTests.cs     ✅
+        │   └── SystemInvites/
+        │       ├── RevokeInviteHandlerTests.cs          ✅
+        │       ├── ResendInviteHandlerTests.cs          ✅
+        │       └── ValidateInviteHandlerTests.cs        ✅
         ├── Services/
         │   ├── PasswordHasherTests.cs           ✅
         │   ├── TokenServiceTests.cs             ✅
         │   ├── BruteForceProtectionServiceTests.cs ✅
         │   ├── PermissionCacheServiceTests.cs   ✅
-        │   └── EmailTemplateServiceTests.cs     ✅
+        │   ├── EmailTemplateServiceTests.cs     ✅
+        │   └── ForceReauthServiceTests.cs       ✅
         └── Helpers/
             ├── MockDbContext.cs                 ✅
             ├── TestDataFactory.cs               ✅
@@ -566,16 +595,22 @@ Bei jedem neuen Endpoint MUSS geprüft werden:
 
 ## Letzte Änderung
 
-- **Datum:** 2025-12-26
-- **Status:** System Authentication komplett (Task 002)
+- **Datum:** 2025-12-28
+- **Status:** Backend Improvements komplett (Task 005)
 - **Erledigte Tasks:**
   - Task 001: Foundation & Infrastructure Setup ✅
   - Task 002: System Authentication, Users, Permissions & Audit ✅ (106 Unit Tests)
-- **Nächster Task:** Frontend Foundation (Task 003)
-- **Template Updates:**
-  - Section "Wichtige Regeln für Task Files" hinzugefügt
-  - Integration Tests aus Template entfernt (nur Unit Tests)
-  - Test Helpers Section hinzugefügt
+  - Task 003: Frontend Foundation ✅
+  - Task 004: Frontend System Authentication & User Management ✅
+  - Task 005: Backend Improvements - Audit, Users, Invitations & Security ✅ (129 Unit Tests)
+- **Nächster Task:** Task 006: Frontend Improvements
+- **Task 005 Updates:**
+  - SystemInvites Feature (List, Get, Revoke, Resend, Validate)
+  - Force Re-Auth (bei Permission-Änderungen)
+  - Error Audit Logging (403/500)
+  - Audit Log erweiterte Filter (involvedUserIds, actions, search in target)
+  - System Users Permission Filter (permissionIds)
+  - Neue Error Codes (Invite-bezogen)
 
 ### Bekannte Einschränkungen
 - RabbitMQ Health Check nicht in `/health` enthalten (`RabbitMQ.Client 7.x` Inkompatibilität mit Health Check Package)

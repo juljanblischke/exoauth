@@ -67,8 +67,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       queryClient.clear()
       toast.warning(t('forceReauth.title'), {
         description: t('forceReauth.description'),
+        duration: 5000,
       })
-      window.location.href = '/login'
+      // Delay redirect so user can see the toast
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 1500)
     }
 
     window.addEventListener('auth:session-expired', handleSessionExpired)
@@ -95,7 +99,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const response = await apiClient.get<ApiResponse<User>>('/auth/me')
         const user = extractData(response)
         return user
-      } catch (error) {
+      } catch {
         // Session expired or invalid - clear the flag
         setSession(false)
         return null

@@ -8,6 +8,5 @@ export { useAuditLogs, useAuditLogFilters, AUDIT_LOGS_KEY, AUDIT_LOG_FILTERS_KEY
 export type {
   SystemAuditLogDto,
   AuditLogFiltersDto,
-  AuditLogUserFilterDto,
   AuditLogsQueryParams,
 } from './types'

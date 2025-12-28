@@ -15,11 +15,11 @@ import type { RowAction } from '@/types/table'
 interface DataTableCardProps<TData> {
   data: TData
   primaryField: keyof TData
-  secondaryField?: keyof TData
+  secondaryField?: keyof TData | ((row: TData) => string)
   tertiaryFields?: Array<{
     key: keyof TData
     label?: string
-    render?: (value: unknown) => React.ReactNode
+    render?: (value: unknown, row: TData) => React.ReactNode
   }>
   avatar?: { name?: string; email?: string; imageUrl?: string }
   actions?: RowAction<TData>[]
@@ -40,7 +40,11 @@ export function DataTableCard<TData>({
   onClick,
 }: DataTableCardProps<TData>) {
   const primaryValue = String(data[primaryField] ?? '')
-  const secondaryValue = secondaryField ? String(data[secondaryField] ?? '') : undefined
+  const secondaryValue = secondaryField
+    ? typeof secondaryField === 'function'
+      ? secondaryField(data)
+      : String(data[secondaryField] ?? '')
+    : undefined
 
   const visibleActions = actions.filter((action) => {
     if (typeof action.hidden === 'function') {
@@ -142,7 +146,7 @@ export function DataTableCard<TData>({
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
               {tertiaryFields.map((field) => {
                 const value = data[field.key]
-                const rendered = field.render ? field.render(value) : String(value ?? '')
+                const rendered = field.render ? field.render(value, data) : String(value ?? '')
 
                 return (
                   <div key={String(field.key)} className="flex items-center gap-1">

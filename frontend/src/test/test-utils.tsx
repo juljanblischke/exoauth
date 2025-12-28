@@ -88,6 +88,51 @@ testI18n.init({
         },
         permissions: {
           title: 'Permissions',
+          none: 'No permissions assigned',
+        },
+        invites: {
+          search: 'Search invitations...',
+          status: {
+            pending: 'Pending',
+            accepted: 'Accepted',
+            expired: 'Expired',
+            revoked: 'Revoked',
+          },
+          fields: {
+            email: 'Email',
+            name: 'Name',
+            status: 'Status',
+            expiresAt: 'Expires',
+            createdAt: 'Invited',
+            invitedBy: 'Invited by',
+            acceptedAt: 'Accepted at',
+            revokedAt: 'Revoked at',
+            resentAt: 'Last resent',
+          },
+          actions: {
+            resend: 'Resend',
+            revoke: 'Revoke',
+            viewDetails: 'View details',
+          },
+          empty: {
+            title: 'No invitations',
+            description: 'Invite users to get started',
+          },
+          details: {
+            title: 'Invitation Details',
+            permissions: 'Permissions',
+          },
+          resend: {
+            success: 'Invitation resent successfully',
+            cooldown: 'Please wait before resending',
+          },
+          revoke: {
+            confirm: {
+              title: 'Revoke invitation?',
+              description: 'This will invalidate the invitation link.',
+            },
+            success: 'Invitation revoked',
+          },
         },
       },
       errors: {
