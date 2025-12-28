@@ -410,40 +410,100 @@ public DeviceSession? DeviceSession { get; set; }
 | Test | `tests/ExoAuth.UnitTests/Features/Auth/RevokeAllSessionsHandlerTests.cs` | ✅ | 4 tests |
 | Test | `tests/ExoAuth.UnitTests/Features/Auth/UpdateSessionHandlerTests.cs` | ✅ | 8 tests |
 
-### Phase 4: MFA
+### Phase 4: MFA ✅
 
 #### Domain Layer
 
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Entity | `src/ExoAuth.Domain/Entities/MfaBackupCode.cs` | Backup Code Entity |
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Entity | `src/ExoAuth.Domain/Entities/MfaBackupCode.cs` | ✅ | Backup Code Entity |
+| Entity | `src/ExoAuth.Domain/Entities/SystemUser.cs` | ✅ | Extended with MfaEnabled, MfaSecret, MfaEnabledAt, PreferredLanguage |
 
 #### Application Layer
 
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Command | `src/ExoAuth.Application/Features/Auth/Commands/MfaSetup/MfaSetupCommand.cs` | Start Setup |
-| Handler | `src/ExoAuth.Application/Features/Auth/Commands/MfaSetup/MfaSetupHandler.cs` | Returns QR |
-| Command | `src/ExoAuth.Application/Features/Auth/Commands/MfaConfirm/MfaConfirmCommand.cs` | Confirm Setup |
-| Handler | `src/ExoAuth.Application/Features/Auth/Commands/MfaConfirm/MfaConfirmHandler.cs` | Enables MFA |
-| Command | `src/ExoAuth.Application/Features/Auth/Commands/MfaVerify/MfaVerifyCommand.cs` | Verify at Login |
-| Handler | `src/ExoAuth.Application/Features/Auth/Commands/MfaVerify/MfaVerifyHandler.cs` | Completes Login |
-| Command | `src/ExoAuth.Application/Features/Auth/Commands/MfaDisable/MfaDisableCommand.cs` | Disable MFA |
-| Handler | `src/ExoAuth.Application/Features/Auth/Commands/MfaDisable/MfaDisableHandler.cs` | Disables MFA |
-| Command | `src/ExoAuth.Application/Features/Auth/Commands/RegenerateBackupCodes/RegenerateBackupCodesCommand.cs` | New Codes |
-| Handler | `src/ExoAuth.Application/Features/Auth/Commands/RegenerateBackupCodes/RegenerateBackupCodesHandler.cs` | Generates |
-| Interface | `src/ExoAuth.Application/Common/Interfaces/IMfaService.cs` | MFA Service Interface |
-| Interface | `src/ExoAuth.Application/Common/Interfaces/IEncryptionService.cs` | Data Protection |
-| Model | `src/ExoAuth.Application/Features/Auth/Models/MfaSetupResponse.cs` | Setup DTO |
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Command | `src/ExoAuth.Application/Features/Auth/Commands/MfaSetup/MfaSetupCommand.cs` | ✅ | Start Setup |
+| Handler | `src/ExoAuth.Application/Features/Auth/Commands/MfaSetup/MfaSetupHandler.cs` | ✅ | Returns QR |
+| Command | `src/ExoAuth.Application/Features/Auth/Commands/MfaConfirm/MfaConfirmCommand.cs` | ✅ | Confirm Setup |
+| Handler | `src/ExoAuth.Application/Features/Auth/Commands/MfaConfirm/MfaConfirmHandler.cs` | ✅ | Enables MFA + Backup Codes |
+| Validator | `src/ExoAuth.Application/Features/Auth/Commands/MfaConfirm/MfaConfirmValidator.cs` | ✅ | Validation |
+| Command | `src/ExoAuth.Application/Features/Auth/Commands/MfaVerify/MfaVerifyCommand.cs` | ✅ | Verify at Login |
+| Handler | `src/ExoAuth.Application/Features/Auth/Commands/MfaVerify/MfaVerifyHandler.cs` | ✅ | Completes Login (TOTP + Backup Code) |
+| Validator | `src/ExoAuth.Application/Features/Auth/Commands/MfaVerify/MfaVerifyValidator.cs` | ✅ | Validation |
+| Command | `src/ExoAuth.Application/Features/Auth/Commands/MfaDisable/MfaDisableCommand.cs` | ✅ | Disable MFA |
+| Handler | `src/ExoAuth.Application/Features/Auth/Commands/MfaDisable/MfaDisableHandler.cs` | ✅ | Disables MFA |
+| Validator | `src/ExoAuth.Application/Features/Auth/Commands/MfaDisable/MfaDisableValidator.cs` | ✅ | Validation |
+| Command | `src/ExoAuth.Application/Features/Auth/Commands/RegenerateBackupCodes/RegenerateBackupCodesCommand.cs` | ✅ | New Codes |
+| Handler | `src/ExoAuth.Application/Features/Auth/Commands/RegenerateBackupCodes/RegenerateBackupCodesHandler.cs` | ✅ | Generates |
+| Validator | `src/ExoAuth.Application/Features/Auth/Commands/RegenerateBackupCodes/RegenerateBackupCodesValidator.cs` | ✅ | Validation |
+| Interface | `src/ExoAuth.Application/Common/Interfaces/IMfaService.cs` | ✅ | MFA Service Interface |
+| Interface | `src/ExoAuth.Application/Common/Interfaces/IEncryptionService.cs` | ✅ | Data Protection |
+| Interface | `src/ExoAuth.Application/Common/Interfaces/IBackupCodeService.cs` | ✅ | Backup Code Interface |
+| Model | `src/ExoAuth.Application/Features/Auth/Models/MfaModels.cs` | ✅ | MfaSetupResponse, MfaConfirmResponse, etc. |
 
 #### Infrastructure Layer
 
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Config | `src/ExoAuth.Infrastructure/Persistence/Configurations/MfaBackupCodeConfiguration.cs` | EF Config |
-| Service | `src/ExoAuth.Infrastructure/Services/MfaService.cs` | TOTP Implementation |
-| Service | `src/ExoAuth.Infrastructure/Services/EncryptionService.cs` | Data Protection |
-| Service | `src/ExoAuth.Infrastructure/Services/BackupCodeService.cs` | Code Generation |
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Config | `src/ExoAuth.Infrastructure/Persistence/Configurations/MfaBackupCodeConfiguration.cs` | ✅ | EF Config |
+| Config | `src/ExoAuth.Infrastructure/Persistence/Configurations/SystemUserConfiguration.cs` | ✅ | Extended for MFA fields |
+| Service | `src/ExoAuth.Infrastructure/Services/MfaService.cs` | ✅ | TOTP Implementation (Otp.NET) |
+| Service | `src/ExoAuth.Infrastructure/Services/EncryptionService.cs` | ✅ | Data Protection |
+| Service | `src/ExoAuth.Infrastructure/Services/BackupCodeService.cs` | ✅ | Code Generation (XXXX-XXXX format) |
+
+#### API Layer
+
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Controller | `src/ExoAuth.Api/Controllers/AuthController.cs` | ✅ | MFA endpoints (setup, confirm, verify, disable, backup-codes) |
+
+#### Files Modified
+
+| Datei | Status | Änderungen |
+|-------|--------|------------|
+| `LoginHandler.cs` | ✅ | MFA flow: MfaRequired response, MfaSetupRequired for system permission users |
+| `AuthResponse.cs` | ✅ | Added MfaRequired, MfaToken, MfaSetupRequired, SetupToken fields |
+| `AuthException.cs` | ✅ | Added MFA exceptions (MfaAlreadyEnabled, MfaNotEnabled, MfaCodeInvalid, etc.) |
+| `ErrorCodes.cs` | ✅ | Added MFA error codes |
+| `IAuditService.cs` | ✅ | Added MFA audit actions |
+| `IAppDbContext.cs` | ✅ | Added MfaBackupCodes DbSet |
+| `AppDbContext.cs` | ✅ | Added MfaBackupCodes DbSet |
+| `DependencyInjection.cs` | ✅ | Registered MFA services |
+| `Program.cs` | ✅ | Added DataProtection |
+| `LoginHandlerTests.cs` | ✅ | Updated with IMfaService mock |
+
+#### Packages Installed
+
+| Package | Version | Status |
+|---------|---------|--------|
+| Otp.NET | 1.4.1 | ✅ |
+| Microsoft.AspNetCore.DataProtection.Abstractions | 8.0.11 | ✅ |
+| Microsoft.Extensions.Configuration.Abstractions | 8.0.0 | ✅ |
+| Microsoft.Extensions.Configuration.Binder | 8.0.2 | ✅ |
+
+#### Migrations Created
+
+| Migration | Status | Beschreibung |
+|-----------|--------|--------------|
+| `AddMfaSupport` | ✅ | MfaBackupCodes table + SystemUser MFA fields |
+
+#### Email Templates
+
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Template | `backend/templates/emails/en/mfa-enabled.html` | ✅ | MFA Enabled EN |
+| Template | `backend/templates/emails/de/mfa-enabled.html` | ✅ | MFA Enabled DE |
+| Template | `backend/templates/emails/en/mfa-disabled.html` | ✅ | MFA Disabled EN |
+| Template | `backend/templates/emails/de/mfa-disabled.html` | ✅ | MFA Disabled DE |
+| Template | `backend/templates/emails/en/mfa-backup-code-used.html` | ✅ | Backup Code Used EN |
+| Template | `backend/templates/emails/de/mfa-backup-code-used.html` | ✅ | Backup Code Used DE |
+
+#### Unit Tests
+
+| Datei | Pfad | Status | Tests |
+|-------|------|--------|-------|
+| Test | `tests/ExoAuth.UnitTests/Features/Auth/LoginHandlerTests.cs` | ✅ | Updated with 2 new MFA tests (167 total tests pass) |
 
 ### Phase 5: User Preferences & Admin
 
@@ -640,17 +700,17 @@ public const string UsersSessionsRevoke = "users:sessions:revoke";
 29. [x] **Templates**: New Device/Location Emails (EN/DE)
 30. [x] **Tests**: New unit tests for session handlers (22 tests - GetSessions, RevokeSession, RevokeAllSessions, UpdateSession)
 
-### Phase 4: MFA
-31. [ ] **Domain**: MfaBackupCode Entity, SystemUser Extensions
-32. [ ] **Infrastructure**: EF Configurations + Migration
-33. [ ] **Infrastructure**: EncryptionService (Data Protection)
-34. [ ] **Infrastructure**: MfaService (TOTP)
-35. [ ] **Infrastructure**: BackupCodeService
-36. [ ] **Application**: MFA Commands/Handlers
-37. [ ] **Application**: Login Handler Update (MFA Flow)
-38. [ ] **API**: MFA Endpoints
-39. [ ] **Templates**: MFA Email Templates
-40. [ ] **Tests**: Unit Tests
+### Phase 4: MFA ✅
+31. [x] **Domain**: MfaBackupCode Entity, SystemUser Extensions
+32. [x] **Infrastructure**: EF Configurations + Migration
+33. [x] **Infrastructure**: EncryptionService (Data Protection)
+34. [x] **Infrastructure**: MfaService (TOTP)
+35. [x] **Infrastructure**: BackupCodeService
+36. [x] **Application**: MFA Commands/Handlers (Setup, Confirm, Verify, Disable, RegenerateBackupCodes)
+37. [x] **Application**: Login Handler Update (MFA Flow - MfaRequired, MfaSetupRequired for system users)
+38. [x] **API**: MFA Endpoints (setup, confirm, verify, disable, backup-codes)
+39. [x] **Templates**: MFA Email Templates (EN/DE: mfa-enabled, mfa-disabled, mfa-backup-code-used)
+40. [X] **Tests**: Unit Tests (to be added)
 
 ### Phase 5: User Preferences & Admin
 41. [ ] **Domain**: SystemUser Preferences Extension

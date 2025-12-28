@@ -83,4 +83,21 @@ public static class AuditActions
     public const string SessionRenamed = "system.session.renamed";
     public const string LoginNewDevice = "system.login.new_device";
     public const string LoginNewLocation = "system.login.new_location";
+
+    // MFA actions
+    public const string MfaSetupStarted = "system.mfa.setup_started";
+    public const string MfaEnabled = "system.mfa.enabled";
+    public const string MfaDisabled = "system.mfa.disabled";
+    public const string MfaVerified = "system.mfa.verified";
+    public const string MfaBackupCodeUsed = "system.mfa.backup_code_used";
+    public const string MfaBackupCodesRegenerated = "system.mfa.backup_codes_regenerated";
+    public const string MfaResetByAdmin = "system.mfa.reset_by_admin";
+
+    // Account actions
+    public const string AccountLocked = "system.account.locked";
+    public const string AccountUnlocked = "system.account.unlocked";
+    public const string AccountUnlockedByAdmin = "system.account.unlocked_by_admin";
+    public const string UserAnonymized = "system.user.anonymized";
+    public const string PreferencesUpdated = "system.user.preferences_updated";
+    public const string SessionsRevokedByAdmin = "system.session.revoked_by_admin";
 }

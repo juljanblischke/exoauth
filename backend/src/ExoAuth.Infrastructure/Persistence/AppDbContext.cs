@@ -19,6 +19,7 @@ public sealed class AppDbContext : DbContext, IAppDbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<DeviceSession> DeviceSessions => Set<DeviceSession>();
+    public DbSet<MfaBackupCode> MfaBackupCodes => Set<MfaBackupCode>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -4,14 +4,52 @@ namespace ExoAuth.Application.Features.Auth.Models;
 /// Response containing user info and tokens after successful authentication.
 /// </summary>
 public sealed record AuthResponse(
-    UserDto User,
-    string AccessToken,
-    string RefreshToken,
+    UserDto? User,
+    string? AccessToken,
+    string? RefreshToken,
     Guid? SessionId = null,
     string? DeviceId = null,
     bool IsNewDevice = false,
-    bool IsNewLocation = false
-);
+    bool IsNewLocation = false,
+    bool MfaRequired = false,
+    string? MfaToken = null,
+    bool MfaSetupRequired = false,
+    string? SetupToken = null
+)
+{
+    /// <summary>
+    /// Creates a successful auth response with tokens.
+    /// </summary>
+    public static AuthResponse Success(
+        UserDto user,
+        string accessToken,
+        string refreshToken,
+        Guid? sessionId = null,
+        string? deviceId = null,
+        bool isNewDevice = false,
+        bool isNewLocation = false) => new(
+            user, accessToken, refreshToken, sessionId, deviceId, isNewDevice, isNewLocation);
+
+    /// <summary>
+    /// Creates an MFA required response.
+    /// </summary>
+    public static AuthResponse RequiresMfa(string mfaToken) => new(
+        User: null,
+        AccessToken: null,
+        RefreshToken: null,
+        MfaRequired: true,
+        MfaToken: mfaToken);
+
+    /// <summary>
+    /// Creates an MFA setup required response (for users with system permissions).
+    /// </summary>
+    public static AuthResponse RequiresMfaSetup(string setupToken) => new(
+        User: null,
+        AccessToken: null,
+        RefreshToken: null,
+        MfaSetupRequired: true,
+        SetupToken: setupToken);
+};
 
 /// <summary>
 /// Response for token refresh.

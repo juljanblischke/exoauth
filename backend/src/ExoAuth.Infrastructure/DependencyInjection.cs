@@ -69,6 +69,11 @@ public static class DependencyInjection
         // System Invite
         services.AddScoped<ISystemInviteService, SystemInviteService>();
 
+        // MFA Services
+        services.AddSingleton<IEncryptionService, EncryptionService>();
+        services.AddSingleton<IMfaService, MfaService>();
+        services.AddSingleton<IBackupCodeService, BackupCodeService>();
+
         // Repositories
         services.AddScoped<ISystemUserRepository, SystemUserRepository>();
 

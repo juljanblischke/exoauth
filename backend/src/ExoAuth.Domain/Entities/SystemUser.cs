@@ -10,12 +10,31 @@ public sealed class SystemUser : BaseEntity
     public bool EmailVerified { get; private set; }
     public DateTime? LastLoginAt { get; private set; }
 
+    // MFA fields
+    public bool MfaEnabled { get; private set; }
+    public string? MfaSecret { get; private set; }
+    public DateTime? MfaEnabledAt { get; private set; }
+
+    // User preferences
+    public string PreferredLanguage { get; private set; } = "en";
+
+    // Lockout fields
+    public DateTime? LockedUntil { get; private set; }
+    public int FailedLoginAttempts { get; private set; }
+
+    // Anonymization fields
+    public bool IsAnonymized { get; private set; }
+    public DateTime? AnonymizedAt { get; private set; }
+
     // Navigation properties
     private readonly List<SystemUserPermission> _permissions = new();
     public IReadOnlyCollection<SystemUserPermission> Permissions => _permissions.AsReadOnly();
 
     private readonly List<RefreshToken> _refreshTokens = new();
     public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
+
+    private readonly List<MfaBackupCode> _mfaBackupCodes = new();
+    public IReadOnlyCollection<MfaBackupCode> MfaBackupCodes => _mfaBackupCodes.AsReadOnly();
 
     private SystemUser() { } // EF Core
 
@@ -72,6 +91,87 @@ public sealed class SystemUser : BaseEntity
     public void Deactivate()
     {
         IsActive = false;
+        SetUpdated();
+    }
+
+    public void SetMfaSecret(string encryptedSecret)
+    {
+        MfaSecret = encryptedSecret;
+        SetUpdated();
+    }
+
+    public void EnableMfa()
+    {
+        if (MfaEnabled)
+            return;
+
+        MfaEnabled = true;
+        MfaEnabledAt = DateTime.UtcNow;
+        SetUpdated();
+    }
+
+    public void DisableMfa()
+    {
+        MfaEnabled = false;
+        MfaSecret = null;
+        MfaEnabledAt = null;
+        SetUpdated();
+    }
+
+    public void SetPreferredLanguage(string language)
+    {
+        PreferredLanguage = language;
+        SetUpdated();
+    }
+
+    public void RecordFailedLogin()
+    {
+        FailedLoginAttempts++;
+        SetUpdated();
+    }
+
+    public void ResetFailedLoginAttempts()
+    {
+        FailedLoginAttempts = 0;
+        SetUpdated();
+    }
+
+    public void Lock(DateTime? until = null)
+    {
+        LockedUntil = until;
+        SetUpdated();
+    }
+
+    public void Unlock()
+    {
+        LockedUntil = null;
+        FailedLoginAttempts = 0;
+        SetUpdated();
+    }
+
+    public bool IsLocked => LockedUntil.HasValue && LockedUntil > DateTime.UtcNow;
+
+    public void Anonymize()
+    {
+        if (IsAnonymized) return;
+
+        Email = $"anonymized_{Id:N}@deleted.local";
+        FirstName = "Deleted";
+        LastName = "User";
+        PasswordHash = "ANONYMIZED";
+        IsActive = false;
+        IsAnonymized = true;
+        AnonymizedAt = DateTime.UtcNow;
+
+        // Clear MFA data
+        MfaEnabled = false;
+        MfaSecret = null;
+        MfaEnabledAt = null;
+
+        // Clear lockout data
+        LockedUntil = null;
+        FailedLoginAttempts = 0;
+
         SetUpdated();
     }
 

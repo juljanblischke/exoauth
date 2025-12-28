@@ -21,6 +21,9 @@ builder.Host.UseSerilog((context, configuration) =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+// Add Data Protection for MFA secret encryption
+builder.Services.AddDataProtection();
+
 // Add layers
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);

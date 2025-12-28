@@ -42,3 +42,6 @@ frontend/coverage/
 
 # Docker
 docker/data/
+
+# GeoIP database (download from MaxMind)
+data/geoip/*.mmdb

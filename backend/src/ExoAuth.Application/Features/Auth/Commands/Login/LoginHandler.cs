@@ -17,6 +17,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
     private readonly IForceReauthService _forceReauthService;
     private readonly IDeviceSessionService _deviceSessionService;
     private readonly IAuditService _auditService;
+    private readonly IMfaService _mfaService;
 
     public LoginHandler(
         IAppDbContext context,
@@ -27,7 +28,8 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         IPermissionCacheService permissionCache,
         IForceReauthService forceReauthService,
         IDeviceSessionService deviceSessionService,
-        IAuditService auditService)
+        IAuditService auditService,
+        IMfaService mfaService)
     {
         _context = context;
         _userRepository = userRepository;
@@ -38,6 +40,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         _forceReauthService = forceReauthService;
         _deviceSessionService = deviceSessionService;
         _auditService = auditService;
+        _mfaService = mfaService;
     }
 
     public async ValueTask<AuthResponse> Handle(LoginCommand command, CancellationToken ct)
@@ -90,11 +93,8 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             throw new UserInactiveException();
         }
 
-        // Reset brute force counter on successful login
+        // Reset brute force counter on successful password verification
         await _bruteForceService.ResetAsync(email, ct);
-
-        // Clear force re-auth flag if set
-        await _forceReauthService.ClearFlagAsync(user.Id, ct);
 
         // Get permissions (with caching)
         var permissions = await _permissionCache.GetOrSetPermissionsAsync(
@@ -102,6 +102,49 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             () => _userRepository.GetUserPermissionNamesAsync(user.Id, ct),
             ct
         );
+
+        // Check if MFA is enabled
+        if (user.MfaEnabled)
+        {
+            // Generate MFA token for the second step
+            var mfaToken = _mfaService.GenerateMfaToken(user.Id, null);
+
+            await _auditService.LogWithContextAsync(
+                AuditActions.UserLoginFailed,
+                user.Id,
+                null,
+                "SystemUser",
+                user.Id,
+                new { Reason = "MFA required", Step = "awaiting_mfa" },
+                ct
+            );
+
+            return AuthResponse.RequiresMfa(mfaToken);
+        }
+
+        // Check if user has system permissions but MFA is not enabled
+        // Users with system permissions MUST have MFA enabled
+        var hasSystemPermissions = permissions.Any(p => p.StartsWith("system:"));
+        if (hasSystemPermissions && !user.MfaEnabled)
+        {
+            // Generate setup token for MFA setup
+            var setupToken = _mfaService.GenerateMfaToken(user.Id, null);
+
+            await _auditService.LogWithContextAsync(
+                AuditActions.UserLoginFailed,
+                user.Id,
+                null,
+                "SystemUser",
+                user.Id,
+                new { Reason = "MFA setup required", Step = "awaiting_mfa_setup" },
+                ct
+            );
+
+            return AuthResponse.RequiresMfaSetup(setupToken);
+        }
+
+        // Clear force re-auth flag if set
+        await _forceReauthService.ClearFlagAsync(user.Id, ct);
 
         // Create or update device session
         var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();

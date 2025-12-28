@@ -20,6 +20,7 @@ public sealed class LoginHandlerTests
     private readonly Mock<IForceReauthService> _mockForceReauthService;
     private readonly Mock<IDeviceSessionService> _mockDeviceSessionService;
     private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<IMfaService> _mockMfaService;
     private readonly LoginHandler _handler;
 
     public LoginHandlerTests()
@@ -33,6 +34,7 @@ public sealed class LoginHandlerTests
         _mockForceReauthService = new Mock<IForceReauthService>();
         _mockDeviceSessionService = new Mock<IDeviceSessionService>();
         _mockAuditService = new Mock<IAuditService>();
+        _mockMfaService = new Mock<IMfaService>();
 
         // Default token service setup
         _mockTokenService.Setup(x => x.RefreshTokenExpiration).Returns(TimeSpan.FromDays(30));
@@ -58,7 +60,8 @@ public sealed class LoginHandlerTests
             _mockPermissionCache.Object,
             _mockForceReauthService.Object,
             _mockDeviceSessionService.Object,
-            _mockAuditService.Object);
+            _mockAuditService.Object,
+            _mockMfaService.Object);
     }
 
     [Fact]
@@ -67,7 +70,8 @@ public sealed class LoginHandlerTests
         // Arrange
         var command = new LoginCommand("test@example.com", "Password123!");
         var user = TestDataFactory.CreateSystemUser(email: "test@example.com", passwordHash: "hashed");
-        var permissions = new List<string> { "system:users:read", "system:users:create" };
+        // Use non-system permissions to avoid MFA requirement
+        var permissions = new List<string> { "clients:read", "clients:create" };
 
         _mockBruteForceService.Setup(x => x.IsBlockedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
@@ -242,7 +246,8 @@ public sealed class LoginHandlerTests
         // Arrange
         var command = new LoginCommand("test@example.com", "Password123!");
         var user = TestDataFactory.CreateSystemUser(email: "test@example.com", passwordHash: "hashed");
-        var permissions = new List<string> { "system:users:read" };
+        // Use non-system permissions to avoid MFA requirement
+        var permissions = new List<string> { "clients:read" };
 
         _mockBruteForceService.Setup(x => x.IsBlockedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
@@ -295,5 +300,73 @@ public sealed class LoginHandlerTests
 
         // Verify email was normalized to lowercase
         _mockUserRepository.Verify(x => x.GetByEmailAsync("test@example.com", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenMfaEnabled_ReturnsMfaRequiredResponse()
+    {
+        // Arrange
+        var command = new LoginCommand("mfa@example.com", "Password123!");
+        var user = TestDataFactory.CreateSystemUser(email: "mfa@example.com", passwordHash: "hashed");
+        user.EnableMfa(); // Enable MFA on the user
+        var permissions = new List<string> { "system:users:read" };
+
+        _mockBruteForceService.Setup(x => x.IsBlockedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _mockUserRepository.Setup(x => x.GetByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _mockPasswordHasher.Setup(x => x.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(true);
+        _mockPermissionCache.Setup(x => x.GetOrSetPermissionsAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Func<Task<List<string>>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(permissions);
+        _mockMfaService.Setup(x => x.GenerateMfaToken(It.IsAny<Guid>(), It.IsAny<Guid?>()))
+            .Returns("mfa-token");
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.MfaRequired.Should().BeTrue();
+        result.MfaToken.Should().Be("mfa-token");
+        result.AccessToken.Should().BeNull();
+        result.RefreshToken.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_WhenSystemPermissionsWithoutMfa_ReturnsMfaSetupRequiredResponse()
+    {
+        // Arrange
+        var command = new LoginCommand("admin@example.com", "Password123!");
+        var user = TestDataFactory.CreateSystemUser(email: "admin@example.com", passwordHash: "hashed");
+        // User has system permissions but MFA is NOT enabled
+        var permissions = new List<string> { "system:users:read", "system:users:create" };
+
+        _mockBruteForceService.Setup(x => x.IsBlockedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _mockUserRepository.Setup(x => x.GetByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _mockPasswordHasher.Setup(x => x.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(true);
+        _mockPermissionCache.Setup(x => x.GetOrSetPermissionsAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Func<Task<List<string>>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(permissions);
+        _mockMfaService.Setup(x => x.GenerateMfaToken(It.IsAny<Guid>(), It.IsAny<Guid?>()))
+            .Returns("setup-token");
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.MfaSetupRequired.Should().BeTrue();
+        result.SetupToken.Should().Be("setup-token");
+        result.AccessToken.Should().BeNull();
+        result.RefreshToken.Should().BeNull();
     }
 }

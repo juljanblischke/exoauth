@@ -38,6 +38,22 @@ public sealed class SystemUserConfiguration : IEntityTypeConfiguration<SystemUse
 
         builder.Property(x => x.LastLoginAt);
 
+        // MFA fields
+        builder.Property(x => x.MfaEnabled)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(x => x.MfaSecret)
+            .HasMaxLength(500); // Encrypted, so longer than raw secret
+
+        builder.Property(x => x.MfaEnabledAt);
+
+        // User preferences
+        builder.Property(x => x.PreferredLanguage)
+            .IsRequired()
+            .HasMaxLength(10)
+            .HasDefaultValue("en");
+
         builder.Property(x => x.CreatedAt)
             .IsRequired();
 
@@ -48,6 +64,8 @@ public sealed class SystemUserConfiguration : IEntityTypeConfiguration<SystemUse
             .IsUnique();
 
         builder.HasIndex(x => x.IsActive);
+
+        builder.HasIndex(x => x.MfaEnabled);
 
         // Navigation - defined in other configurations
     }

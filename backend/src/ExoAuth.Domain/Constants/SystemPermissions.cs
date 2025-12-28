@@ -10,6 +10,11 @@ public static class SystemPermissions
     public const string UsersCreate = "system:users:create";
     public const string UsersUpdate = "system:users:update";
     public const string UsersDelete = "system:users:delete";
+    public const string UsersMfaReset = "system:users:mfa:reset";
+    public const string UsersUnlock = "system:users:unlock";
+    public const string UsersSessionsView = "system:users:sessions:view";
+    public const string UsersSessionsRevoke = "system:users:sessions:revoke";
+    public const string UsersAnonymize = "system:users:anonymize";
 
     // Audit
     public const string AuditRead = "system:audit:read";
@@ -43,6 +48,11 @@ public static class SystemPermissions
         (UsersCreate, "Invite new system users", "Users"),
         (UsersUpdate, "Edit system users & permissions", "Users"),
         (UsersDelete, "Deactivate/delete system users", "Users"),
+        (UsersMfaReset, "Reset MFA for system users", "Users"),
+        (UsersUnlock, "Unlock locked system users", "Users"),
+        (UsersSessionsView, "View sessions of system users", "Users"),
+        (UsersSessionsRevoke, "Revoke sessions of system users", "Users"),
+        (UsersAnonymize, "Anonymize system users (GDPR)", "Users"),
 
         // Audit
         (AuditRead, "View system audit logs", "Audit"),

@@ -3,7 +3,12 @@ using ExoAuth.Application.Features.Auth.Commands.AcceptInvite;
 using ExoAuth.Application.Features.Auth.Commands.ForgotPassword;
 using ExoAuth.Application.Features.Auth.Commands.Login;
 using ExoAuth.Application.Features.Auth.Commands.Logout;
+using ExoAuth.Application.Features.Auth.Commands.MfaConfirm;
+using ExoAuth.Application.Features.Auth.Commands.MfaDisable;
+using ExoAuth.Application.Features.Auth.Commands.MfaSetup;
+using ExoAuth.Application.Features.Auth.Commands.MfaVerify;
 using ExoAuth.Application.Features.Auth.Commands.RefreshToken;
+using ExoAuth.Application.Features.Auth.Commands.RegenerateBackupCodes;
 using ExoAuth.Application.Features.Auth.Commands.Register;
 using ExoAuth.Application.Features.Auth.Commands.ResetPassword;
 using ExoAuth.Application.Features.Auth.Commands.RevokeAllSessions;
@@ -296,6 +301,104 @@ public sealed class AuthController : ApiControllerBase
 
     #endregion
 
+    #region MFA
+
+    /// <summary>
+    /// Start MFA setup. Returns QR code and manual entry key.
+    /// </summary>
+    [HttpPost("mfa/setup")]
+    [Authorize]
+    [RateLimit(3)]
+    [ProducesResponseType(typeof(MfaSetupResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> MfaSetup(CancellationToken ct)
+    {
+        var command = new MfaSetupCommand();
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Confirm MFA setup with first TOTP code. Returns backup codes.
+    /// </summary>
+    [HttpPost("mfa/confirm")]
+    [Authorize]
+    [RateLimit(5)]
+    [ProducesResponseType(typeof(MfaConfirmResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> MfaConfirm(MfaConfirmRequest request, CancellationToken ct)
+    {
+        var command = new MfaConfirmCommand(request.Code);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Verify MFA code during login. Accepts TOTP code or backup code.
+    /// </summary>
+    [HttpPost("mfa/verify")]
+    [RateLimit(5)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> MfaVerify(MfaVerifyRequest request, CancellationToken ct)
+    {
+        var command = new MfaVerifyCommand(
+            request.MfaToken,
+            request.Code,
+            request.DeviceId,
+            request.DeviceFingerprint,
+            Request.Headers.UserAgent.ToString(),
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            request.RememberMe
+        );
+
+        var result = await Mediator.Send(command, ct);
+
+        if (result.AccessToken != null && result.RefreshToken != null)
+        {
+            SetAuthCookies(result.AccessToken, result.RefreshToken);
+        }
+
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Disable MFA. Requires current TOTP code.
+    /// </summary>
+    [HttpPost("mfa/disable")]
+    [Authorize]
+    [RateLimit(3)]
+    [ProducesResponseType(typeof(MfaDisableResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> MfaDisable(MfaDisableRequest request, CancellationToken ct)
+    {
+        var command = new MfaDisableCommand(request.Code);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Regenerate backup codes. Requires current TOTP code.
+    /// </summary>
+    [HttpPost("mfa/backup-codes")]
+    [Authorize]
+    [RateLimit(3)]
+    [ProducesResponseType(typeof(RegenerateBackupCodesResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> RegenerateBackupCodes(RegenerateBackupCodesRequest request, CancellationToken ct)
+    {
+        var command = new RegenerateBackupCodesCommand(request.Code);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    #endregion
+
     private void SetAuthCookies(string accessToken, string refreshToken)
     {
         var secureCookies = _configuration.GetValue("Cookies:Secure", true);
@@ -395,4 +498,24 @@ public sealed record ResetPasswordRequest(
 public sealed record UpdateSessionRequest(
     string? Name = null,
     bool? IsTrusted = null
+);
+
+public sealed record MfaConfirmRequest(
+    string Code
+);
+
+public sealed record MfaVerifyRequest(
+    string MfaToken,
+    string Code,
+    string? DeviceId = null,
+    string? DeviceFingerprint = null,
+    bool RememberMe = false
+);
+
+public sealed record MfaDisableRequest(
+    string Code
+);
+
+public sealed record RegenerateBackupCodesRequest(
+    string Code
 );

@@ -169,3 +169,135 @@ public sealed class CannotRevokeCurrentSessionException : AuthException
     {
     }
 }
+
+/// <summary>
+/// Exception when MFA is already enabled.
+/// </summary>
+public sealed class MfaAlreadyEnabledException : AuthException
+{
+    public MfaAlreadyEnabledException()
+        : base("MFA_ALREADY_ENABLED", "MFA is already enabled", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when MFA is not enabled but required for operation.
+/// </summary>
+public sealed class MfaNotEnabledException : AuthException
+{
+    public MfaNotEnabledException()
+        : base("MFA_NOT_ENABLED", "MFA is not enabled", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when MFA code is invalid.
+/// </summary>
+public sealed class MfaCodeInvalidException : AuthException
+{
+    public MfaCodeInvalidException()
+        : base("MFA_CODE_INVALID", "Invalid MFA code", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when MFA backup code is invalid.
+/// </summary>
+public sealed class MfaBackupCodeInvalidException : AuthException
+{
+    public MfaBackupCodeInvalidException()
+        : base("MFA_BACKUP_CODE_INVALID", "Invalid backup code", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when MFA token is invalid or expired.
+/// </summary>
+public sealed class MfaTokenInvalidException : AuthException
+{
+    public MfaTokenInvalidException()
+        : base("MFA_TOKEN_INVALID", "Invalid or expired MFA token", 401)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when MFA is required for login.
+/// </summary>
+public sealed class MfaRequiredException : AuthException
+{
+    public string MfaToken { get; }
+
+    public MfaRequiredException(string mfaToken)
+        : base("MFA_REQUIRED", "MFA verification required", 403)
+    {
+        MfaToken = mfaToken;
+    }
+}
+
+/// <summary>
+/// Exception when MFA setup is required (for users with system permissions).
+/// </summary>
+public sealed class MfaSetupRequiredException : AuthException
+{
+    public string SetupToken { get; }
+
+    public MfaSetupRequiredException(string setupToken)
+        : base("MFA_SETUP_REQUIRED", "MFA setup is required", 403)
+    {
+        SetupToken = setupToken;
+    }
+}
+
+/// <summary>
+/// Exception when account is locked.
+/// </summary>
+public sealed class AccountLockedException : AuthException
+{
+    public DateTime? LockedUntil { get; }
+
+    public AccountLockedException(DateTime? lockedUntil = null)
+        : base("ACCOUNT_LOCKED", lockedUntil.HasValue
+            ? $"Account is locked until {lockedUntil:u}"
+            : "Account is permanently locked", 423)
+    {
+        LockedUntil = lockedUntil;
+    }
+}
+
+/// <summary>
+/// Exception when trying to unlock an account that is not locked.
+/// </summary>
+public sealed class AccountNotLockedException : AuthException
+{
+    public AccountNotLockedException()
+        : base("ACCOUNT_NOT_LOCKED", "Account is not locked", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when user is already anonymized.
+/// </summary>
+public sealed class UserAlreadyAnonymizedException : AuthException
+{
+    public UserAlreadyAnonymizedException()
+        : base("USER_ALREADY_ANONYMIZED", "User has already been anonymized", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when trying to anonymize self.
+/// </summary>
+public sealed class CannotAnonymizeSelfException : AuthException
+{
+    public CannotAnonymizeSelfException()
+        : base("CANNOT_ANONYMIZE_SELF", "Cannot anonymize your own account", 400)
+    {
+    }
+}

@@ -52,6 +52,28 @@ public static class ErrorCodes
     public const string InviteExpired = "INVITE_EXPIRED";
     public const string InviteRevoked = "INVITE_REVOKED";
 
+    // MFA Errors (400/401/403)
+    public const string MfaRequired = "MFA_REQUIRED";
+    public const string MfaSetupRequired = "MFA_SETUP_REQUIRED";
+    public const string MfaCodeInvalid = "MFA_CODE_INVALID";
+    public const string MfaAlreadyEnabled = "MFA_ALREADY_ENABLED";
+    public const string MfaNotEnabled = "MFA_NOT_ENABLED";
+    public const string MfaBackupCodeInvalid = "MFA_BACKUP_CODE_INVALID";
+    public const string MfaTokenInvalid = "MFA_TOKEN_INVALID";
+
+    // Session Errors (400/404)
+    public const string SessionNotFound = "SESSION_NOT_FOUND";
+    public const string SessionCannotRevokeCurrent = "SESSION_CANNOT_REVOKE_CURRENT";
+
+    // Account Lockout Errors (423)
+    public const string AccountLocked = "ACCOUNT_LOCKED";
+    public const string AccountLockedPermanent = "ACCOUNT_LOCKED_PERMANENT";
+    public const string AccountNotLocked = "ACCOUNT_NOT_LOCKED";
+
+    // User Errors (400)
+    public const string UserAlreadyAnonymized = "USER_ALREADY_ANONYMIZED";
+    public const string CannotAnonymizeSelf = "CANNOT_ANONYMIZE_SELF";
+
     // Server Errors (500)
     public const string InternalError = "INTERNAL_ERROR";
 }
