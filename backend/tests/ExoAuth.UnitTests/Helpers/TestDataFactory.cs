@@ -32,14 +32,20 @@ public static class TestDataFactory
         string firstName = "Invited",
         string lastName = "User",
         List<Guid>? permissionIds = null,
-        Guid? invitedBy = null)
+        Guid? invitedBy = null,
+        string? tokenHash = null)
     {
+        // Generate token and hash if not provided
+        var token = SystemInvite.GenerateToken();
+        var hash = tokenHash ?? SystemInvite.HashToken(token);
+
         return SystemInvite.Create(
             email,
             firstName,
             lastName,
             permissionIds ?? new List<Guid>(),
-            invitedBy ?? Guid.NewGuid()
+            invitedBy ?? Guid.NewGuid(),
+            hash
         );
     }
 
@@ -63,5 +69,27 @@ public static class TestDataFactory
             "system:settings:read",
             "system:settings:update"
         };
+    }
+
+    public static DeviceSession CreateDeviceSession(
+        Guid userId,
+        string deviceId = "test-device-id",
+        string? deviceName = null,
+        string? browser = "Chrome",
+        string? operatingSystem = "Windows")
+    {
+        var session = DeviceSession.Create(
+            userId,
+            deviceId,
+            deviceName,
+            deviceFingerprint: null,
+            userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0",
+            ipAddress: "127.0.0.1"
+        );
+
+        session.SetDeviceInfo(browser, "120.0.0.0", operatingSystem, "10", "Desktop");
+        session.SetLocation("Germany", "DE", "Berlin", 52.52, 13.405);
+
+        return session;
     }
 }

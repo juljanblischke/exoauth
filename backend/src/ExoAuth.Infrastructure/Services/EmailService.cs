@@ -11,6 +11,7 @@ public sealed class EmailService : IEmailService
     private readonly ILogger<EmailService> _logger;
     private readonly string _baseUrl;
     private readonly int _inviteExpirationHours;
+    private readonly int _passwordResetExpiryMinutes;
 
     public EmailService(
         IMessageBus messageBus,
@@ -23,6 +24,8 @@ public sealed class EmailService : IEmailService
         var inviteSection = configuration.GetSection("SystemInvite");
         _baseUrl = inviteSection["BaseUrl"] ?? "https://localhost";
         _inviteExpirationHours = inviteSection.GetValue<int>("ExpirationHours", 24);
+
+        _passwordResetExpiryMinutes = configuration.GetValue("Auth:PasswordResetExpiryMinutes", 15);
     }
 
     public async Task SendAsync(
@@ -73,6 +76,65 @@ public sealed class EmailService : IEmailService
             to: email,
             subject: subject,
             templateName: "system-invite",
+            variables: variables,
+            language: language,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    public async Task SendPasswordResetAsync(
+        string email,
+        string firstName,
+        string resetToken,
+        string resetCode,
+        string language = "en",
+        CancellationToken cancellationToken = default)
+    {
+        var resetUrl = $"{_baseUrl}/auth/reset-password?token={resetToken}";
+
+        var variables = new Dictionary<string, string>
+        {
+            ["firstName"] = firstName,
+            ["resetUrl"] = resetUrl,
+            ["resetCode"] = resetCode,
+            ["expiryMinutes"] = _passwordResetExpiryMinutes.ToString(),
+            ["year"] = DateTime.UtcNow.Year.ToString()
+        };
+
+        var subject = language == "de"
+            ? "Passwort zurücksetzen"
+            : "Reset Your Password";
+
+        await SendAsync(
+            to: email,
+            subject: subject,
+            templateName: "password-reset",
+            variables: variables,
+            language: language,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    public async Task SendPasswordChangedAsync(
+        string email,
+        string firstName,
+        string language = "en",
+        CancellationToken cancellationToken = default)
+    {
+        var variables = new Dictionary<string, string>
+        {
+            ["firstName"] = firstName,
+            ["year"] = DateTime.UtcNow.Year.ToString()
+        };
+
+        var subject = language == "de"
+            ? "Dein Passwort wurde geändert"
+            : "Your Password Has Been Changed";
+
+        await SendAsync(
+            to: email,
+            subject: subject,
+            templateName: "password-changed",
             variables: variables,
             language: language,
             cancellationToken: cancellationToken

@@ -216,80 +216,199 @@ public DeviceSession? DeviceSession { get; set; }
 
 ## 6. Files zu erstellen
 
-### Phase 1: Email Worker
+### Phase 1: Email Worker ✅
 
 #### Neues Projekt: ExoAuth.EmailWorker
 
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Project | `src/ExoAuth.EmailWorker/ExoAuth.EmailWorker.csproj` | Worker Service Projekt |
-| Program | `src/ExoAuth.EmailWorker/Program.cs` | Host Configuration |
-| appsettings | `src/ExoAuth.EmailWorker/appsettings.json` | Configuration |
-| appsettings.Dev | `src/ExoAuth.EmailWorker/appsettings.Development.json` | Dev Configuration |
-| Dockerfile | `src/ExoAuth.EmailWorker/Dockerfile` | Docker Image |
-| Worker | `src/ExoAuth.EmailWorker/EmailWorkerService.cs` | Background Service |
-| Consumer | `src/ExoAuth.EmailWorker/Consumers/SendEmailConsumer.cs` | RabbitMQ Consumer (moved) |
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Project | `src/ExoAuth.EmailWorker/ExoAuth.EmailWorker.csproj` | ✅ | Worker Service Projekt |
+| Program | `src/ExoAuth.EmailWorker/Program.cs` | ✅ | Host Configuration mit Serilog |
+| appsettings | `src/ExoAuth.EmailWorker/appsettings.json` | ✅ | Production Configuration |
+| appsettings.Dev | `src/ExoAuth.EmailWorker/appsettings.Development.json` | ✅ | Dev Configuration |
+| Dockerfile | `docker/email-worker/Dockerfile` | ✅ | Multi-stage Docker Image |
+| Worker | `src/ExoAuth.EmailWorker/EmailWorkerService.cs` | ✅ | Main Background Service |
+| Consumer | `src/ExoAuth.EmailWorker/Consumers/SendEmailConsumer.cs` | ✅ | RabbitMQ Email Consumer |
+| Connection | `src/ExoAuth.EmailWorker/RabbitMqConnectionFactory.cs` | ✅ | RabbitMQ Connection Management |
+| Interface | `src/ExoAuth.EmailWorker/Services/IEmailTemplateService.cs` | ✅ | Template Service Interface |
+| Service | `src/ExoAuth.EmailWorker/Services/EmailTemplateService.cs` | ✅ | Template Rendering |
+| Model | `src/ExoAuth.EmailWorker/Models/SendEmailMessage.cs` | ✅ | Email Message DTO |
+| Model | `src/ExoAuth.EmailWorker/Models/EmailSettings.cs` | ✅ | SMTP Settings |
 
-### Phase 2: Password Reset
+#### Templates verschoben
 
-#### Domain Layer
+| Von | Nach | Status |
+|-----|------|--------|
+| `src/ExoAuth.Api/templates/emails/` | `backend/templates/emails/` | ✅ |
 
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Entity | `src/ExoAuth.Domain/Entities/PasswordResetToken.cs` | Password Reset Token Entity |
+#### Templates aktualisiert (Frontend Theme)
 
-#### Application Layer
+| Datei | Status | Änderungen |
+|-------|--------|------------|
+| `templates/emails/en/system-invite.html` | ✅ | Rose/Red Theme, Inter Font, Modern Design |
+| `templates/emails/de/system-invite.html` | ✅ | Rose/Red Theme, Inter Font, Du-Form |
 
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Command | `src/ExoAuth.Application/Features/Auth/Commands/ForgotPassword/ForgotPasswordCommand.cs` | Request Reset |
-| Handler | `src/ExoAuth.Application/Features/Auth/Commands/ForgotPassword/ForgotPasswordHandler.cs` | Sends Email |
-| Validator | `src/ExoAuth.Application/Features/Auth/Commands/ForgotPassword/ForgotPasswordValidator.cs` | Validation |
-| Command | `src/ExoAuth.Application/Features/Auth/Commands/ResetPassword/ResetPasswordCommand.cs` | Execute Reset |
-| Handler | `src/ExoAuth.Application/Features/Auth/Commands/ResetPassword/ResetPasswordHandler.cs` | Resets Password |
-| Validator | `src/ExoAuth.Application/Features/Auth/Commands/ResetPassword/ResetPasswordValidator.cs` | Validation |
-| Interface | `src/ExoAuth.Application/Common/Interfaces/IPasswordResetService.cs` | Service Interface |
-
-#### Infrastructure Layer
-
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Config | `src/ExoAuth.Infrastructure/Persistence/Configurations/PasswordResetTokenConfiguration.cs` | EF Config |
-| Service | `src/ExoAuth.Infrastructure/Services/PasswordResetService.cs` | Token Generation |
-
-### Phase 3: Device Sessions
+### Phase 2: Password Reset ✅
 
 #### Domain Layer
 
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Entity | `src/ExoAuth.Domain/Entities/DeviceSession.cs` | Device Session Entity |
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Entity | `src/ExoAuth.Domain/Entities/PasswordResetToken.cs` | ✅ | Password Reset Token Entity with XXXX-XXXX code format |
 
 #### Application Layer
 
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Query | `src/ExoAuth.Application/Features/Auth/Queries/GetSessions/GetSessionsQuery.cs` | List Sessions |
-| Handler | `src/ExoAuth.Application/Features/Auth/Queries/GetSessions/GetSessionsHandler.cs` | Handler |
-| Command | `src/ExoAuth.Application/Features/Auth/Commands/RevokeSession/RevokeSessionCommand.cs` | Revoke Single |
-| Handler | `src/ExoAuth.Application/Features/Auth/Commands/RevokeSession/RevokeSessionHandler.cs` | Handler |
-| Command | `src/ExoAuth.Application/Features/Auth/Commands/RevokeAllSessions/RevokeAllSessionsCommand.cs` | Revoke All |
-| Handler | `src/ExoAuth.Application/Features/Auth/Commands/RevokeAllSessions/RevokeAllSessionsHandler.cs` | Handler |
-| Command | `src/ExoAuth.Application/Features/Auth/Commands/UpdateSession/UpdateSessionCommand.cs` | Rename/Trust |
-| Handler | `src/ExoAuth.Application/Features/Auth/Commands/UpdateSession/UpdateSessionHandler.cs` | Handler |
-| Interface | `src/ExoAuth.Application/Common/Interfaces/IDeviceSessionService.cs` | Service Interface |
-| Interface | `src/ExoAuth.Application/Common/Interfaces/IGeoIpService.cs` | GeoIP Interface |
-| Model | `src/ExoAuth.Application/Features/Auth/Models/DeviceSessionDto.cs` | DTO |
-| Model | `src/ExoAuth.Application/Common/Models/GeoLocation.cs` | GeoIP Result |
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Command | `src/ExoAuth.Application/Features/Auth/Commands/ForgotPassword/ForgotPasswordCommand.cs` | ✅ | Request Reset |
+| Handler | `src/ExoAuth.Application/Features/Auth/Commands/ForgotPassword/ForgotPasswordHandler.cs` | ✅ | Sends Email (prevents enumeration) |
+| Validator | `src/ExoAuth.Application/Features/Auth/Commands/ForgotPassword/ForgotPasswordValidator.cs` | ✅ | Validation |
+| Command | `src/ExoAuth.Application/Features/Auth/Commands/ResetPassword/ResetPasswordCommand.cs` | ✅ | Execute Reset |
+| Handler | `src/ExoAuth.Application/Features/Auth/Commands/ResetPassword/ResetPasswordHandler.cs` | ✅ | Resets Password + Force Re-auth |
+| Validator | `src/ExoAuth.Application/Features/Auth/Commands/ResetPassword/ResetPasswordValidator.cs` | ✅ | Validation |
+| Interface | `src/ExoAuth.Application/Common/Interfaces/IPasswordResetService.cs` | ✅ | Service Interface |
+| Interface | `src/ExoAuth.Application/Common/Interfaces/ISystemInviteService.cs` | ✅ | Invite Token Service (collision prevention) |
 
 #### Infrastructure Layer
 
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Config | `src/ExoAuth.Infrastructure/Persistence/Configurations/DeviceSessionConfiguration.cs` | EF Config |
-| Service | `src/ExoAuth.Infrastructure/Services/DeviceSessionService.cs` | Session Management |
-| Service | `src/ExoAuth.Infrastructure/Services/GeoIpService.cs` | MaxMind GeoIP |
-| Service | `src/ExoAuth.Infrastructure/Services/DeviceDetectionService.cs` | User-Agent Parsing |
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Config | `src/ExoAuth.Infrastructure/Persistence/Configurations/PasswordResetTokenConfiguration.cs` | ✅ | EF Config with unique TokenHash index |
+| Service | `src/ExoAuth.Infrastructure/Services/PasswordResetService.cs` | ✅ | Token Generation with collision prevention |
+| Service | `src/ExoAuth.Infrastructure/Services/SystemInviteService.cs` | ✅ | Invite Token Generation with collision prevention |
+
+#### Email Templates
+
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Template | `backend/templates/emails/en/password-reset.html` | ✅ | Password Reset EN |
+| Template | `backend/templates/emails/de/password-reset.html` | ✅ | Password Reset DE |
+| Template | `backend/templates/emails/en/password-changed.html` | ✅ | Password Changed EN |
+| Template | `backend/templates/emails/de/password-changed.html` | ✅ | Password Changed DE |
+
+#### Unit Tests
+
+| Datei | Pfad | Status | Tests |
+|-------|------|--------|-------|
+| Test | `tests/ExoAuth.UnitTests/Features/Auth/ForgotPasswordHandlerTests.cs` | ✅ | 5 tests |
+| Test | `tests/ExoAuth.UnitTests/Features/Auth/ResetPasswordHandlerTests.cs` | ✅ | 9 tests |
+
+#### Migrations
+
+| Migration | Status | Beschreibung |
+|-----------|--------|--------------|
+| `AddPasswordResetTokens` | ✅ | Password reset tokens table |
+| `UpdateSystemInviteTokenHash` | ✅ | SystemInvite: Token → TokenHash (collision prevention) |
+
+### Phase 3: Device Sessions ✅
+
+#### Domain Layer
+
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Entity | `src/ExoAuth.Domain/Entities/DeviceSession.cs` | ✅ | Device Session Entity with location, device info, trust status |
+
+#### Application Layer
+
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Query | `src/ExoAuth.Application/Features/Auth/Queries/GetSessions/GetSessionsQuery.cs` | ✅ | List Sessions |
+| Handler | `src/ExoAuth.Application/Features/Auth/Queries/GetSessions/GetSessionsHandler.cs` | ✅ | Handler with current session marking |
+| Command | `src/ExoAuth.Application/Features/Auth/Commands/RevokeSession/RevokeSessionCommand.cs` | ✅ | Revoke Single |
+| Handler | `src/ExoAuth.Application/Features/Auth/Commands/RevokeSession/RevokeSessionHandler.cs` | ✅ | Handler + immediate access token invalidation |
+| Command | `src/ExoAuth.Application/Features/Auth/Commands/RevokeAllSessions/RevokeAllSessionsCommand.cs` | ✅ | Revoke All |
+| Handler | `src/ExoAuth.Application/Features/Auth/Commands/RevokeAllSessions/RevokeAllSessionsHandler.cs` | ✅ | Handler + immediate access token invalidation |
+| Command | `src/ExoAuth.Application/Features/Auth/Commands/UpdateSession/UpdateSessionCommand.cs` | ✅ | Rename/Trust |
+| Handler | `src/ExoAuth.Application/Features/Auth/Commands/UpdateSession/UpdateSessionHandler.cs` | ✅ | Handler |
+| Interface | `src/ExoAuth.Application/Common/Interfaces/IDeviceSessionService.cs` | ✅ | Service Interface |
+| Interface | `src/ExoAuth.Application/Common/Interfaces/IDeviceDetectionService.cs` | ✅ | User-Agent Parsing Interface |
+| Interface | `src/ExoAuth.Application/Common/Interfaces/IGeoIpService.cs` | ✅ | GeoIP Interface |
+| Interface | `src/ExoAuth.Application/Common/Interfaces/IRevokedSessionService.cs` | ✅ | Immediate session invalidation via Redis |
+| Model | `src/ExoAuth.Application/Features/Auth/Models/DeviceSessionDto.cs` | ✅ | DTO with IsCurrent flag |
+| Model | `src/ExoAuth.Application/Common/Models/GeoLocation.cs` | ✅ | GeoIP Result |
+| Model | `src/ExoAuth.Application/Common/Models/DeviceInfo.cs` | ✅ | Parsed device info |
+
+#### Infrastructure Layer
+
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Config | `src/ExoAuth.Infrastructure/Persistence/Configurations/DeviceSessionConfiguration.cs` | ✅ | EF Config with indexes |
+| Service | `src/ExoAuth.Infrastructure/Services/DeviceSessionService.cs` | ✅ | Session Management with new device/location detection |
+| Service | `src/ExoAuth.Infrastructure/Services/GeoIpService.cs` | ✅ | MaxMind GeoIP with graceful fallback |
+| Service | `src/ExoAuth.Infrastructure/Services/DeviceDetectionService.cs` | ✅ | UAParser User-Agent Parsing |
+| Service | `src/ExoAuth.Infrastructure/Services/RevokedSessionService.cs` | ✅ | Redis-based immediate session invalidation |
+
+#### API Layer
+
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Middleware | `src/ExoAuth.Api/Middleware/ForceReauthMiddleware.cs` | ✅ | Updated to check revoked sessions |
+
+#### Files Modified
+
+| Datei | Status | Änderungen |
+|-------|--------|------------|
+| `RefreshToken.cs` | ✅ | Added DeviceSessionId, RememberMe, LinkToSession() |
+| `RefreshTokenConfiguration.cs` | ✅ | Added DeviceSession relationship |
+| `AppDbContext.cs` | ✅ | Added DeviceSessions DbSet |
+| `IAppDbContext.cs` | ✅ | Added DeviceSessions DbSet |
+| `ICurrentUserService.cs` | ✅ | Added SessionId property |
+| `CurrentUserService.cs` | ✅ | Added SessionId from JWT claim |
+| `ITokenService.cs` | ✅ | Added sessionId parameter to GenerateAccessToken |
+| `TokenService.cs` | ✅ | Added session_id claim to JWT |
+| `LoginCommand.cs` | ✅ | Added DeviceId, DeviceFingerprint, UserAgent, IpAddress, RememberMe |
+| `LoginHandler.cs` | ✅ | Device session creation, session ID in tokens |
+| `AuthResponse.cs` | ✅ | Added SessionId, DeviceId, IsNewDevice, IsNewLocation |
+| `TokenResponse.cs` | ✅ | Added SessionId |
+| `ErrorCodes.cs` | ✅ | Added SessionRevoked |
+| `AuthException.cs` | ✅ | Added SessionNotFoundException, CannotRevokeCurrentSessionException |
+| `IAuditService.cs` | ✅ | Added session-related AuditActions |
+
+#### Packages Installed
+
+| Package | Version | Status |
+|---------|---------|--------|
+| MaxMind.GeoIP2 | 5.4.1 | ✅ |
+| UAParser | 3.1.47 | ✅ |
+
+#### Additional Files Modified
+
+| Datei | Status | Änderungen |
+|-------|--------|------------|
+| `AuthController.cs` | ✅ | Session endpoints (GET/DELETE/PATCH), device info in login/register |
+| `RefreshTokenHandler.cs` | ✅ | Session activity tracking, session ID in new tokens |
+| `RefreshTokenCommand.cs` | ✅ | Added IpAddress parameter |
+| `RegisterCommand.cs` | ✅ | Added DeviceId, DeviceFingerprint, UserAgent, IpAddress |
+| `RegisterHandler.cs` | ✅ | Device session creation on registration |
+| `DependencyInjection.cs` | ✅ | All new services registered |
+| `LoginHandlerTests.cs` | ✅ | Updated with IDeviceSessionService mock |
+| `RefreshTokenHandlerTests.cs` | ✅ | Updated with IDeviceSessionService mock |
+| `RegisterHandlerTests.cs` | ✅ | Updated with IDeviceSessionService mock |
+| `TestDataFactory.cs` | ✅ | Added CreateDeviceSession helper |
+
+#### Migrations Created
+
+| Migration | Status | Beschreibung |
+|-----------|--------|--------------|
+| `AddDeviceSessions` | ✅ | DeviceSessions table + RefreshToken.DeviceSessionId FK |
+
+#### Email Templates
+
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Template | `backend/templates/emails/en/new-device-login.html` | ✅ | New Device Login EN |
+| Template | `backend/templates/emails/de/new-device-login.html` | ✅ | New Device Login DE |
+| Template | `backend/templates/emails/en/new-location-login.html` | ✅ | New Location Login EN |
+| Template | `backend/templates/emails/de/new-location-login.html` | ✅ | New Location Login DE |
+
+#### Unit Tests
+
+| Datei | Pfad | Status | Tests |
+|-------|------|--------|-------|
+| Test | `tests/ExoAuth.UnitTests/Features/Auth/GetSessionsHandlerTests.cs` | ✅ | 4 tests |
+| Test | `tests/ExoAuth.UnitTests/Features/Auth/RevokeSessionHandlerTests.cs` | ✅ | 6 tests |
+| Test | `tests/ExoAuth.UnitTests/Features/Auth/RevokeAllSessionsHandlerTests.cs` | ✅ | 4 tests |
+| Test | `tests/ExoAuth.UnitTests/Features/Auth/UpdateSessionHandlerTests.cs` | ✅ | 8 tests |
 
 ### Phase 4: MFA
 
@@ -485,67 +604,74 @@ public const string UsersSessionsRevoke = "users:sessions:revoke";
 
 ## 12. Implementation Reihenfolge
 
-### Phase 1: Email Worker Extraction
-1. [ ] **Projekt Setup**: ExoAuth.EmailWorker Projekt erstellen
-2. [ ] **Worker Service**: Background Service für RabbitMQ
-3. [ ] **Consumer Move**: SendEmailConsumer verschieben
-4. [ ] **Docker**: Dockerfile + docker-compose Update
-5. [ ] **Test**: Email Sending funktioniert
+### Phase 1: Email Worker Extraction ✅
+1. [x] **Projekt Setup**: ExoAuth.EmailWorker Projekt erstellen
+2. [x] **Worker Service**: Background Service für RabbitMQ
+3. [x] **Consumer Move**: SendEmailConsumer verschieben
+4. [x] **Docker**: Dockerfile + docker-compose Update
+5. [x] **Test**: Build erfolgreich, 129 Unit Tests bestanden
 
 ### Phase 2: Password Reset
-6. [ ] **Domain**: PasswordResetToken Entity
-7. [ ] **Infrastructure**: EF Configuration + Migration
-8. [ ] **Infrastructure**: PasswordResetService
-9. [ ] **Application**: ForgotPassword Command/Handler
-10. [ ] **Application**: ResetPassword Command/Handler
-11. [ ] **API**: AuthController Endpoints
-12. [ ] **Templates**: Email Templates (EN/DE)
-13. [ ] **Tests**: Unit Tests
+6. [X] **Domain**: PasswordResetToken Entity
+7. [X] **Infrastructure**: EF Configuration + Migration
+8. [X] **Infrastructure**: PasswordResetService
+9. [X] **Application**: ForgotPassword Command/Handler
+10. [X] **Application**: ResetPassword Command/Handler
+11. [X] **API**: AuthController Endpoints
+12. [X] **Templates**: Email Templates (EN/DE)
+13. [X] **Tests**: Unit Tests
 
-### Phase 3: Device Sessions
-14. [ ] **Domain**: DeviceSession Entity
-15. [ ] **Infrastructure**: EF Configuration + Migration
-16. [ ] **Infrastructure**: GeoIpService (MaxMind)
-17. [ ] **Infrastructure**: DeviceDetectionService (UAParser)
-18. [ ] **Infrastructure**: DeviceSessionService
-19. [ ] **Application**: Session Queries/Commands
-20. [ ] **Application**: Login Handler Update (Device Tracking)
-21. [ ] **API**: Session Endpoints
-22. [ ] **Templates**: New Device/Location Emails
-23. [ ] **Tests**: Unit Tests
+### Phase 3: Device Sessions ✅
+14. [x] **Domain**: DeviceSession Entity
+15. [x] **Infrastructure**: EF Configuration
+16. [x] **Infrastructure**: GeoIpService (MaxMind)
+17. [x] **Infrastructure**: DeviceDetectionService (UAParser)
+18. [x] **Infrastructure**: DeviceSessionService
+19. [x] **Infrastructure**: RevokedSessionService (Redis-based immediate invalidation)
+20. [x] **Application**: Session Queries/Commands (GetSessions, RevokeSession, RevokeAllSessions, UpdateSession)
+21. [x] **Application**: Login Handler Update (Device Tracking + Session ID in JWT)
+22. [x] **Application**: Register Handler Update (Device Tracking on Registration)
+23. [x] **Middleware**: ForceReauthMiddleware (revoked session check)
+24. [x] **API**: Session Endpoints in AuthController (GET/DELETE/PATCH)
+25. [x] **Application**: RefreshToken Handler Update (Session activity + token linking)
+26. [x] **Infrastructure**: Database Migration (AddDeviceSessions)
+27. [x] **Infrastructure**: DI Registration (all services)
+28. [x] **Tests**: Existing tests fixed for new dependencies (143 tests passing)
+29. [x] **Templates**: New Device/Location Emails (EN/DE)
+30. [x] **Tests**: New unit tests for session handlers (22 tests - GetSessions, RevokeSession, RevokeAllSessions, UpdateSession)
 
 ### Phase 4: MFA
-24. [ ] **Domain**: MfaBackupCode Entity, SystemUser Extensions
-25. [ ] **Infrastructure**: EF Configurations + Migration
-26. [ ] **Infrastructure**: EncryptionService (Data Protection)
-27. [ ] **Infrastructure**: MfaService (TOTP)
-28. [ ] **Infrastructure**: BackupCodeService
-29. [ ] **Application**: MFA Commands/Handlers
-30. [ ] **Application**: Login Handler Update (MFA Flow)
-31. [ ] **API**: MFA Endpoints
-32. [ ] **Templates**: MFA Email Templates
-33. [ ] **Tests**: Unit Tests
+31. [ ] **Domain**: MfaBackupCode Entity, SystemUser Extensions
+32. [ ] **Infrastructure**: EF Configurations + Migration
+33. [ ] **Infrastructure**: EncryptionService (Data Protection)
+34. [ ] **Infrastructure**: MfaService (TOTP)
+35. [ ] **Infrastructure**: BackupCodeService
+36. [ ] **Application**: MFA Commands/Handlers
+37. [ ] **Application**: Login Handler Update (MFA Flow)
+38. [ ] **API**: MFA Endpoints
+39. [ ] **Templates**: MFA Email Templates
+40. [ ] **Tests**: Unit Tests
 
 ### Phase 5: User Preferences & Admin
-34. [ ] **Domain**: SystemUser Preferences Extension
-35. [ ] **Application**: UpdatePreferences Command/Handler
-36. [ ] **Application**: Admin Commands (Reset MFA, Unlock, Sessions)
-37. [ ] **API**: Preferences + Admin Endpoints
-38. [ ] **Tests**: Unit Tests
+41. [ ] **Domain**: SystemUser Preferences Extension
+42. [ ] **Application**: UpdatePreferences Command/Handler
+43. [ ] **Application**: Admin Commands (Reset MFA, Unlock, Sessions)
+44. [ ] **API**: Preferences + Admin Endpoints
+45. [ ] **Tests**: Unit Tests
 
 ### Phase 6: Progressive Lockout & Anonymization
-39. [ ] **Domain**: SystemUser Lockout Fields
-40. [ ] **Infrastructure**: BruteForceProtectionService Update
-41. [ ] **Application**: Lockout in Login Flow
-42. [ ] **Application**: AnonymizeUser Command/Handler
-43. [ ] **Templates**: Account Locked Email
-44. [ ] **Tests**: Unit Tests
+46. [ ] **Domain**: SystemUser Lockout Fields
+47. [ ] **Infrastructure**: BruteForceProtectionService Update
+48. [ ] **Application**: Lockout in Login Flow
+49. [ ] **Application**: AnonymizeUser Command/Handler
+50. [ ] **Templates**: Account Locked Email
+51. [ ] **Tests**: Unit Tests
 
 ### Phase 7: Finalization
-45. [ ] **Integration**: Alle Komponenten zusammen testen
-46. [ ] **Standards Update**: task_standards_backend.md aktualisieren
-47. [ ] **Standards Update**: coding_standards_backend.md Error Codes
-48. [ ] **Documentation**: API Documentation aktualisieren
+52. [ ] **Integration**: Alle Komponenten zusammen testen
+53. [ ] **Standards Update**: task_standards_backend.md aktualisieren
+54. [ ] **Standards Update**: coding_standards_backend.md Error Codes
+55. [ ] **Documentation**: API Documentation aktualisieren
 
 ---
 
@@ -646,6 +772,68 @@ volumes:
 | MFA Secret Encryption? | ✅ .NET Data Protection |
 | Session Limit? | ❌ Unlimited |
 | Remember Me Duration? | ✅ 30 Tage |
+| Immediate Access Token Invalidation? | ✅ Ja, via Redis (session_id in JWT + RevokedSessionService) |
+| First Device Auto-Trust? | ✅ Ja, erstes Gerät bei Registration wird automatisch trusted (Baseline) |
+
+### Architektur-Entscheidung: Immediate Session Invalidation
+
+Wenn ein User eine Session widerruft, soll das sofort wirksam sein - nicht erst nach 15 Minuten (Access Token Expiry).
+
+**Lösung:**
+1. `session_id` Claim wird in jeden JWT Access Token eingebettet
+2. `IRevokedSessionService` cached revoked Session IDs in Redis (TTL = Access Token Lifetime + 1 min)
+3. `ForceReauthMiddleware` prüft bei jedem Request ob die Session revoked ist
+4. Bei Revoke: Session in Redis markieren → sofortige 401 Unauthorized Response
+
+**Flow:**
+```
+User revokes session → RevokedSessionService.RevokeSessionAsync(sessionId)
+                     → Redis: SET revoked_session:{id} "1" EX 960
+
+Other session makes request → ForceReauthMiddleware.InvokeAsync()
+                            → RevokedSessionService.IsSessionRevokedAsync(sessionId)
+                            → Redis: EXISTS revoked_session:{id}
+                            → 401 Unauthorized mit ErrorCodes.SessionRevoked
+```
+
+### Architektur-Entscheidung: First Device Auto-Trust
+
+Das erste Gerät bei der Registration wird automatisch als "trusted" markiert und dient als Baseline für zukünftige Logins.
+
+**Flow:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         REGISTER                                 │
+├─────────────────────────────────────────────────────────────────┤
+│ User registriert sich                                            │
+│   → Erste DeviceSession wird erstellt                            │
+│   → IsTrusted = TRUE (auto-trusted als Baseline)                │
+│   → Location wird als Baseline gespeichert                       │
+│   → Kein Alert-Email (es ist Registration)                      │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                    LOGIN (Gleiches Gerät)                       │
+├─────────────────────────────────────────────────────────────────┤
+│ Gleiche deviceId gefunden                                        │
+│   → Session aktualisiert, Aktivität aufgezeichnet               │
+│   → IsNewDevice = false                                          │
+│   → IsNewLocation = prüft ob Country/City geändert              │
+│   → Bei neuem Standort → Alert Email                            │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                    LOGIN (Neues Gerät)                          │
+├─────────────────────────────────────────────────────────────────┤
+│ Neue deviceId                                                    │
+│   → Neue DeviceSession erstellt                                  │
+│   → IsTrusted = FALSE (User kann manuell vertrauen)             │
+│   → IsNewDevice = true                                           │
+│   → Alert Email gesendet                                        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Implementierung:** `DeviceSessionService.CreateOrUpdateSessionAsync()` prüft ob der User bereits Sessions hat. Falls nicht (erste Session), wird `session.Trust()` aufgerufen.
 
 ---
 

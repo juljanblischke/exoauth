@@ -16,6 +16,7 @@ public static class ErrorCodes
     public const string AuthUserInactive = "AUTH_USER_INACTIVE";
     public const string AuthRefreshTokenInvalid = "AUTH_REFRESH_TOKEN_INVALID";
     public const string AuthForceReauth = "AUTH_FORCE_REAUTH";
+    public const string SessionRevoked = "SESSION_REVOKED";
 
     // Authorization Errors (403)
     public const string AuthForbidden = "AUTH_FORBIDDEN";

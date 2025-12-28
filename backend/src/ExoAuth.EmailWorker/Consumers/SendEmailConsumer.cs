@@ -1,23 +1,19 @@
 using System.Text;
 using System.Text.Json;
-using ExoAuth.Application.Common.Interfaces;
-using ExoAuth.Application.Common.Messages;
+using ExoAuth.EmailWorker.Models;
+using ExoAuth.EmailWorker.Services;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using MimeKit;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace ExoAuth.Infrastructure.Messaging.Consumers;
+namespace ExoAuth.EmailWorker.Consumers;
 
 public sealed class SendEmailConsumer : BackgroundService
 {
     private readonly RabbitMqConnectionFactory _connectionFactory;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IEmailTemplateService _templateService;
     private readonly ILogger<SendEmailConsumer> _logger;
     private readonly EmailSettings _emailSettings;
 
@@ -32,12 +28,12 @@ public sealed class SendEmailConsumer : BackgroundService
 
     public SendEmailConsumer(
         RabbitMqConnectionFactory connectionFactory,
-        IServiceProvider serviceProvider,
+        IEmailTemplateService templateService,
         IConfiguration configuration,
         ILogger<SendEmailConsumer> logger)
     {
         _connectionFactory = connectionFactory;
-        _serviceProvider = serviceProvider;
+        _templateService = templateService;
         _logger = logger;
 
         _emailSettings = new EmailSettings();
@@ -131,11 +127,8 @@ public sealed class SendEmailConsumer : BackgroundService
 
     private async Task ProcessEmailAsync(SendEmailMessage message, CancellationToken ct)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var templateService = scope.ServiceProvider.GetRequiredService<IEmailTemplateService>();
-
         // Render the email template
-        var htmlBody = templateService.Render(message.TemplateName, message.Variables, message.Language);
+        var htmlBody = _templateService.Render(message.TemplateName, message.Variables, message.Language);
 
         // Create the email message
         var mimeMessage = new MimeMessage();
@@ -155,7 +148,7 @@ public sealed class SendEmailConsumer : BackgroundService
 
         var secureSocketOptions = _emailSettings.SmtpUseSsl
             ? SecureSocketOptions.StartTls
-            : SecureSocketOptions.Auto;
+            : SecureSocketOptions.None;
 
         await smtpClient.ConnectAsync(
             _emailSettings.SmtpHost,
@@ -174,16 +167,4 @@ public sealed class SendEmailConsumer : BackgroundService
         await smtpClient.SendAsync(mimeMessage, ct);
         await smtpClient.DisconnectAsync(true, ct);
     }
-}
-
-public sealed class EmailSettings
-{
-    public string Provider { get; set; } = "SMTP";
-    public string SmtpHost { get; set; } = "localhost";
-    public int SmtpPort { get; set; } = 587;
-    public string? SmtpUsername { get; set; }
-    public string? SmtpPassword { get; set; }
-    public bool SmtpUseSsl { get; set; } = true;
-    public string FromEmail { get; set; } = "noreply@exoauth.com";
-    public string FromName { get; set; } = "ExoAuth";
 }

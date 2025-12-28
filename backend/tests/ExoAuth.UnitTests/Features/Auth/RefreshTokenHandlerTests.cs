@@ -17,6 +17,7 @@ public sealed class RefreshTokenHandlerTests
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<ITokenBlacklistService> _mockTokenBlacklist;
     private readonly Mock<IPermissionCacheService> _mockPermissionCache;
+    private readonly Mock<IDeviceSessionService> _mockDeviceSessionService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly RefreshTokenHandler _handler;
 
@@ -27,6 +28,7 @@ public sealed class RefreshTokenHandlerTests
         _mockTokenService = new Mock<ITokenService>();
         _mockTokenBlacklist = new Mock<ITokenBlacklistService>();
         _mockPermissionCache = new Mock<IPermissionCacheService>();
+        _mockDeviceSessionService = new Mock<IDeviceSessionService>();
         _mockAuditService = new Mock<IAuditService>();
 
         // Default token service setup
@@ -38,6 +40,7 @@ public sealed class RefreshTokenHandlerTests
             _mockTokenService.Object,
             _mockTokenBlacklist.Object,
             _mockPermissionCache.Object,
+            _mockDeviceSessionService.Object,
             _mockAuditService.Object);
     }
 
@@ -73,7 +76,8 @@ public sealed class RefreshTokenHandlerTests
                 It.IsAny<Guid>(),
                 It.IsAny<string>(),
                 It.IsAny<UserType>(),
-                It.IsAny<IEnumerable<string>>()))
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<Guid?>()))
             .Returns("new-access-token");
         _mockTokenService.Setup(x => x.GenerateRefreshToken())
             .Returns("new-refresh-token");
@@ -272,7 +276,8 @@ public sealed class RefreshTokenHandlerTests
                 It.IsAny<Guid>(),
                 It.IsAny<string>(),
                 It.IsAny<UserType>(),
-                It.IsAny<IEnumerable<string>>()))
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<Guid?>()))
             .Returns("new-access-token");
         _mockTokenService.Setup(x => x.GenerateRefreshToken())
             .Returns("new-refresh-token");

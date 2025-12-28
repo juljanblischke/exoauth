@@ -15,6 +15,7 @@ public sealed class ResendInviteHandlerTests
     private readonly Mock<ICurrentUserService> _mockCurrentUser;
     private readonly Mock<ISystemUserRepository> _mockUserRepository;
     private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<ISystemInviteService> _mockInviteService;
     private readonly ResendInviteHandler _handler;
 
     public ResendInviteHandlerTests()
@@ -24,13 +25,19 @@ public sealed class ResendInviteHandlerTests
         _mockCurrentUser = new Mock<ICurrentUserService>();
         _mockUserRepository = new Mock<ISystemUserRepository>();
         _mockAuditService = new Mock<IAuditService>();
+        _mockInviteService = new Mock<ISystemInviteService>();
+
+        // Setup default token generation
+        _mockInviteService.Setup(x => x.GenerateTokenAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new InviteTokenResult("new-token", "new-token-hash"));
 
         _handler = new ResendInviteHandler(
             _mockContext.Object,
             _mockEmailService.Object,
             _mockCurrentUser.Object,
             _mockUserRepository.Object,
-            _mockAuditService.Object);
+            _mockAuditService.Object,
+            _mockInviteService.Object);
     }
 
     [Fact]

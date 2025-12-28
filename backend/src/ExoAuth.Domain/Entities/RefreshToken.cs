@@ -14,6 +14,11 @@ public sealed class RefreshToken : BaseEntity
     public DateTime? RevokedAt { get; private set; }
     public string? DeviceInfo { get; private set; }
     public string? IpAddress { get; private set; }
+    public Guid? DeviceSessionId { get; private set; }
+    public bool RememberMe { get; private set; }
+
+    // Navigation property
+    public DeviceSession? DeviceSession { get; set; }
 
     private RefreshToken() { } // EF Core
 
@@ -23,7 +28,9 @@ public sealed class RefreshToken : BaseEntity
         string token,
         int expirationDays = 30,
         string? deviceInfo = null,
-        string? ipAddress = null)
+        string? ipAddress = null,
+        Guid? deviceSessionId = null,
+        bool rememberMe = false)
     {
         return new RefreshToken
         {
@@ -33,8 +40,19 @@ public sealed class RefreshToken : BaseEntity
             ExpiresAt = DateTime.UtcNow.AddDays(expirationDays),
             IsRevoked = false,
             DeviceInfo = deviceInfo,
-            IpAddress = ipAddress
+            IpAddress = ipAddress,
+            DeviceSessionId = deviceSessionId,
+            RememberMe = rememberMe
         };
+    }
+
+    /// <summary>
+    /// Links this refresh token to a device session.
+    /// </summary>
+    public void LinkToSession(Guid deviceSessionId)
+    {
+        DeviceSessionId = deviceSessionId;
+        SetUpdated();
     }
 
     public bool IsExpired => DateTime.UtcNow > ExpiresAt;

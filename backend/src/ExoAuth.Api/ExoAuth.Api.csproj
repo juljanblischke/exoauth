@@ -29,10 +29,4 @@
     <ProjectReference Include="..\ExoAuth.Infrastructure\ExoAuth.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="templates\emails\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

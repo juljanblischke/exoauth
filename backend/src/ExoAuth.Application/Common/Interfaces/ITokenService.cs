@@ -14,8 +14,9 @@ public interface ITokenService
     /// <param name="email">The user's email.</param>
     /// <param name="userType">The type of user.</param>
     /// <param name="permissions">The user's permissions.</param>
+    /// <param name="sessionId">Optional session ID to include in the token.</param>
     /// <returns>The generated JWT access token.</returns>
-    string GenerateAccessToken(Guid userId, string email, UserType userType, IEnumerable<string> permissions);
+    string GenerateAccessToken(Guid userId, string email, UserType userType, IEnumerable<string> permissions, Guid? sessionId = null);
 
     /// <summary>
     /// Generates a refresh token.

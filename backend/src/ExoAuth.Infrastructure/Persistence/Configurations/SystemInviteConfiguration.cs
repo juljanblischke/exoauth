@@ -24,7 +24,7 @@ public sealed class SystemInviteConfiguration : IEntityTypeConfiguration<SystemI
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(x => x.Token)
+        builder.Property(x => x.TokenHash)
             .IsRequired()
             .HasMaxLength(64);
 
@@ -56,7 +56,7 @@ public sealed class SystemInviteConfiguration : IEntityTypeConfiguration<SystemI
             .OnDelete(DeleteBehavior.Restrict);
 
         // Indexes
-        builder.HasIndex(x => x.Token)
+        builder.HasIndex(x => x.TokenHash)
             .IsUnique();
 
         builder.HasIndex(x => x.Email);

@@ -5,8 +5,8 @@ using ExoAuth.Application.Common.Models;
 namespace ExoAuth.Api.Middleware;
 
 /// <summary>
-/// Middleware that checks if a user has been flagged for forced re-authentication.
-/// Returns 401 Unauthorized if the flag is set.
+/// Middleware that checks if a user has been flagged for forced re-authentication
+/// or if their session has been revoked. Returns 401 Unauthorized if either condition is met.
 /// </summary>
 public sealed class ForceReauthMiddleware
 {
@@ -19,7 +19,11 @@ public sealed class ForceReauthMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context, IForceReauthService forceReauthService, IAuditService auditService)
+    public async Task InvokeAsync(
+        HttpContext context,
+        IForceReauthService forceReauthService,
+        IRevokedSessionService revokedSessionService,
+        IAuditService auditService)
     {
         // Only check authenticated requests
         if (context.User.Identity?.IsAuthenticated != true)
@@ -48,6 +52,22 @@ public sealed class ForceReauthMiddleware
             return;
         }
 
+        // Check if session has been revoked
+        var sessionIdClaim = context.User.FindFirst("session_id")?.Value;
+        if (Guid.TryParse(sessionIdClaim, out var sessionId))
+        {
+            if (await revokedSessionService.IsSessionRevokedAsync(sessionId, context.RequestAborted))
+            {
+                _logger.LogWarning("Revoked session {SessionId} attempted access for user {UserId} on {Path}", sessionId, userId, path);
+
+                await ReturnUnauthorizedResponse(
+                    context,
+                    "Session has been revoked. Please login again.",
+                    ErrorCodes.SessionRevoked);
+                return;
+            }
+        }
+
         // Check if user has force re-auth flag
         if (await forceReauthService.HasFlagAsync(userId, context.RequestAborted))
         {
@@ -64,25 +84,32 @@ public sealed class ForceReauthMiddleware
                 context.RequestAborted
             );
 
-            // Return 401 with specific error
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.ContentType = "application/json";
-
-            var response = new
-            {
-                status = "error",
-                statusCode = 401,
-                message = "Session invalidated due to permission changes. Please login again.",
-                errors = new[]
-                {
-                    new { field = (string?)null, code = ErrorCodes.AuthForceReauth, message = "Re-authentication required" }
-                }
-            };
-
-            await context.Response.WriteAsJsonAsync(response, context.RequestAborted);
+            await ReturnUnauthorizedResponse(
+                context,
+                "Session invalidated due to permission changes. Please login again.",
+                ErrorCodes.AuthForceReauth);
             return;
         }
 
         await _next(context);
+    }
+
+    private static async Task ReturnUnauthorizedResponse(HttpContext context, string message, string errorCode)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        context.Response.ContentType = "application/json";
+
+        var response = new
+        {
+            status = "error",
+            statusCode = 401,
+            message,
+            errors = new[]
+            {
+                new { field = (string?)null, code = errorCode, message = "Re-authentication required" }
+            }
+        };
+
+        await context.Response.WriteAsJsonAsync(response, context.RequestAborted);
     }
 }

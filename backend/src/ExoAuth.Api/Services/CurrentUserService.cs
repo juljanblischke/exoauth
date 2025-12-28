@@ -28,6 +28,15 @@ public sealed class CurrentUserService : ICurrentUserService
     public string? Email => User?.FindFirst(ClaimTypes.Email)?.Value
         ?? User?.FindFirst("email")?.Value;
 
+    public Guid? SessionId
+    {
+        get
+        {
+            var sessionIdClaim = User?.FindFirst("session_id")?.Value;
+            return Guid.TryParse(sessionIdClaim, out var sessionId) ? sessionId : null;
+        }
+    }
+
     public bool IsAuthenticated => User?.Identity?.IsAuthenticated ?? false;
 
     public IEnumerable<string> Roles => User?.FindAll(ClaimTypes.Role).Select(c => c.Value)

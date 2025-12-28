@@ -103,3 +103,69 @@ public sealed class InviteInvalidException : AuthException
     {
     }
 }
+
+/// <summary>
+/// Exception for invalid password reset token.
+/// </summary>
+public sealed class PasswordResetTokenInvalidException : AuthException
+{
+    public PasswordResetTokenInvalidException()
+        : base("PASSWORD_RESET_TOKEN_INVALID", "Invalid or expired password reset token", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception for expired password reset token.
+/// </summary>
+public sealed class PasswordResetTokenExpiredException : AuthException
+{
+    public PasswordResetTokenExpiredException()
+        : base("PASSWORD_RESET_TOKEN_EXPIRED", "Password reset token has expired", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception for already used password reset token.
+/// </summary>
+public sealed class PasswordResetTokenUsedException : AuthException
+{
+    public PasswordResetTokenUsedException()
+        : base("PASSWORD_RESET_TOKEN_USED", "Password reset token has already been used", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception for unauthorized access.
+/// </summary>
+public sealed class UnauthorizedException : AuthException
+{
+    public UnauthorizedException()
+        : base("AUTH_UNAUTHORIZED", "Not authenticated", 401)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when session is not found.
+/// </summary>
+public sealed class SessionNotFoundException : AuthException
+{
+    public SessionNotFoundException()
+        : base("SESSION_NOT_FOUND", "Session not found", 404)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when trying to revoke the current session.
+/// </summary>
+public sealed class CannotRevokeCurrentSessionException : AuthException
+{
+    public CannotRevokeCurrentSessionException()
+        : base("SESSION_CANNOT_REVOKE_CURRENT", "Cannot revoke the current session", 400)
+    {
+    }
+}

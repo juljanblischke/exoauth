@@ -14,19 +14,22 @@ public sealed class InviteSystemUserHandler : ICommandHandler<InviteSystemUserCo
     private readonly IEmailService _emailService;
     private readonly ICurrentUserService _currentUser;
     private readonly IAuditService _auditService;
+    private readonly ISystemInviteService _inviteService;
 
     public InviteSystemUserHandler(
         IAppDbContext context,
         ISystemUserRepository userRepository,
         IEmailService emailService,
         ICurrentUserService currentUser,
-        IAuditService auditService)
+        IAuditService auditService,
+        ISystemInviteService inviteService)
     {
         _context = context;
         _userRepository = userRepository;
         _emailService = emailService;
         _currentUser = currentUser;
         _auditService = auditService;
+        _inviteService = inviteService;
     }
 
     public async ValueTask<SystemInviteDto> Handle(InviteSystemUserCommand command, CancellationToken ct)
@@ -68,13 +71,17 @@ public sealed class InviteSystemUserHandler : ICommandHandler<InviteSystemUserCo
         var inviter = await _userRepository.GetByIdAsync(inviterId, ct)
             ?? throw new AuthException("AUTH_UNAUTHORIZED", "User not found", 401);
 
+        // Generate token with collision prevention
+        var tokenResult = await _inviteService.GenerateTokenAsync(ct);
+
         // Create invite
         var invite = SystemInvite.Create(
             email: command.Email,
             firstName: command.FirstName,
             lastName: command.LastName,
             permissionIds: command.PermissionIds,
-            invitedBy: inviterId
+            invitedBy: inviterId,
+            tokenHash: tokenResult.TokenHash
         );
 
         await _context.SystemInvites.AddAsync(invite, ct);
@@ -85,7 +92,7 @@ public sealed class InviteSystemUserHandler : ICommandHandler<InviteSystemUserCo
             email: invite.Email,
             firstName: invite.FirstName,
             inviterName: inviter.FullName,
-            inviteToken: invite.Token,
+            inviteToken: tokenResult.Token,
             language: "en", // TODO: Could be based on user preference
             cancellationToken: ct
         );

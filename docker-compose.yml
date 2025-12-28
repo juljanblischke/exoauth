@@ -21,6 +21,31 @@ services:
     networks:
       - exoauth-network
 
+  email-worker:
+    build:
+      context: ./backend
+      dockerfile: ../docker/email-worker/Dockerfile
+    container_name: exoauth-email-worker
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - ConnectionStrings__RabbitMq=amqp://guest:guest@rabbitmq:5672
+      - Email__SmtpHost=mailhog
+      - Email__SmtpPort=1025
+      - Email__SmtpUseSsl=false
+      - Email__FromEmail=noreply@exoauth.dev
+      - Email__FromName=ExoAuth Dev
+      - Templates__BasePath=/app/templates/emails
+    volumes:
+      - ./backend/templates:/app/templates:ro
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - exoauth-network
+
   postgres:
     image: postgres:16-alpine
     ports:
@@ -88,6 +113,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - exoauth-network
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: exoauth-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
     networks:
       - exoauth-network
 

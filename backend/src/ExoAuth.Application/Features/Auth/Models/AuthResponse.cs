@@ -6,7 +6,11 @@ namespace ExoAuth.Application.Features.Auth.Models;
 public sealed record AuthResponse(
     UserDto User,
     string AccessToken,
-    string RefreshToken
+    string RefreshToken,
+    Guid? SessionId = null,
+    string? DeviceId = null,
+    bool IsNewDevice = false,
+    bool IsNewLocation = false
 );
 
 /// <summary>
@@ -14,7 +18,8 @@ public sealed record AuthResponse(
 /// </summary>
 public sealed record TokenResponse(
     string AccessToken,
-    string RefreshToken
+    string RefreshToken,
+    Guid? SessionId = null
 );
 
 /// <summary>

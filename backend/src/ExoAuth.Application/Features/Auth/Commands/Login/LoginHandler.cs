@@ -15,6 +15,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
     private readonly IBruteForceProtectionService _bruteForceService;
     private readonly IPermissionCacheService _permissionCache;
     private readonly IForceReauthService _forceReauthService;
+    private readonly IDeviceSessionService _deviceSessionService;
     private readonly IAuditService _auditService;
 
     public LoginHandler(
@@ -25,6 +26,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         IBruteForceProtectionService bruteForceService,
         IPermissionCacheService permissionCache,
         IForceReauthService forceReauthService,
+        IDeviceSessionService deviceSessionService,
         IAuditService auditService)
     {
         _context = context;
@@ -34,6 +36,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         _bruteForceService = bruteForceService;
         _permissionCache = permissionCache;
         _forceReauthService = forceReauthService;
+        _deviceSessionService = deviceSessionService;
         _auditService = auditService;
     }
 
@@ -100,12 +103,24 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             ct
         );
 
-        // Generate tokens
+        // Create or update device session
+        var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();
+        var (deviceSession, isNewDevice, isNewLocation) = await _deviceSessionService.CreateOrUpdateSessionAsync(
+            user.Id,
+            deviceId,
+            command.UserAgent,
+            command.IpAddress,
+            command.DeviceFingerprint,
+            ct
+        );
+
+        // Generate tokens with session ID
         var accessToken = _tokenService.GenerateAccessToken(
             user.Id,
             user.Email,
             UserType.System,
-            permissions
+            permissions,
+            deviceSession.Id
         );
 
         var refreshTokenString = _tokenService.GenerateRefreshToken();
@@ -113,8 +128,11 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             userId: user.Id,
             userType: UserType.System,
             token: refreshTokenString,
-            expirationDays: (int)_tokenService.RefreshTokenExpiration.TotalDays
+            expirationDays: command.RememberMe ? 30 : (int)_tokenService.RefreshTokenExpiration.TotalDays
         );
+
+        // Link refresh token to device session
+        refreshToken.LinkToSession(deviceSession.Id);
 
         await _context.RefreshTokens.AddAsync(refreshToken, ct);
         await _context.SaveChangesAsync(ct);
@@ -130,9 +148,43 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             null, // targetUserId
             "SystemUser",
             user.Id,
-            null,
+            new
+            {
+                SessionId = deviceSession.Id,
+                DeviceId = deviceId,
+                IsNewDevice = isNewDevice,
+                IsNewLocation = isNewLocation,
+                RememberMe = command.RememberMe
+            },
             ct
         );
+
+        // Log new device/location events
+        if (isNewDevice)
+        {
+            await _auditService.LogWithContextAsync(
+                AuditActions.LoginNewDevice,
+                user.Id,
+                null,
+                "DeviceSession",
+                deviceSession.Id,
+                new { DeviceId = deviceId, Browser = deviceSession.Browser, Os = deviceSession.OperatingSystem },
+                ct
+            );
+        }
+
+        if (isNewLocation)
+        {
+            await _auditService.LogWithContextAsync(
+                AuditActions.LoginNewLocation,
+                user.Id,
+                null,
+                "DeviceSession",
+                deviceSession.Id,
+                new { Country = deviceSession.Country, City = deviceSession.City },
+                ct
+            );
+        }
 
         return new AuthResponse(
             User: new UserDto(
@@ -148,7 +200,11 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
                 Permissions: permissions
             ),
             AccessToken: accessToken,
-            RefreshToken: refreshTokenString
+            RefreshToken: refreshTokenString,
+            SessionId: deviceSession.Id,
+            DeviceId: deviceId,
+            IsNewDevice: isNewDevice,
+            IsNewLocation: isNewLocation
         );
     }
 

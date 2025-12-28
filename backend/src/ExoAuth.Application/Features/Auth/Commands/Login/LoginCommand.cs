@@ -8,5 +8,10 @@ namespace ExoAuth.Application.Features.Auth.Commands.Login;
 /// </summary>
 public sealed record LoginCommand(
     string Email,
-    string Password
+    string Password,
+    string? DeviceId = null,
+    string? DeviceFingerprint = null,
+    string? UserAgent = null,
+    string? IpAddress = null,
+    bool RememberMe = false
 ) : ICommand<AuthResponse>;

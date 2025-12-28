@@ -13,6 +13,7 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
     private readonly ISystemUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
+    private readonly IDeviceSessionService _deviceSessionService;
     private readonly IAuditService _auditService;
 
     public RegisterHandler(
@@ -20,12 +21,14 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
         ISystemUserRepository userRepository,
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
+        IDeviceSessionService deviceSessionService,
         IAuditService auditService)
     {
         _context = context;
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
+        _deviceSessionService = deviceSessionService;
         _auditService = auditService;
     }
 
@@ -69,12 +72,24 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
         // Get permission names for token
         var permissionNames = global::ExoAuth.Domain.Constants.SystemPermissions.AllNames.ToList();
 
-        // Generate tokens
+        // Create device session for the registration device
+        var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();
+        var (session, _, _) = await _deviceSessionService.CreateOrUpdateSessionAsync(
+            user.Id,
+            deviceId,
+            command.DeviceFingerprint,
+            command.UserAgent,
+            command.IpAddress,
+            ct
+        );
+
+        // Generate tokens with session ID
         var accessToken = _tokenService.GenerateAccessToken(
             user.Id,
             user.Email,
             UserType.System,
-            permissionNames
+            permissionNames,
+            session.Id
         );
 
         var refreshTokenString = _tokenService.GenerateRefreshToken();
@@ -84,6 +99,9 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
             token: refreshTokenString,
             expirationDays: (int)_tokenService.RefreshTokenExpiration.TotalDays
         );
+
+        // Link refresh token to device session
+        refreshToken.LinkToSession(session.Id);
 
         await _context.RefreshTokens.AddAsync(refreshToken, ct);
         await _context.SaveChangesAsync(ct);

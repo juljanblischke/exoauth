@@ -1,7 +1,6 @@
 using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Infrastructure.Caching;
 using ExoAuth.Infrastructure.Messaging;
-using ExoAuth.Infrastructure.Messaging.Consumers;
 using ExoAuth.Infrastructure.Persistence;
 using ExoAuth.Infrastructure.Persistence.Repositories;
 using ExoAuth.Infrastructure.Persistence.Seeders;
@@ -40,7 +39,7 @@ public static class DependencyInjection
         services.AddSingleton<RabbitMqConnectionFactory>();
         services.AddSingleton<IMessageBus, RabbitMqMessageBus>();
         services.AddHostedService<RabbitMqBackgroundService>();
-        services.AddHostedService<SendEmailConsumer>();
+        // Note: SendEmailConsumer moved to ExoAuth.EmailWorker project
 
         // Core Services
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
@@ -53,10 +52,22 @@ public static class DependencyInjection
         services.AddSingleton<IBruteForceProtectionService, BruteForceProtectionService>();
         services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
         services.AddSingleton<IForceReauthService, ForceReauthService>();
+        services.AddSingleton<IRevokedSessionService, RevokedSessionService>();
+
+        // Device Session Services
+        services.AddSingleton<IGeoIpService, GeoIpService>();
+        services.AddSingleton<IDeviceDetectionService, DeviceDetectionService>();
+        services.AddScoped<IDeviceSessionService, DeviceSessionService>();
 
         // Email Services
         services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
         services.AddScoped<IEmailService, EmailService>();
+
+        // Password Reset
+        services.AddScoped<IPasswordResetService, PasswordResetService>();
+
+        // System Invite
+        services.AddScoped<ISystemInviteService, SystemInviteService>();
 
         // Repositories
         services.AddScoped<ISystemUserRepository, SystemUserRepository>();

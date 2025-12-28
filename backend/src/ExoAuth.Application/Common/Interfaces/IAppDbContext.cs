@@ -14,6 +14,8 @@ public interface IAppDbContext
     DbSet<SystemAuditLog> SystemAuditLogs { get; }
     DbSet<SystemInvite> SystemInvites { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<PasswordResetToken> PasswordResetTokens { get; }
+    DbSet<DeviceSession> DeviceSessions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

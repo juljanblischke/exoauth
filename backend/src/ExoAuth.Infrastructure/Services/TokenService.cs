@@ -41,7 +41,7 @@ public sealed class TokenService : ITokenService
     public TimeSpan AccessTokenExpiration => _accessTokenExpiration;
     public TimeSpan RefreshTokenExpiration => _refreshTokenExpiration;
 
-    public string GenerateAccessToken(Guid userId, string email, UserType userType, IEnumerable<string> permissions)
+    public string GenerateAccessToken(Guid userId, string email, UserType userType, IEnumerable<string> permissions, Guid? sessionId = null)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -53,6 +53,12 @@ public sealed class TokenService : ITokenService
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new("type", userType.ToString().ToLowerInvariant())
         };
+
+        // Add session ID if provided
+        if (sessionId.HasValue)
+        {
+            claims.Add(new Claim("session_id", sessionId.Value.ToString()));
+        }
 
         // Add permissions as individual claims
         foreach (var permission in permissions)

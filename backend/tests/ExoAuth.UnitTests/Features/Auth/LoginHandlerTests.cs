@@ -18,6 +18,7 @@ public sealed class LoginHandlerTests
     private readonly Mock<IBruteForceProtectionService> _mockBruteForceService;
     private readonly Mock<IPermissionCacheService> _mockPermissionCache;
     private readonly Mock<IForceReauthService> _mockForceReauthService;
+    private readonly Mock<IDeviceSessionService> _mockDeviceSessionService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly LoginHandler _handler;
 
@@ -30,10 +31,23 @@ public sealed class LoginHandlerTests
         _mockBruteForceService = new Mock<IBruteForceProtectionService>();
         _mockPermissionCache = new Mock<IPermissionCacheService>();
         _mockForceReauthService = new Mock<IForceReauthService>();
+        _mockDeviceSessionService = new Mock<IDeviceSessionService>();
         _mockAuditService = new Mock<IAuditService>();
 
         // Default token service setup
         _mockTokenService.Setup(x => x.RefreshTokenExpiration).Returns(TimeSpan.FromDays(30));
+
+        // Default device session service setup
+        var mockSession = TestDataFactory.CreateDeviceSession(Guid.NewGuid());
+        _mockDeviceSessionService.Setup(x => x.GenerateDeviceId()).Returns("test-device-id");
+        _mockDeviceSessionService.Setup(x => x.CreateOrUpdateSessionAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((mockSession, false, false));
 
         _handler = new LoginHandler(
             _mockContext.Object,
@@ -43,6 +57,7 @@ public sealed class LoginHandlerTests
             _mockBruteForceService.Object,
             _mockPermissionCache.Object,
             _mockForceReauthService.Object,
+            _mockDeviceSessionService.Object,
             _mockAuditService.Object);
     }
 
@@ -69,7 +84,8 @@ public sealed class LoginHandlerTests
                 It.IsAny<Guid>(),
                 It.IsAny<string>(),
                 It.IsAny<UserType>(),
-                It.IsAny<IEnumerable<string>>()))
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<Guid?>()))
             .Returns("access-token");
         _mockTokenService.Setup(x => x.GenerateRefreshToken())
             .Returns("refresh-token");
@@ -243,7 +259,8 @@ public sealed class LoginHandlerTests
                 It.IsAny<Guid>(),
                 It.IsAny<string>(),
                 It.IsAny<UserType>(),
-                It.IsAny<IEnumerable<string>>()))
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<Guid?>()))
             .Returns("access-token");
         _mockTokenService.Setup(x => x.GenerateRefreshToken())
             .Returns("refresh-token");

@@ -16,6 +16,7 @@ public sealed class InviteSystemUserHandlerTests
     private readonly Mock<IEmailService> _mockEmailService;
     private readonly Mock<ICurrentUserService> _mockCurrentUser;
     private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<ISystemInviteService> _mockInviteService;
     private readonly InviteSystemUserHandler _handler;
 
     public InviteSystemUserHandlerTests()
@@ -25,13 +26,19 @@ public sealed class InviteSystemUserHandlerTests
         _mockEmailService = new Mock<IEmailService>();
         _mockCurrentUser = new Mock<ICurrentUserService>();
         _mockAuditService = new Mock<IAuditService>();
+        _mockInviteService = new Mock<ISystemInviteService>();
+
+        // Setup default token generation
+        _mockInviteService.Setup(x => x.GenerateTokenAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new InviteTokenResult("test-token", "test-token-hash"));
 
         _handler = new InviteSystemUserHandler(
             _mockContext.Object,
             _mockUserRepository.Object,
             _mockEmailService.Object,
             _mockCurrentUser.Object,
-            _mockAuditService.Object);
+            _mockAuditService.Object,
+            _mockInviteService.Object);
     }
 
     [Fact]

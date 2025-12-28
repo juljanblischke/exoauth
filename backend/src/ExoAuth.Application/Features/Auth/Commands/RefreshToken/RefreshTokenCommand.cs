@@ -7,5 +7,6 @@ namespace ExoAuth.Application.Features.Auth.Commands.RefreshToken;
 /// Command to refresh an access token using a refresh token.
 /// </summary>
 public sealed record RefreshTokenCommand(
-    string RefreshToken
+    string RefreshToken,
+    string? IpAddress = null
 ) : ICommand<TokenResponse>;

@@ -15,6 +15,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
     private readonly ITokenService _tokenService;
     private readonly ITokenBlacklistService _tokenBlacklist;
     private readonly IPermissionCacheService _permissionCache;
+    private readonly IDeviceSessionService _deviceSessionService;
     private readonly IAuditService _auditService;
 
     public RefreshTokenHandler(
@@ -23,6 +24,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
         ITokenService tokenService,
         ITokenBlacklistService tokenBlacklist,
         IPermissionCacheService permissionCache,
+        IDeviceSessionService deviceSessionService,
         IAuditService auditService)
     {
         _context = context;
@@ -30,6 +32,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
         _tokenService = tokenService;
         _tokenBlacklist = tokenBlacklist;
         _permissionCache = permissionCache;
+        _deviceSessionService = deviceSessionService;
         _auditService = auditService;
     }
 
@@ -71,6 +74,15 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
         storedToken.Revoke();
         await _tokenBlacklist.BlacklistAsync(storedToken.Id, storedToken.ExpiresAt, ct);
 
+        // Get the device session ID from the old token
+        var sessionId = storedToken.DeviceSessionId;
+
+        // Record activity on the device session if available
+        if (sessionId.HasValue)
+        {
+            await _deviceSessionService.RecordActivityAsync(sessionId.Value, command.IpAddress, ct);
+        }
+
         // Get permissions
         var permissions = await _permissionCache.GetOrSetPermissionsAsync(
             user.Id,
@@ -78,21 +90,33 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
             ct
         );
 
-        // Generate new tokens
+        // Generate new tokens with session ID
         var accessToken = _tokenService.GenerateAccessToken(
             user.Id,
             user.Email,
             UserType.System,
-            permissions
+            permissions,
+            sessionId
         );
+
+        // Preserve RememberMe setting from old token
+        var expirationDays = storedToken.RememberMe
+            ? 30
+            : (int)_tokenService.RefreshTokenExpiration.TotalDays;
 
         var newRefreshTokenString = _tokenService.GenerateRefreshToken();
         var newRefreshToken = Domain.Entities.RefreshToken.Create(
             userId: user.Id,
             userType: UserType.System,
             token: newRefreshTokenString,
-            expirationDays: (int)_tokenService.RefreshTokenExpiration.TotalDays
+            expirationDays: expirationDays
         );
+
+        // Link new refresh token to the same device session
+        if (sessionId.HasValue)
+        {
+            newRefreshToken.LinkToSession(sessionId.Value);
+        }
 
         await _context.RefreshTokens.AddAsync(newRefreshToken, ct);
         await _context.SaveChangesAsync(ct);
@@ -104,13 +128,14 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
             null, // targetUserId
             "SystemUser",
             user.Id,
-            null,
+            new { SessionId = sessionId },
             ct
         );
 
         return new TokenResponse(
             AccessToken: accessToken,
-            RefreshToken: newRefreshTokenString
+            RefreshToken: newRefreshTokenString,
+            SessionId: sessionId
         );
     }
 }

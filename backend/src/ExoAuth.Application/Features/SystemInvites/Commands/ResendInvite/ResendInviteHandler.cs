@@ -15,19 +15,22 @@ public sealed class ResendInviteHandler : ICommandHandler<ResendInviteCommand, S
     private readonly ICurrentUserService _currentUser;
     private readonly ISystemUserRepository _userRepository;
     private readonly IAuditService _auditService;
+    private readonly ISystemInviteService _inviteService;
 
     public ResendInviteHandler(
         IAppDbContext context,
         IEmailService emailService,
         ICurrentUserService currentUser,
         ISystemUserRepository userRepository,
-        IAuditService auditService)
+        IAuditService auditService,
+        ISystemInviteService inviteService)
     {
         _context = context;
         _emailService = emailService;
         _currentUser = currentUser;
         _userRepository = userRepository;
         _auditService = auditService;
+        _inviteService = inviteService;
     }
 
     public async ValueTask<SystemInviteListDto> Handle(ResendInviteCommand command, CancellationToken ct)
@@ -85,8 +88,11 @@ public sealed class ResendInviteHandler : ICommandHandler<ResendInviteCommand, S
         var resender = await _userRepository.GetByIdAsync(resenderId, ct)
             ?? throw new AuthException("AUTH_UNAUTHORIZED", "User not found", 401);
 
+        // Generate new token with collision prevention
+        var tokenResult = await _inviteService.GenerateTokenAsync(ct);
+
         // Mark as resent (generates new token, extends expiration)
-        invite.MarkResent();
+        invite.MarkResent(tokenResult.TokenHash);
         await _context.SaveChangesAsync(ct);
 
         // Send invitation email
@@ -94,7 +100,7 @@ public sealed class ResendInviteHandler : ICommandHandler<ResendInviteCommand, S
             email: invite.Email,
             firstName: invite.FirstName,
             inviterName: resender.FullName,
-            inviteToken: invite.Token,
+            inviteToken: tokenResult.Token,
             language: "en",
             cancellationToken: ct
         );

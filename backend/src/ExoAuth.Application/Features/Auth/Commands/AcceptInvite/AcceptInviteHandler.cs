@@ -14,26 +14,28 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
     private readonly IAuditService _auditService;
+    private readonly ISystemInviteService _inviteService;
 
     public AcceptInviteHandler(
         IAppDbContext context,
         ISystemUserRepository userRepository,
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
-        IAuditService auditService)
+        IAuditService auditService,
+        ISystemInviteService inviteService)
     {
         _context = context;
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
         _auditService = auditService;
+        _inviteService = inviteService;
     }
 
     public async ValueTask<AuthResponse> Handle(AcceptInviteCommand command, CancellationToken ct)
     {
-        // Find invite by token
-        var invite = await _context.SystemInvites
-            .FirstOrDefaultAsync(i => i.Token == command.Token, ct);
+        // Find invite by token (hash-based lookup)
+        var invite = await _inviteService.ValidateTokenAsync(command.Token, ct);
 
         if (invite is null)
         {

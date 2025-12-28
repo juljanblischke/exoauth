@@ -1,11 +1,17 @@
 using ExoAuth.Api.Filters;
 using ExoAuth.Application.Features.Auth.Commands.AcceptInvite;
+using ExoAuth.Application.Features.Auth.Commands.ForgotPassword;
 using ExoAuth.Application.Features.Auth.Commands.Login;
 using ExoAuth.Application.Features.Auth.Commands.Logout;
 using ExoAuth.Application.Features.Auth.Commands.RefreshToken;
 using ExoAuth.Application.Features.Auth.Commands.Register;
+using ExoAuth.Application.Features.Auth.Commands.ResetPassword;
+using ExoAuth.Application.Features.Auth.Commands.RevokeAllSessions;
+using ExoAuth.Application.Features.Auth.Commands.RevokeSession;
+using ExoAuth.Application.Features.Auth.Commands.UpdateSession;
 using ExoAuth.Application.Features.Auth.Models;
 using ExoAuth.Application.Features.Auth.Queries.GetCurrentUser;
+using ExoAuth.Application.Features.Auth.Queries.GetSessions;
 using ExoAuth.Application.Features.SystemInvites.Models;
 using ExoAuth.Application.Features.SystemInvites.Queries.ValidateInvite;
 using Microsoft.AspNetCore.Authorization;
@@ -38,7 +44,11 @@ public sealed class AuthController : ApiControllerBase
             request.Password,
             request.FirstName,
             request.LastName,
-            request.OrganizationName
+            request.OrganizationName,
+            request.DeviceId,
+            request.DeviceFingerprint,
+            Request.Headers.UserAgent.ToString(),
+            HttpContext.Connection.RemoteIpAddress?.ToString()
         );
 
         var result = await Mediator.Send(command, ct);
@@ -58,7 +68,15 @@ public sealed class AuthController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken ct)
     {
-        var command = new LoginCommand(request.Email, request.Password);
+        var command = new LoginCommand(
+            request.Email,
+            request.Password,
+            request.DeviceId,
+            request.DeviceFingerprint,
+            Request.Headers.UserAgent.ToString(),
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            request.RememberMe
+        );
 
         var result = await Mediator.Send(command, ct);
 
@@ -85,7 +103,10 @@ public sealed class AuthController : ApiControllerBase
             return ApiBadRequest("Refresh token is required");
         }
 
-        var command = new RefreshTokenCommand(refreshToken);
+        var command = new RefreshTokenCommand(
+            refreshToken,
+            HttpContext.Connection.RemoteIpAddress?.ToString()
+        );
 
         var result = await Mediator.Send(command, ct);
 
@@ -172,6 +193,109 @@ public sealed class AuthController : ApiControllerBase
         return ApiOk(result);
     }
 
+    /// <summary>
+    /// Request a password reset email.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [RateLimit(3)]
+    [ProducesResponseType(typeof(ForgotPasswordResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct)
+    {
+        var command = new ForgotPasswordCommand(request.Email);
+
+        var result = await Mediator.Send(command, ct);
+
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Reset password using token or code.
+    /// </summary>
+    [HttpPost("reset-password")]
+    [RateLimit(5)]
+    [ProducesResponseType(typeof(ResetPasswordResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken ct)
+    {
+        var command = new ResetPasswordCommand(
+            request.Token,
+            request.Email,
+            request.Code,
+            request.NewPassword
+        );
+
+        var result = await Mediator.Send(command, ct);
+
+        return ApiOk(result);
+    }
+
+    #region Session Management
+
+    /// <summary>
+    /// Get all active sessions for the current user.
+    /// </summary>
+    [HttpGet("sessions")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(typeof(List<DeviceSessionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetSessions(CancellationToken ct)
+    {
+        var query = new GetSessionsQuery();
+        var result = await Mediator.Send(query, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Revoke a specific session.
+    /// </summary>
+    [HttpDelete("sessions/{sessionId:guid}")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(typeof(RevokeSessionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RevokeSession(Guid sessionId, CancellationToken ct)
+    {
+        var command = new RevokeSessionCommand(sessionId);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Revoke all sessions except the current one.
+    /// </summary>
+    [HttpDelete("sessions")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(typeof(RevokeAllSessionsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> RevokeAllSessions(CancellationToken ct)
+    {
+        var command = new RevokeAllSessionsCommand();
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Update a session (rename or set trust status).
+    /// </summary>
+    [HttpPatch("sessions/{sessionId:guid}")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(typeof(DeviceSessionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateSession(Guid sessionId, UpdateSessionRequest request, CancellationToken ct)
+    {
+        var command = new UpdateSessionCommand(sessionId, request.Name, request.IsTrusted);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    #endregion
+
     private void SetAuthCookies(string accessToken, string refreshToken)
     {
         var secureCookies = _configuration.GetValue("Cookies:Secure", true);
@@ -231,12 +355,17 @@ public sealed record RegisterRequest(
     string Password,
     string FirstName,
     string LastName,
-    string? OrganizationName = null
+    string? OrganizationName = null,
+    string? DeviceId = null,
+    string? DeviceFingerprint = null
 );
 
 public sealed record LoginRequest(
     string Email,
-    string Password
+    string Password,
+    string? DeviceId = null,
+    string? DeviceFingerprint = null,
+    bool RememberMe = false
 );
 
 public sealed record RefreshTokenRequest(
@@ -250,4 +379,20 @@ public sealed record LogoutRequest(
 public sealed record AcceptInviteRequest(
     string Token,
     string Password
+);
+
+public sealed record ForgotPasswordRequest(
+    string Email
+);
+
+public sealed record ResetPasswordRequest(
+    string? Token,
+    string? Email,
+    string? Code,
+    string NewPassword
+);
+
+public sealed record UpdateSessionRequest(
+    string? Name = null,
+    bool? IsTrusted = null
 );

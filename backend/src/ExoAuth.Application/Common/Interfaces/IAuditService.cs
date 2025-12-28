@@ -69,4 +69,18 @@ public static class AuditActions
     // Error audit actions
     public const string AccessForbidden = "system.access.forbidden";
     public const string ErrorInternal = "system.error.internal";
+
+    // Password reset actions
+    public const string PasswordResetRequested = "system.password.reset_requested";
+    public const string PasswordResetCompleted = "system.password.reset_completed";
+    public const string PasswordChanged = "system.password.changed";
+
+    // Session actions
+    public const string SessionCreated = "system.session.created";
+    public const string SessionRevoked = "system.session.revoked";
+    public const string SessionRevokedAll = "system.session.revoked_all";
+    public const string SessionTrusted = "system.session.trusted";
+    public const string SessionRenamed = "system.session.renamed";
+    public const string LoginNewDevice = "system.login.new_device";
+    public const string LoginNewLocation = "system.login.new_location";
 }

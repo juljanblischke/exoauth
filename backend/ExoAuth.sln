@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExoAuth.UnitTests", "tests\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExoAuth.IntegrationTests", "tests\ExoAuth.IntegrationTests\ExoAuth.IntegrationTests.csproj", "{EC8D2A67-CD66-441E-914C-B10C4E6DCDEA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExoAuth.EmailWorker", "src\ExoAuth.EmailWorker\ExoAuth.EmailWorker.csproj", "{6F82515B-F840-474C-866E-F34BB61D513B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,18 @@ Global
 		{EC8D2A67-CD66-441E-914C-B10C4E6DCDEA}.Release|x64.Build.0 = Release|Any CPU
 		{EC8D2A67-CD66-441E-914C-B10C4E6DCDEA}.Release|x86.ActiveCfg = Release|Any CPU
 		{EC8D2A67-CD66-441E-914C-B10C4E6DCDEA}.Release|x86.Build.0 = Release|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Debug|x64.Build.0 = Debug|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Debug|x86.Build.0 = Debug|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Release|x64.ActiveCfg = Release|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Release|x64.Build.0 = Release|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Release|x86.ActiveCfg = Release|Any CPU
+		{6F82515B-F840-474C-866E-F34BB61D513B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -112,5 +126,6 @@ Global
 		{428CD874-6DD2-46D3-9F06-4D6C0A4C334C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{2B4AD7E4-4B9B-4B6F-804D-4BB686004A65} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{EC8D2A67-CD66-441E-914C-B10C4E6DCDEA} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{6F82515B-F840-474C-866E-F34BB61D513B} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

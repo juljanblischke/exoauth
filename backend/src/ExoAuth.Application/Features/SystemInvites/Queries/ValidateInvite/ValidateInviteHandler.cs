@@ -9,17 +9,17 @@ namespace ExoAuth.Application.Features.SystemInvites.Queries.ValidateInvite;
 public sealed class ValidateInviteHandler : IQueryHandler<ValidateInviteQuery, InviteValidationDto>
 {
     private readonly IAppDbContext _context;
+    private readonly ISystemInviteService _inviteService;
 
-    public ValidateInviteHandler(IAppDbContext context)
+    public ValidateInviteHandler(IAppDbContext context, ISystemInviteService inviteService)
     {
         _context = context;
+        _inviteService = inviteService;
     }
 
     public async ValueTask<InviteValidationDto> Handle(ValidateInviteQuery query, CancellationToken ct)
     {
-        var invite = await _context.SystemInvites
-            .Include(i => i.InvitedByUser)
-            .FirstOrDefaultAsync(i => i.Token == query.Token, ct);
+        var invite = await _inviteService.ValidateTokenAsync(query.Token, ct);
 
         // Token not found
         if (invite is null)

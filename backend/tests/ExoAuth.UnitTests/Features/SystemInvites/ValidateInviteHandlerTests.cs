@@ -11,12 +11,14 @@ namespace ExoAuth.UnitTests.Features.SystemInvites;
 public sealed class ValidateInviteHandlerTests
 {
     private readonly Mock<IAppDbContext> _mockContext;
+    private readonly Mock<ISystemInviteService> _mockInviteService;
     private readonly ValidateInviteHandler _handler;
 
     public ValidateInviteHandlerTests()
     {
         _mockContext = MockDbContext.Create();
-        _handler = new ValidateInviteHandler(_mockContext.Object);
+        _mockInviteService = new Mock<ISystemInviteService>();
+        _handler = new ValidateInviteHandler(_mockContext.Object, _mockInviteService.Object);
     }
 
     [Fact]
@@ -37,11 +39,11 @@ public sealed class ValidateInviteHandlerTests
         SetEntityId(invite, inviteId);
         SetInvitedByUser(invite, inviter);
 
-        var token = GetToken(invite);
+        var token = "test-token";
 
-        var invites = new List<SystemInvite> { invite };
-        _mockContext.Setup(x => x.SystemInvites)
-            .Returns(MockDbContext.CreateAsyncMockDbSet(invites).Object);
+        // Mock invite service to return the invite
+        _mockInviteService.Setup(x => x.ValidateTokenAsync(token, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(invite);
 
         var permission = TestDataFactory.CreateSystemPermission("system:users:read", "Read users", "Users");
         SetEntityId(permission, permissionId);
@@ -72,9 +74,8 @@ public sealed class ValidateInviteHandlerTests
     public async Task Handle_WithInvalidToken_ReturnsInvalidResponse()
     {
         // Arrange
-        var invites = new List<SystemInvite>();
-        _mockContext.Setup(x => x.SystemInvites)
-            .Returns(MockDbContext.CreateAsyncMockDbSet(invites).Object);
+        _mockInviteService.Setup(x => x.ValidateTokenAsync("invalid-token", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SystemInvite?)null);
 
         var query = new ValidateInviteQuery("invalid-token");
 
@@ -105,11 +106,10 @@ public sealed class ValidateInviteHandlerTests
         SetInvitedByUser(invite, inviter);
         invite.Accept();
 
-        var token = GetToken(invite);
+        var token = "test-token";
 
-        var invites = new List<SystemInvite> { invite };
-        _mockContext.Setup(x => x.SystemInvites)
-            .Returns(MockDbContext.CreateAsyncMockDbSet(invites).Object);
+        _mockInviteService.Setup(x => x.ValidateTokenAsync(token, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(invite);
 
         var query = new ValidateInviteQuery(token);
 
@@ -140,11 +140,10 @@ public sealed class ValidateInviteHandlerTests
         SetInvitedByUser(invite, inviter);
         invite.Revoke();
 
-        var token = GetToken(invite);
+        var token = "test-token";
 
-        var invites = new List<SystemInvite> { invite };
-        _mockContext.Setup(x => x.SystemInvites)
-            .Returns(MockDbContext.CreateAsyncMockDbSet(invites).Object);
+        _mockInviteService.Setup(x => x.ValidateTokenAsync(token, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(invite);
 
         var query = new ValidateInviteQuery(token);
 
@@ -177,11 +176,10 @@ public sealed class ValidateInviteHandlerTests
         // Set ExpiresAt to past
         SetExpiresAt(invite, DateTime.UtcNow.AddHours(-1));
 
-        var token = GetToken(invite);
+        var token = "test-token";
 
-        var invites = new List<SystemInvite> { invite };
-        _mockContext.Setup(x => x.SystemInvites)
-            .Returns(MockDbContext.CreateAsyncMockDbSet(invites).Object);
+        _mockInviteService.Setup(x => x.ValidateTokenAsync(token, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(invite);
 
         var query = new ValidateInviteQuery(token);
 
@@ -216,12 +214,5 @@ public sealed class ValidateInviteHandlerTests
         var field = typeof(SystemInvite)
             .GetField("<ExpiresAt>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         field?.SetValue(invite, expiresAt);
-    }
-
-    private static string GetToken(SystemInvite invite)
-    {
-        var property = typeof(SystemInvite)
-            .GetProperty("Token");
-        return (string)property!.GetValue(invite)!;
     }
 }

@@ -11,5 +11,9 @@ public sealed record RegisterCommand(
     string Password,
     string FirstName,
     string LastName,
-    string? OrganizationName = null
+    string? OrganizationName = null,
+    string? DeviceId = null,
+    string? DeviceFingerprint = null,
+    string? UserAgent = null,
+    string? IpAddress = null
 ) : ICommand<AuthResponse>;

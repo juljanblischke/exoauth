@@ -23,6 +23,210 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ExoAuth.Domain.Entities.DeviceSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Browser")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("browser");
+
+                    b.Property<string>("BrowserVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("browser_version");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("country");
+
+                    b.Property<string>("CountryCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("country_code");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DeviceFingerprint")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("device_fingerprint");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("device_id");
+
+                    b.Property<string>("DeviceName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("device_name");
+
+                    b.Property<string>("DeviceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("device_type");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("ip_address");
+
+                    b.Property<bool>("IsRevoked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_revoked");
+
+                    b.Property<bool>("IsTrusted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_trusted");
+
+                    b.Property<DateTime>("LastActivityAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_activity_at");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("latitude");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("longitude");
+
+                    b.Property<string>("OperatingSystem")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("operating_system");
+
+                    b.Property<string>("OsVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("os_version");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("user_agent");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_device_sessions");
+
+                    b.HasIndex("DeviceId")
+                        .HasDatabaseName("i_x_device_sessions_device_id");
+
+                    b.HasIndex("IsRevoked")
+                        .HasDatabaseName("i_x_device_sessions_is_revoked");
+
+                    b.HasIndex("LastActivityAt")
+                        .HasDatabaseName("i_x_device_sessions_last_activity_at");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("i_x_device_sessions_user_id");
+
+                    b.HasIndex("UserId", "DeviceId")
+                        .HasDatabaseName("i_x_device_sessions_user_id_device_id");
+
+                    b.HasIndex("UserId", "IsRevoked")
+                        .HasDatabaseName("i_x_device_sessions_user_id_is_revoked");
+
+                    b.ToTable("device_sessions", (string)null);
+                });
+
+            modelBuilder.Entity("ExoAuth.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("code_hash");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<bool>("IsUsed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_used");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_password_reset_tokens");
+
+                    b.HasIndex("CodeHash")
+                        .HasDatabaseName("i_x_password_reset_tokens_code_hash");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("i_x_password_reset_tokens_expires_at");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("i_x_password_reset_tokens_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("i_x_password_reset_tokens_user_id");
+
+                    b.HasIndex("UserId", "IsUsed", "ExpiresAt")
+                        .HasDatabaseName("i_x_password_reset_tokens_user_id_is_used_expires_at");
+
+                    b.ToTable("password_reset_tokens", (string)null);
+                });
+
             modelBuilder.Entity("ExoAuth.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -39,6 +243,10 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("device_info");
 
+                    b.Property<Guid?>("DeviceSessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_session_id");
+
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
@@ -53,6 +261,12 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_revoked");
+
+                    b.Property<bool>("RememberMe")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("remember_me");
 
                     b.Property<DateTime?>("RevokedAt")
                         .HasColumnType("timestamp with time zone")
@@ -84,6 +298,9 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("p_k_refresh_tokens");
+
+                    b.HasIndex("DeviceSessionId")
+                        .HasDatabaseName("i_x_refresh_tokens_device_session_id");
 
                     b.HasIndex("ExpiresAt")
                         .HasDatabaseName("i_x_refresh_tokens_expires_at");
@@ -239,11 +456,11 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("revoked_at");
 
-                    b.Property<string>("Token")
+                    b.Property<string>("TokenHash")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
-                        .HasColumnName("token");
+                        .HasColumnName("token_hash");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -267,9 +484,9 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                     b.HasIndex("RevokedAt")
                         .HasDatabaseName("i_x_system_invites_revoked_at");
 
-                    b.HasIndex("Token")
+                    b.HasIndex("TokenHash")
                         .IsUnique()
-                        .HasDatabaseName("i_x_system_invites_token");
+                        .HasDatabaseName("i_x_system_invites_token_hash");
 
                     b.ToTable("system_invites", (string)null);
                 });
@@ -418,12 +635,44 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                     b.ToTable("system_user_permissions", (string)null);
                 });
 
+            modelBuilder.Entity("ExoAuth.Domain.Entities.DeviceSession", b =>
+                {
+                    b.HasOne("ExoAuth.Domain.Entities.SystemUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("f_k_device_sessions_system_users_user_id");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ExoAuth.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.HasOne("ExoAuth.Domain.Entities.SystemUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("f_k_password_reset_tokens_system_users_user_id");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ExoAuth.Domain.Entities.RefreshToken", b =>
                 {
+                    b.HasOne("ExoAuth.Domain.Entities.DeviceSession", "DeviceSession")
+                        .WithMany()
+                        .HasForeignKey("DeviceSessionId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("f_k_refresh_tokens_device_sessions_device_session_id");
+
                     b.HasOne("ExoAuth.Domain.Entities.SystemUser", null)
                         .WithMany("RefreshTokens")
                         .HasForeignKey("SystemUserId")
                         .HasConstraintName("f_k_refresh_tokens_system_users_system_user_id");
+
+                    b.Navigation("DeviceSession");
                 });
 
             modelBuilder.Entity("ExoAuth.Domain.Entities.SystemAuditLog", b =>
