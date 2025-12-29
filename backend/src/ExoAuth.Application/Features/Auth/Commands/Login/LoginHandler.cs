@@ -378,7 +378,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = user.PreferredLanguage == "de"
+        var subject = user.PreferredLanguage.StartsWith("de")
             ? "Ihr Konto wurde vorübergehend gesperrt"
             : "Your Account Has Been Temporarily Locked";
 
@@ -418,7 +418,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = user.PreferredLanguage == "de"
+        var subject = user.PreferredLanguage.StartsWith("de")
             ? "Anmeldung von einem neuen Gerät erkannt"
             : "New Device Login Detected";
 
@@ -458,7 +458,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = user.PreferredLanguage == "de"
+        var subject = user.PreferredLanguage.StartsWith("de")
             ? "Anmeldung von einem neuen Standort"
             : "Login from New Location";
 

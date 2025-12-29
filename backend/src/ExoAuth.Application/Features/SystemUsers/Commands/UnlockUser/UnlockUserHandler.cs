@@ -63,9 +63,13 @@ public sealed class UnlockUserHandler : ICommandHandler<UnlockUserCommand, Unloc
         );
 
         // Send notification email to user
+        var subject = user.PreferredLanguage.StartsWith("de")
+            ? "Ihr Konto wurde entsperrt"
+            : "Your Account Has Been Unlocked";
+
         await _emailService.SendAsync(
             user.Email,
-            "Your Account Has Been Unlocked",
+            subject,
             "account-unlocked",
             new Dictionary<string, string>
             {

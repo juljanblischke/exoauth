@@ -35,9 +35,9 @@ public sealed class UpdatePreferencesHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new UpdatePreferencesCommand("de");
+        var command = new UpdatePreferencesCommand("de-DE");
 
-        var user = CreateUser(userId, "en");
+        var user = CreateUser(userId, "en-US");
         var users = new List<SystemUser> { user };
 
         SetupMockDbSet(users);
@@ -51,8 +51,8 @@ public sealed class UpdatePreferencesHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
-        result.Language.Should().Be("de");
-        user.PreferredLanguage.Should().Be("de");
+        result.Language.Should().Be("de-DE");
+        user.PreferredLanguage.Should().Be("de-DE");
 
         _mockContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -61,7 +61,7 @@ public sealed class UpdatePreferencesHandlerTests
     public async Task Handle_WhenNotAuthenticated_ThrowsUnauthorizedException()
     {
         // Arrange
-        var command = new UpdatePreferencesCommand("de");
+        var command = new UpdatePreferencesCommand("de-DE");
 
         _mockCurrentUser.Setup(x => x.UserId).Returns((Guid?)null);
 
@@ -77,7 +77,7 @@ public sealed class UpdatePreferencesHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new UpdatePreferencesCommand("de");
+        var command = new UpdatePreferencesCommand("de-DE");
 
         var users = new List<SystemUser>();
 
@@ -96,9 +96,9 @@ public sealed class UpdatePreferencesHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new UpdatePreferencesCommand("de");
+        var command = new UpdatePreferencesCommand("de-DE");
 
-        var user = CreateUser(userId, "en");
+        var user = CreateUser(userId, "en-US");
         var users = new List<SystemUser> { user };
 
         SetupMockDbSet(users);
@@ -121,15 +121,15 @@ public sealed class UpdatePreferencesHandlerTests
     }
 
     [Theory]
-    [InlineData("en")]
-    [InlineData("de")]
+    [InlineData("en-US")]
+    [InlineData("de-DE")]
     public async Task Handle_WithDifferentLanguages_SetsCorrectLanguage(string language)
     {
         // Arrange
         var userId = Guid.NewGuid();
         var command = new UpdatePreferencesCommand(language);
 
-        var user = CreateUser(userId, language == "en" ? "de" : "en");
+        var user = CreateUser(userId, language == "en-US" ? "de-DE" : "en-US");
         var users = new List<SystemUser> { user };
 
         SetupMockDbSet(users);
@@ -151,7 +151,7 @@ public sealed class UpdatePreferencesHandlerTests
         _mockContext.Setup(x => x.SystemUsers).Returns(mockUsersDbSet.Object);
     }
 
-    private static SystemUser CreateUser(Guid userId, string language = "en")
+    private static SystemUser CreateUser(Guid userId, string language = "en-US")
     {
         var user = SystemUser.Create("test@example.com", "hash", "Test", "User", true);
         SetUserId(user, userId);

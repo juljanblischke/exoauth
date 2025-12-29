@@ -1180,7 +1180,116 @@ if (!user.IsAnonymized)
 
 ---
 
-### Phase 10: Bug Fixes (Code Review Round 3) ✅
+### Phase 10: MFA Forced Setup Flow Fix ✅
+
+> ⚠️ **Fixed on 2025-12-29**
+>
+> The MFA forced setup flow during login/registration was incomplete. Users with system permissions were getting `mfaSetupRequired: true` with a `setupToken`, but couldn't complete the setup because `/mfa/setup` required JWT authentication.
+
+#### Problem
+
+The existing implementation had a gap:
+1. **Login/Register** → Returns `{ mfaSetupRequired: true, setupToken: "..." }` for system users
+2. **POST /mfa/setup** → Required `[Authorize]` (JWT)
+3. **Problem**: User only has `setupToken`, not a JWT → 401 Unauthorized!
+
+Similarly, first user registration was granting full access without MFA, creating a security gap.
+
+#### Solution: Dual-Mode Authentication
+
+Modified `/mfa/setup` and `/mfa/confirm` to support two authentication modes:
+
+| Scenario | Authentication Method | Returns |
+|----------|----------------------|---------|
+| User already logged in (settings page) | JWT in Authorization header | Backup codes only |
+| Forced setup during login/registration | `setupToken` in request body | Backup codes + tokens |
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `MfaSetupCommand.cs` | Added optional `SetupToken` parameter |
+| `MfaSetupHandler.cs` | Dual-mode auth: JWT OR setupToken |
+| `MfaConfirmCommand.cs` | Added `SetupToken` + device info parameters |
+| `MfaConfirmHandler.cs` | Dual-mode auth + returns tokens for forced setup flow |
+| `MfaModels.cs` | Extended `MfaConfirmResponse` with auth fields (User, AccessToken, RefreshToken, SessionId, DeviceId) |
+| `RegisterHandler.cs` | First user now returns `mfaSetupRequired: true` instead of tokens |
+| `AuthController.cs` | Removed `[Authorize]` from setup/confirm, added request models, set cookies on confirm |
+| `IAuditService.cs` | Added `MfaSetupCompleted` audit action |
+| `RegisterHandlerTests.cs` | Updated tests for new MFA-required flow |
+
+#### API Changes
+
+**POST /api/auth/mfa/setup**
+```json
+// Before: No body, JWT required
+// After: Optional body, JWT OR setupToken
+{
+  "setupToken": "eyJhbG..."  // Optional - for forced setup flow
+}
+```
+
+**POST /api/auth/mfa/confirm**
+```json
+// Before: JWT required
+{
+  "code": "123456"
+}
+
+// After: JWT OR setupToken
+{
+  "code": "123456",
+  "setupToken": "eyJhbG...",    // Optional - for forced setup flow
+  "deviceId": "...",            // Optional - for session creation
+  "deviceFingerprint": "..."    // Optional - for session creation
+}
+
+// Response when using setupToken (forced setup flow):
+{
+  "success": true,
+  "backupCodes": ["XXXX-XXXX", ...],
+  "user": { ... },              // ✅ NEW - User data
+  "accessToken": "...",         // ✅ NEW - JWT
+  "refreshToken": "...",        // ✅ NEW - Refresh token
+  "sessionId": "...",           // ✅ NEW - Session ID
+  "deviceId": "..."             // ✅ NEW - Device ID
+}
+```
+
+**POST /api/auth/register** (first user)
+```json
+// Before: Returns tokens immediately
+{
+  "user": { ... },
+  "accessToken": "...",
+  "refreshToken": "..."
+}
+
+// After: Requires MFA setup first
+{
+  "mfaSetupRequired": true,
+  "setupToken": "...",
+  "user": null,
+  "accessToken": null,
+  "refreshToken": null
+}
+```
+
+#### Security Guarantees
+
+- `setupToken` is JWT-signed (can't be forged)
+- 5-minute expiry
+- Purpose-locked (`"purpose": "mfa_verification"`)
+- Only issued after successful password verification
+- Limited scope - only works for MFA setup/confirm
+
+#### Tests
+
+All 233 unit tests pass ✅
+
+---
+
+### Phase 11: Bug Fixes (Code Review Round 3) ✅
 
 > ⚠️ **Discovered during testing on 2025-12-29**
 >
@@ -1264,6 +1373,163 @@ public sealed record UserDto(
 - `AcceptInviteHandler.cs` - Lines 155-168: Added new fields to UserDto construction
 
 **Tests:** All 234 unit tests pass ✅
+
+---
+
+### Phase 12: Infrastructure & API Improvements ✅
+
+> ⚠️ **Fixed on 2025-12-29**
+>
+> Several infrastructure improvements and missing features discovered during testing.
+
+#### Issues Fixed
+
+| # | Issue | Impact | Status |
+|---|-------|--------|--------|
+| 1 | Data Protection keys not persisted in Docker | MFA secrets unreadable after container restart | ✅ |
+| 2 | MfaVerifyHandler missing new device/location emails | Users with MFA didn't get notified about new devices | ✅ |
+| 3 | RegisterRequest missing Language field | Users couldn't set language preference during registration | ✅ |
+
+#### Fix #1: Data Protection Key Persistence
+
+**Problem**: ASP.NET Core Data Protection keys were stored in memory. When Docker container restarts, keys are lost and encrypted MFA secrets become unreadable.
+
+**Error**: `CryptographicException: The key {guid} was not found in the key ring`
+
+**Solution**:
+
+1. **Program.cs** - Persist keys to file system:
+```csharp
+var keysDirectory = builder.Configuration["DataProtection:KeysPath"] ?? "/app/data/keys";
+builder.Services.AddDataProtection()
+    .SetApplicationName("ExoAuth")
+    .PersistKeysToFileSystem(new DirectoryInfo(keysDirectory));
+```
+
+2. **docker-compose.yml** - Added volume:
+```yaml
+volumes:
+  - dataprotection-keys:/app/data/keys
+```
+
+3. **Dockerfile** - Created directory:
+```dockerfile
+RUN mkdir -p /app/data/keys /app/data/geoip
+```
+
+**Files Modified:**
+- `Program.cs` - Added Data Protection configuration with file system persistence
+- `docker-compose.yml` - Added `dataprotection-keys` volume
+- `docker/api/Dockerfile` - Added `mkdir` for data directories
+
+#### Fix #2: MfaVerifyHandler Missing Email Notifications
+
+**Problem**: When a user with MFA enabled logs in from a new device, they didn't receive email notification. The `LoginHandler` has this logic but `MfaVerifyHandler` (where login completes for MFA users) was missing it.
+
+**Solution**: Added same email notification logic from `LoginHandler` to `MfaVerifyHandler`:
+- Added `IConfiguration` dependency
+- Added `SendNewDeviceEmailAsync()` method
+- Added `SendNewLocationEmailAsync()` method
+- Added audit logging for `LoginNewDevice` and `LoginNewLocation`
+
+**Files Modified:**
+- `MfaVerifyHandler.cs` - Added email notifications for new device/location
+
+#### Fix #3: Language Field in Registration
+
+**Problem**: `RegisterRequest` DTO was missing `Language` field, so users couldn't set their preferred language during registration.
+
+**Solution**: Added `Language` field to request DTO and pass it to command.
+
+**API Change:**
+```json
+POST /api/auth/register
+{
+  "email": "user@example.com",
+  "password": "Password123!",
+  "firstName": "Max",
+  "lastName": "Mustermann",
+  "language": "de"  // NEW - defaults to "en"
+}
+```
+
+**Files Modified:**
+- `AuthController.cs` - Added `Language` to `RegisterRequest`, passed to command
+
+**Tests:** All 233 unit tests pass ✅
+
+---
+
+### Phase 13: Language Code Standardization ✅
+
+> ⚠️ **Implemented on 2025-12-29**
+>
+> Changed language codes from short format (`en`, `de`) to full locale format (`en-US`, `de-DE`) throughout the system for better internationalization support.
+
+#### Changes Made
+
+| Category | Changes |
+|----------|---------|
+| **Template Folders** | Renamed `templates/emails/en/` → `en-US/`, `de/` → `de-DE/` |
+| **Default Language** | All defaults changed from `"en"` to `"en-US"` |
+| **Language Checks** | Updated from `== "de"` to `.StartsWith("de")` for flexibility |
+| **Email Subjects** | Localized all hard-coded English email subjects |
+
+#### Files Modified
+
+**Backend - Commands & DTOs:**
+- `RegisterCommand.cs` - Default `Language = "en-US"`
+- `AcceptInviteCommand.cs` - Default `Language = "en-US"`
+- `InviteSystemUserCommand.cs` - Default `Language = "en-US"`
+- `AuthController.cs` - `RegisterRequest` and `AcceptInviteRequest` defaults
+
+**Backend - Entities:**
+- `SystemUser.cs` - Default `PreferredLanguage = "en-US"`
+- `SystemInvite.cs` - Default `Language = "en-US"` (property and Create method)
+
+**Backend - Services:**
+- `IEmailService.cs` - All method defaults to `"en-US"`
+- `IEmailTemplateService.cs` - Default parameter `"en-US"`
+- `EmailService.cs` - Defaults + subject checks use `.StartsWith("de")`
+- `EmailTemplateService.cs` (Infrastructure) - Default + fallback to `"en-US"`
+- `EmailTemplateService.cs` (EmailWorker) - Default + fallback to `"en-US"`
+
+**Backend - Handlers (Email Subject Localization):**
+- `MfaConfirmHandler.cs` - "Zwei-Faktor-Authentifizierung aktiviert"
+- `MfaDisableHandler.cs` - "Zwei-Faktor-Authentifizierung deaktiviert"
+- `MfaVerifyHandler.cs` - "Backup-Code verwendet"
+- `LoginHandler.cs` - Subject checks use `.StartsWith("de")`
+- `ResetUserMfaHandler.cs` - "Ihre Zwei-Faktor-Authentifizierung wurde zurückgesetzt"
+- `UnlockUserHandler.cs` - "Ihr Konto wurde entsperrt"
+- `RevokeUserSessionsHandler.cs` - "Alle Ihre Sitzungen wurden widerrufen"
+
+**Backend - Tests:**
+- `UpdatePreferencesHandlerTests.cs` - Updated to use `"en-US"` / `"de-DE"`
+- `ResendInviteHandlerTests.cs` - Updated mock verification to `"en-US"`
+- `EmailTemplateServiceTests.cs` - Updated all folder paths and language codes
+
+#### API Impact
+
+Registration and invite acceptance now default to `"en-US"`:
+```json
+POST /api/auth/register
+{
+  "email": "user@example.com",
+  "password": "Password123!",
+  "firstName": "Max",
+  "lastName": "Mustermann",
+  "language": "de-DE"  // Full locale format
+}
+```
+
+#### Migration Notes
+
+- Existing users with `language = "en"` will get English emails (fallback works)
+- Existing users with `language = "de"` will get German emails (`.StartsWith("de")` works)
+- New users will have full locale codes stored
+- No database migration needed (existing short codes still work)
+
+**Tests:** All 233 unit tests pass ✅
 
 ---
 
@@ -1477,3 +1743,221 @@ graph TD
 - Device Sessions müssen vor MFA implementiert werden (Login Flow)
 - Email Worker sollte früh fertig sein (für alle Notifications)
 - Encryption Service vor MFA (für Secret Storage)
+
+---
+
+## 18. Future Enhancements: Intelligent Device Trust
+
+> 🚀 **Potential Feature**: Smart device/location approval based on risk scoring
+>
+> Currently MFA is the only trust mechanism. Users get notified about new devices but login proceeds immediately. This section documents potential enhancements for risk-based device approval.
+
+### Current State
+
+```
+New Device Login → MFA Code Correct → ✅ Login Success
+                                    → 📧 Email Notification (informational only)
+```
+
+- MFA is the trust mechanism
+- Email notifications are after-the-fact (login already complete)
+- User can only react by revoking session manually
+
+### Proposed Enhancement: Risk-Based Device Approval
+
+#### Risk Scoring System
+
+| Factor | Risk Score | Example |
+|--------|------------|---------|
+| New Device | +20 | deviceId not seen before |
+| New Country | +40 | User normally logs in from Germany, now from Russia |
+| New City (same country) | +10 | User normally in Berlin, now in Munich |
+| Impossible Travel | +80 | Logged in from Germany 5 min ago, now from USA |
+| Known VPN/Proxy IP | +30 | IP detected as datacenter/VPN |
+| Unusual Time | +15 | Login at 3am when user typically logs in 9-18h |
+| Tor Exit Node | +50 | IP is known Tor exit node |
+| Different Device Type | +10 | Usually mobile, now desktop |
+
+**Risk Thresholds:**
+- **0-30**: Low risk → Login proceeds, email notification
+- **31-60**: Medium risk → Require additional verification (email OTP)
+- **61-100+**: High risk → Block login, require email approval link
+
+#### Flow: Medium Risk (Additional Verification)
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    MEDIUM RISK LOGIN (31-60 points)                      │
+└─────────────────────────────────────────────────────────────────────────┘
+
+    NEW DEVICE                          SERVER
+        │                                  │
+        │  POST /auth/login                │
+        │  (new device, new city)          │
+        │─────────────────────────────────>│
+        │                                  │
+        │                                  │  Calculate risk score: 30
+        │                                  │  (new device + new city)
+        │                                  │
+        │                                  │  MFA check...
+        │                                  │  ✓ TOTP valid
+        │                                  │
+        │                                  │  Risk > 30 → Additional
+        │                                  │  verification required
+        │                                  │
+        │  200 OK                          │
+        │  {                               │
+        │    additionalVerification: true, │
+        │    verificationToken: "...",     │
+        │    method: "email_otp"           │
+        │  }                               │
+        │                                  │
+        │                                  │  📧 Send 6-digit OTP to email
+        │                                  │
+        │  POST /auth/verify-device        │
+        │  { verificationToken, otp }      │
+        │─────────────────────────────────>│
+        │                                  │
+        │  200 OK { accessToken, ... }  ◄──│
+        │                                  │
+    ✅ LOGGED IN                           │
+```
+
+#### Flow: High Risk (Approval Required)
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    HIGH RISK LOGIN (61+ points)                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+    SUSPICIOUS DEVICE                   SERVER                         USER'S EMAIL
+        │                                  │                              │
+        │  POST /auth/login                │                              │
+        │  (impossible travel detected)    │                              │
+        │─────────────────────────────────>│                              │
+        │                                  │                              │
+        │                                  │  Calculate risk: 100         │
+        │                                  │  (impossible travel!)        │
+        │                                  │                              │
+        │                                  │  MFA check...                │
+        │                                  │  ✓ TOTP valid (but...)       │
+        │                                  │                              │
+        │                                  │  Risk > 60 → BLOCK           │
+        │                                  │                              │
+        │  200 OK                          │                              │
+        │  {                               │                              │
+        │    loginBlocked: true,           │                              │
+        │    reason: "suspicious_activity",│                              │
+        │    message: "Approval required"  │                              │
+        │  }                               │                              │
+        │                                  │                              │
+        │                                  │  📧 Send approval email ────>│
+        │                                  │     "Someone is trying to    │
+        │                                  │      log in from [location]" │
+        │                                  │     [Approve] [Block & Alert]│
+        │                                  │                              │
+        │                                  │  ◄─── User clicks [Approve] ─│
+        │                                  │                              │
+        │  (User must retry login)         │                              │
+        │  POST /auth/login                │                              │
+        │─────────────────────────────────>│                              │
+        │                                  │                              │
+        │  200 OK { accessToken, ... }  ◄──│  Device now approved         │
+        │                                  │                              │
+    ✅ LOGGED IN                           │
+```
+
+#### New API Endpoints (Proposed)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST | `/api/auth/verify-device` | Submit email OTP for medium-risk login |
+| GET | `/api/auth/approve-device/{token}` | Email link to approve blocked login |
+| POST | `/api/auth/block-device/{token}` | Email link to block device + alert security |
+
+#### New Database Tables (Proposed)
+
+```sql
+-- Track device approval attempts
+CREATE TABLE device_approval_requests (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES system_users(id),
+    device_id VARCHAR(255) NOT NULL,
+    ip_address VARCHAR(45),
+    country VARCHAR(100),
+    city VARCHAR(100),
+    risk_score INT NOT NULL,
+    risk_factors JSONB,  -- { "new_device": true, "impossible_travel": true, ... }
+    status VARCHAR(20) NOT NULL,  -- pending, approved, blocked, expired
+    approval_token_hash VARCHAR(64),
+    otp_hash VARCHAR(64),
+    otp_attempts INT DEFAULT 0,
+    created_at TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    resolved_at TIMESTAMP,
+    resolved_by VARCHAR(20)  -- user, admin, timeout
+);
+
+-- Track historical login patterns for risk calculation
+CREATE TABLE login_patterns (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES system_users(id),
+    typical_countries VARCHAR(100)[],
+    typical_cities VARCHAR(100)[],
+    typical_hours INT[],  -- [9, 10, 11, ..., 17, 18] for 9-18h
+    typical_device_types VARCHAR(50)[],
+    last_updated TIMESTAMP NOT NULL
+);
+```
+
+#### Configuration (Proposed)
+
+```json
+{
+  "DeviceTrust": {
+    "Enabled": false,  // Feature flag
+    "RiskThresholds": {
+      "Medium": 31,
+      "High": 61
+    },
+    "RiskScores": {
+      "NewDevice": 20,
+      "NewCountry": 40,
+      "NewCity": 10,
+      "ImpossibleTravel": 80,
+      "VpnProxy": 30,
+      "UnusualTime": 15,
+      "TorExitNode": 50,
+      "DifferentDeviceType": 10
+    },
+    "ImpossibleTravelSpeedKmh": 800,  // Faster than commercial flight
+    "OtpExpiryMinutes": 10,
+    "ApprovalExpiryMinutes": 30,
+    "MaxOtpAttempts": 3
+  }
+}
+```
+
+#### Implementation Considerations
+
+1. **GeoIP Database Required**: Need accurate IP → location mapping (already have MaxMind)
+2. **VPN/Proxy Detection**: Could use IP reputation services (IPQualityScore, MaxMind minFraud)
+3. **Historical Data**: Need to track user's typical login patterns over time
+4. **False Positives**: Legitimate users traveling should not be locked out
+5. **User Experience**: Balance security vs. friction
+
+#### Priority Assessment
+
+| Feature | Complexity | Security Value | Recommendation |
+|---------|------------|----------------|----------------|
+| Impossible Travel Detection | Medium | High | ✅ Implement first |
+| Email OTP for medium risk | Low | Medium | ✅ Quick win |
+| Approval Links for high risk | Medium | High | ✅ Implement |
+| VPN/Proxy Detection | High | Medium | ⏸️ Later (needs external service) |
+| Unusual Time Detection | Low | Low | ⏸️ Nice to have |
+| Tor Detection | Medium | Medium | ⏸️ Later |
+
+#### Status
+
+**Current**: Not implemented - MFA is sole trust mechanism
+**Next Steps**: Discuss with team if this level of security is needed for the use case

@@ -1,22 +1,52 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/shared/form'
 
 import { useLogin } from '../hooks/use-login'
-import { createLoginSchema, type LoginFormData } from '../types'
+import { createLoginSchema, type LoginFormData, type MfaConfirmResponse } from '../types'
+import type { AuthResponse } from '@/types/auth'
 import { getErrorMessage } from '@/lib/error-utils'
+import { getDeviceInfo } from '@/lib/device'
+import { MfaVerifyModal } from './mfa-verify-modal'
+import { MfaSetupModal } from './mfa-setup-modal'
+import { MfaConfirmModal } from './mfa-confirm-modal'
+
+const AUTH_SESSION_KEY = 'exoauth_has_session'
 
 export function LoginForm() {
   const { t } = useTranslation()
-  const { mutate: login, isPending, error } = useLogin()
+  const navigate = useNavigate()
+
+  // MFA state
+  const [mfaVerifyOpen, setMfaVerifyOpen] = useState(false)
+  const [mfaSetupOpen, setMfaSetupOpen] = useState(false)
+  const [mfaConfirmOpen, setMfaConfirmOpen] = useState(false)
+  const [mfaToken, setMfaToken] = useState<string | null>(null)
+  const [setupToken, setSetupToken] = useState<string | null>(null)
+  const [backupCodes, setBackupCodes] = useState<string[]>([])
+  const [pendingAuthResponse, setPendingAuthResponse] = useState<MfaConfirmResponse | null>(null)
+  const [rememberMeForMfa, setRememberMeForMfa] = useState(false)
+
+  const { mutate: login, isPending, error } = useLogin({
+    onMfaRequired: (response: AuthResponse) => {
+      setMfaToken(response.mfaToken)
+      setRememberMeForMfa(form.getValues('rememberMe'))
+      setMfaVerifyOpen(true)
+    },
+    onMfaSetupRequired: (response: AuthResponse) => {
+      setSetupToken(response.setupToken)
+      setMfaSetupOpen(true)
+    },
+  })
 
   const loginSchema = useMemo(() => createLoginSchema(t), [t])
 
@@ -25,11 +55,32 @@ export function LoginForm() {
     defaultValues: {
       email: '',
       password: '',
+      rememberMe: false,
     },
   })
 
   const onSubmit = (data: LoginFormData) => {
-    login(data)
+    const deviceInfo = getDeviceInfo()
+    login({
+      ...data,
+      ...deviceInfo,
+    })
+  }
+
+  const handleMfaSetupSuccess = (response: MfaConfirmResponse) => {
+    setBackupCodes(response.backupCodes)
+    setPendingAuthResponse(response)
+    setMfaSetupOpen(false)
+    setMfaConfirmOpen(true)
+  }
+
+  const handleMfaConfirmContinue = () => {
+    // If we have auth data from setupToken flow, complete the login
+    if (pendingAuthResponse?.accessToken) {
+      localStorage.setItem(AUTH_SESSION_KEY, 'true')
+      navigate({ to: '/dashboard' })
+    }
+    setMfaConfirmOpen(false)
   }
 
   return (
@@ -70,6 +121,22 @@ export function LoginForm() {
         )}
       </div>
 
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="rememberMe"
+          checked={form.watch('rememberMe')}
+          onCheckedChange={(checked) =>
+            form.setValue('rememberMe', checked === true)
+          }
+        />
+        <Label
+          htmlFor="rememberMe"
+          className="text-sm font-normal cursor-pointer"
+        >
+          {t('auth:login.rememberMe')}
+        </Label>
+      </div>
+
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? (
           <>
@@ -87,6 +154,31 @@ export function LoginForm() {
           {t('auth:login.register')}
         </Link>
       </p>
+
+      {/* MFA Verify Modal - shown when user has MFA enabled */}
+      <MfaVerifyModal
+        open={mfaVerifyOpen}
+        onOpenChange={setMfaVerifyOpen}
+        mfaToken={mfaToken || ''}
+        rememberMe={rememberMeForMfa}
+      />
+
+      {/* MFA Setup Modal - shown when MFA is required but not set up */}
+      <MfaSetupModal
+        open={mfaSetupOpen}
+        onOpenChange={setMfaSetupOpen}
+        onSuccess={handleMfaSetupSuccess}
+        setupToken={setupToken || undefined}
+        required
+      />
+
+      {/* MFA Confirm Modal - shows backup codes after setup */}
+      <MfaConfirmModal
+        open={mfaConfirmOpen}
+        onOpenChange={setMfaConfirmOpen}
+        backupCodes={backupCodes}
+        onContinue={handleMfaConfirmContinue}
+      />
     </form>
   )
 }

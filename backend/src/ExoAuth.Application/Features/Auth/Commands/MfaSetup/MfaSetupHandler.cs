@@ -34,8 +34,27 @@ public sealed class MfaSetupHandler : ICommandHandler<MfaSetupCommand, MfaSetupR
 
     public async ValueTask<MfaSetupResponse> Handle(MfaSetupCommand command, CancellationToken ct)
     {
-        var userId = _currentUser.UserId
-            ?? throw new UnauthorizedException();
+        // Dual-mode authentication:
+        // 1. JWT auth: User already logged in (from settings page)
+        // 2. SetupToken: Forced MFA setup during login flow
+        Guid userId;
+
+        if (_currentUser.UserId.HasValue)
+        {
+            // Case 1: Already authenticated via JWT
+            userId = _currentUser.UserId.Value;
+        }
+        else if (!string.IsNullOrEmpty(command.SetupToken))
+        {
+            // Case 2: Forced setup during login (using setupToken)
+            var tokenData = _mfaService.ValidateMfaToken(command.SetupToken)
+                ?? throw new MfaTokenInvalidException();
+            userId = tokenData.userId;
+        }
+        else
+        {
+            throw new UnauthorizedException();
+        }
 
         var user = await _context.SystemUsers
             .FirstOrDefaultAsync(u => u.Id == userId, ct)

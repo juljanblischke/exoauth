@@ -6,6 +6,7 @@ using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Infrastructure;
 using ExoAuth.Infrastructure.Persistence;
 using ExoAuth.Infrastructure.Persistence.Seeders;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -22,7 +23,11 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // Add Data Protection for MFA secret encryption
-builder.Services.AddDataProtection();
+// Keys are persisted to a directory so they survive container restarts
+var keysDirectory = builder.Configuration["DataProtection:KeysPath"] ?? "/app/data/keys";
+builder.Services.AddDataProtection()
+    .SetApplicationName("ExoAuth")
+    .PersistKeysToFileSystem(new DirectoryInfo(keysDirectory));
 
 // Add layers
 builder.Services.AddApplication();

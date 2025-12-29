@@ -11,10 +11,18 @@ public sealed record MfaSetupResponse(
 
 /// <summary>
 /// Response after confirming MFA setup.
+/// When completing forced MFA setup (registration/login flow), includes auth tokens.
+/// When enabling MFA from settings (already authenticated), only includes backup codes.
 /// </summary>
 public sealed record MfaConfirmResponse(
     bool Success,
-    List<string> BackupCodes
+    List<string> BackupCodes,
+    // Auth fields - only populated for forced setup flow (registration/login)
+    UserDto? User = null,
+    string? AccessToken = null,
+    string? RefreshToken = null,
+    Guid? SessionId = null,
+    string? DeviceId = null
 );
 
 /// <summary>

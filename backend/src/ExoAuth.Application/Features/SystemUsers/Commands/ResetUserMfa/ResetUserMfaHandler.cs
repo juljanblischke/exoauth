@@ -86,14 +86,22 @@ public sealed class ResetUserMfaHandler : ICommandHandler<ResetUserMfaCommand, R
         );
 
         // Send notification email to user
+        var subject = user.PreferredLanguage.StartsWith("de")
+            ? "Ihre Zwei-Faktor-Authentifizierung wurde zurückgesetzt"
+            : "Your Two-Factor Authentication Has Been Reset";
+
+        var defaultReason = user.PreferredLanguage.StartsWith("de")
+            ? "Ein Administrator hat Ihre MFA zurückgesetzt."
+            : "An administrator reset your MFA.";
+
         await _emailService.SendAsync(
             user.Email,
-            "Your Two-Factor Authentication Has Been Reset",
+            subject,
             "mfa-reset-admin",
             new Dictionary<string, string>
             {
                 ["firstName"] = user.FirstName,
-                ["reason"] = command.Reason ?? "An administrator reset your MFA."
+                ["reason"] = command.Reason ?? defaultReason
             },
             user.PreferredLanguage,
             ct

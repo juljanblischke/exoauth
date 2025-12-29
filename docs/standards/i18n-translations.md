@@ -15,6 +15,9 @@ frontend/src/i18n/
     │   ├── navigation.json     # Navigation & menus
     │   ├── users.json          # User management
     │   ├── auditLogs.json      # Audit logs
+    │   ├── settings.json       # Settings page
+    │   ├── mfa.json            # Two-factor authentication
+    │   ├── sessions.json       # Device sessions
     │   ├── errors.json         # Error messages
     │   └── validation.json     # Form validation
     └── de/
@@ -23,6 +26,9 @@ frontend/src/i18n/
         ├── navigation.json
         ├── users.json
         ├── auditLogs.json
+        ├── settings.json
+        ├── mfa.json
+        ├── sessions.json
         ├── errors.json
         └── validation.json
 ```
@@ -370,6 +376,100 @@ frontend/src/i18n/
 
 ---
 
+### settings.json
+
+| Key | EN | DE |
+|-----|----|----|
+| `title` | Settings | Einstellungen |
+| `description` | Manage your account settings and preferences | Verwalten Sie Ihre Kontoeinstellungen und Präferenzen |
+| `tabs.security` | Security | Sicherheit |
+| `tabs.language` | Language | Sprache |
+| `security.title` | Security Settings | Sicherheitseinstellungen |
+| `security.description` | Manage your account security, two-factor authentication, and active sessions | Verwalten Sie Ihre Kontosicherheit, Zwei-Faktor-Authentifizierung und aktive Sitzungen |
+| `language.title` | Language Preference | Spracheinstellung |
+| `language.description` | Choose your preferred language for the interface and emails | Wählen Sie Ihre bevorzugte Sprache für die Benutzeroberfläche und E-Mails |
+| `language.select` | Select language | Sprache auswählen |
+| `language.current` | Current language | Aktuelle Sprache |
+| `language.saved` | Language preference saved | Spracheinstellung gespeichert |
+
+---
+
+### mfa.json
+
+| Key | EN | DE |
+|-----|----|----|
+| `title` | Two-Factor Authentication | Zwei-Faktor-Authentifizierung |
+| `description` | Add an extra layer of security to your account | Schuetzen Sie Ihr Konto mit einer zusaetzlichen Sicherheitsebene |
+| `status.enabled` | Enabled | Aktiviert |
+| `status.disabled` | Disabled | Deaktiviert |
+| `enable.button` | Enable 2FA | 2FA aktivieren |
+| `enable.description` | Protect your account with two-factor authentication | Schuetzen Sie Ihr Konto mit Zwei-Faktor-Authentifizierung |
+| `setup.title` | Set Up Two-Factor Authentication | Zwei-Faktor-Authentifizierung einrichten |
+| `setup.description` | Use an authenticator app to generate verification codes | Verwenden Sie eine Authenticator-App, um Verifizierungscodes zu generieren |
+| `setup.step1.title` | Step 1: Install an Authenticator App | Schritt 1: Authenticator-App installieren |
+| `setup.step2.title` | Step 2: Scan QR Code | Schritt 2: QR-Code scannen |
+| `setup.step3.title` | Step 3: Verify | Schritt 3: Verifizieren |
+| `setup.manualEntry.title` | Can't scan? | Scannen nicht moeglich? |
+| `setup.manualEntry.button` | Enter code manually | Code manuell eingeben |
+| `setup.cancel` | Cancel Setup | Einrichtung abbrechen |
+| `confirm.title` | Save Your Backup Codes | Backup-Codes speichern |
+| `confirm.description` | These codes can be used to access your account if you lose your authenticator device | Diese Codes koennen verwendet werden, um auf Ihr Konto zuzugreifen, wenn Sie Ihr Authenticator-Geraet verlieren |
+| `confirm.warning` | Store these codes in a safe place. You won't be able to see them again! | Bewahren Sie diese Codes an einem sicheren Ort auf. Sie werden sie nicht erneut sehen koennen! |
+| `confirm.downloadButton` | Download Codes | Codes herunterladen |
+| `confirm.copyButton` | Copy Codes | Codes kopieren |
+| `confirm.continueButton` | I've saved my codes | Ich habe meine Codes gespeichert |
+| `verify.title` | Two-Factor Authentication | Zwei-Faktor-Authentifizierung |
+| `verify.description` | Enter the 6-digit code from your authenticator app | Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein |
+| `verify.button` | Verify | Verifizieren |
+| `verify.useBackupCode` | Use a backup code instead | Stattdessen einen Backup-Code verwenden |
+| `disable.title` | Disable Two-Factor Authentication | Zwei-Faktor-Authentifizierung deaktivieren |
+| `disable.description` | This will make your account less secure. Are you sure? | Dies macht Ihr Konto weniger sicher. Sind Sie sicher? |
+| `disable.button` | Disable 2FA | 2FA deaktivieren |
+| `disable.success` | Two-factor authentication disabled | Zwei-Faktor-Authentifizierung deaktiviert |
+| `backupCodes.title` | Backup Codes | Backup-Codes |
+| `backupCodes.regenerate` | Regenerate Codes | Codes neu generieren |
+| `errors.codeInvalid` | Invalid verification code. Please try again. | Ungueltiger Verifizierungscode. Bitte versuchen Sie es erneut. |
+| `errors.tokenInvalid` | Invalid or expired authentication token. Please log in again. | Ungueltiges oder abgelaufenes Authentifizierungstoken. Bitte erneut anmelden. |
+| `errors.tokenExpired` | Authentication token has expired. Please log in again. | Authentifizierungstoken abgelaufen. Bitte erneut anmelden. |
+| `errors.setupFailed` | Failed to start 2FA setup. Please try again. | 2FA-Einrichtung fehlgeschlagen. Bitte versuchen Sie es erneut. |
+
+---
+
+### sessions.json
+
+| Key | EN | DE |
+|-----|----|----|
+| `title` | Active Sessions | Aktive Sitzungen |
+| `description` | Manage your active sessions across devices | Verwalten Sie Ihre aktiven Sitzungen auf verschiedenen Geraeten |
+| `current` | Current Session | Aktuelle Sitzung |
+| `trusted` | Trusted | Vertrauenswuerdig |
+| `lastActive` | Last active | Zuletzt aktiv |
+| `location` | Location | Standort |
+| `created` | Created | Erstellt |
+| `empty` | No other active sessions | Keine weiteren aktiven Sitzungen |
+| `loading` | Loading sessions... | Sitzungen werden geladen... |
+| `revoke.button` | Log Out | Abmelden |
+| `revoke.title` | Log Out Device | Geraet abmelden |
+| `revoke.description` | This will end the session on this device... | Dies beendet die Sitzung auf diesem Geraet... |
+| `revoke.success` | Session ended successfully | Sitzung erfolgreich beendet |
+| `revokeAll.button` | Log Out All Other Devices | Alle anderen Geraete abmelden |
+| `revokeAll.title` | Log Out All Other Devices | Alle anderen Geraete abmelden |
+| `revokeAll.description` | This will end all sessions except your current one... | Dies beendet alle Sitzungen ausser Ihrer aktuellen... |
+| `revokeAll.success` | Successfully logged out {{count}} session(s) | {{count}} Sitzung(en) erfolgreich abgemeldet |
+| `trust.button` | Trust Device | Geraet vertrauen |
+| `trust.title` | Trust This Device | Diesem Geraet vertrauen |
+| `trust.description` | Trusted devices may have reduced security checks | Vertrauenswuerdige Geraete haben moeglicherweise reduzierte Sicherheitspruefungen |
+| `trust.success` | Device marked as trusted | Geraet als vertrauenswuerdig markiert |
+| `rename.button` | Rename | Umbenennen |
+| `rename.title` | Rename Session | Sitzung umbenennen |
+| `rename.placeholder` | Enter a name for this session | Geben Sie einen Namen fuer diese Sitzung ein |
+| `rename.success` | Session renamed successfully | Sitzung erfolgreich umbenannt |
+| `errors.loadFailed` | Failed to load sessions | Sitzungen konnten nicht geladen werden |
+| `errors.revokeFailed` | Failed to end session | Sitzung konnte nicht beendet werden |
+| `errors.cannotRevokeCurrent` | Cannot end your current session | Die aktuelle Sitzung kann nicht beendet werden |
+
+---
+
 ### errors.json
 
 #### Error Codes (Backend API Errors)
@@ -485,4 +585,4 @@ function MyComponent() {
 
 ---
 
-**Last Updated:** 2025-12-28
+**Last Updated:** 2025-12-29

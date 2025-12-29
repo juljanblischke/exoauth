@@ -18,6 +18,7 @@ public sealed class RegisterHandlerTests
     private readonly Mock<IPasswordHasher> _mockPasswordHasher;
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<IDeviceSessionService> _mockDeviceSessionService;
+    private readonly Mock<IMfaService> _mockMfaService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly RegisterHandler _handler;
 
@@ -28,6 +29,7 @@ public sealed class RegisterHandlerTests
         _mockPasswordHasher = new Mock<IPasswordHasher>();
         _mockTokenService = new Mock<ITokenService>();
         _mockDeviceSessionService = new Mock<IDeviceSessionService>();
+        _mockMfaService = new Mock<IMfaService>();
         _mockAuditService = new Mock<IAuditService>();
 
         // Default token service setup
@@ -45,12 +47,17 @@ public sealed class RegisterHandlerTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((mockSession, false, false));
 
+        // Default MFA service setup
+        _mockMfaService.Setup(x => x.GenerateMfaToken(It.IsAny<Guid>(), It.IsAny<Guid?>()))
+            .Returns("test-setup-token");
+
         _handler = new RegisterHandler(
             _mockContext.Object,
             _mockUserRepository.Object,
             _mockPasswordHasher.Object,
             _mockTokenService.Object,
             _mockDeviceSessionService.Object,
+            _mockMfaService.Object,
             _mockAuditService.Object);
     }
 
@@ -80,28 +87,16 @@ public sealed class RegisterHandlerTests
         var permissionsDbSet = MockDbContext.CreateMockDbSet(permissions);
         _mockContext.Setup(x => x.SystemPermissions).Returns(permissionsDbSet.Object);
 
-        _mockTokenService.Setup(x => x.GenerateAccessToken(
-                It.IsAny<Guid>(),
-                It.IsAny<string>(),
-                It.IsAny<UserType>(),
-                It.IsAny<IEnumerable<string>>(),
-                It.IsAny<Guid?>()))
-            .Returns("access-token");
-        _mockTokenService.Setup(x => x.GenerateRefreshToken())
-            .Returns("refresh-token");
-
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
+        // Assert - First user requires MFA setup before getting access
         result.Should().NotBeNull();
-        result.AccessToken.Should().Be("access-token");
-        result.RefreshToken.Should().Be("refresh-token");
-        result.User.Email.Should().Be("admin@example.com");
-        result.User.FirstName.Should().Be("Admin");
-        result.User.LastName.Should().Be("User");
-        result.User.EmailVerified.Should().BeTrue(); // First user is auto-verified
-        result.User.Permissions.Should().HaveCount(SystemPermissions.AllNames.Count);
+        result.MfaSetupRequired.Should().BeTrue();
+        result.SetupToken.Should().Be("test-setup-token");
+        result.AccessToken.Should().BeNull(); // No tokens until MFA setup complete
+        result.RefreshToken.Should().BeNull();
+        result.User.Should().BeNull();
 
         // Verify all permissions were assigned
         _mockUserRepository.Verify(x => x.SetUserPermissionsAsync(
@@ -110,7 +105,7 @@ public sealed class RegisterHandlerTests
             null,
             It.IsAny<CancellationToken>()), Times.Once);
 
-        // Verify audit log
+        // Verify audit log for registration
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.UserRegistered,
             It.IsAny<Guid?>(),
@@ -119,6 +114,21 @@ public sealed class RegisterHandlerTests
             It.IsAny<Guid?>(),
             It.IsAny<object?>(),
             It.IsAny<CancellationToken>()), Times.Once);
+
+        // Verify MFA setup required audit log
+        _mockAuditService.Verify(x => x.LogAsync(
+            AuditActions.MfaSetupRequiredSent,
+            It.IsAny<Guid?>(),
+            It.IsAny<Guid?>(),
+            "SystemUser",
+            It.IsAny<Guid?>(),
+            It.IsAny<object?>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+
+        // Verify MFA token was generated
+        _mockMfaService.Verify(x => x.GenerateMfaToken(
+            It.IsAny<Guid>(),
+            null), Times.Once);
     }
 
     [Fact]
@@ -190,16 +200,6 @@ public sealed class RegisterHandlerTests
         var permissionsDbSet = MockDbContext.CreateMockDbSet(permissions);
         _mockContext.Setup(x => x.SystemPermissions).Returns(permissionsDbSet.Object);
 
-        _mockTokenService.Setup(x => x.GenerateAccessToken(
-                It.IsAny<Guid>(),
-                It.IsAny<string>(),
-                It.IsAny<UserType>(),
-                It.IsAny<IEnumerable<string>>(),
-                It.IsAny<Guid?>()))
-            .Returns("access-token");
-        _mockTokenService.Setup(x => x.GenerateRefreshToken())
-            .Returns("refresh-token");
-
         // Act
         await _handler.Handle(command, CancellationToken.None);
 
@@ -211,7 +211,7 @@ public sealed class RegisterHandlerTests
     }
 
     [Fact]
-    public async Task Handle_SavesRefreshTokenToDatabase()
+    public async Task Handle_DoesNotCreateSessionOrTokensBeforeMfaSetup()
     {
         // Arrange
         var command = new RegisterCommand(
@@ -234,69 +234,28 @@ public sealed class RegisterHandlerTests
 
         var permissionsDbSet = MockDbContext.CreateMockDbSet(permissions);
         _mockContext.Setup(x => x.SystemPermissions).Returns(permissionsDbSet.Object);
-
-        _mockTokenService.Setup(x => x.GenerateAccessToken(
-                It.IsAny<Guid>(),
-                It.IsAny<string>(),
-                It.IsAny<UserType>(),
-                It.IsAny<IEnumerable<string>>(),
-                It.IsAny<Guid?>()))
-            .Returns("access-token");
-        _mockTokenService.Setup(x => x.GenerateRefreshToken())
-            .Returns("refresh-token");
-
-        // Act
-        await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        _mockContext.Verify(x => x.RefreshTokens.AddAsync(
-            It.IsAny<RefreshToken>(),
-            It.IsAny<CancellationToken>()), Times.Once);
-        _mockContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_RecordsLoginAfterRegistration()
-    {
-        // Arrange
-        var command = new RegisterCommand(
-            Email: "admin@example.com",
-            Password: "Password123!",
-            FirstName: "Admin",
-            LastName: "User");
-
-        var permissions = SystemPermissions.All.Select(p =>
-            SystemPermission.Create(p.Name, p.Description, p.Category)).ToList();
-
-        _mockUserRepository.Setup(x => x.AnyExistsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-        _mockUserRepository.Setup(x => x.EmailExistsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-        _mockPasswordHasher.Setup(x => x.Hash(It.IsAny<string>()))
-            .Returns("hashed-password");
-        _mockUserRepository.Setup(x => x.AddAsync(It.IsAny<SystemUser>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((SystemUser user, CancellationToken _) => user);
-
-        var permissionsDbSet = MockDbContext.CreateMockDbSet(permissions);
-        _mockContext.Setup(x => x.SystemPermissions).Returns(permissionsDbSet.Object);
-
-        _mockTokenService.Setup(x => x.GenerateAccessToken(
-                It.IsAny<Guid>(),
-                It.IsAny<string>(),
-                It.IsAny<UserType>(),
-                It.IsAny<IEnumerable<string>>(),
-                It.IsAny<Guid?>()))
-            .Returns("access-token");
-        _mockTokenService.Setup(x => x.GenerateRefreshToken())
-            .Returns("refresh-token");
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert - LastLoginAt should be set
-        _mockUserRepository.Verify(x => x.UpdateAsync(
-            It.Is<SystemUser>(u => u.LastLoginAt.HasValue),
-            It.IsAny<CancellationToken>()), Times.Once);
+        // Assert - No tokens or session until MFA setup completes
+        result.MfaSetupRequired.Should().BeTrue();
+        _mockDeviceSessionService.Verify(x => x.CreateOrUpdateSessionAsync(
+            It.IsAny<Guid>(),
+            It.IsAny<string>(),
+            It.IsAny<string?>(),
+            It.IsAny<string?>(),
+            It.IsAny<string?>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+        _mockTokenService.Verify(x => x.GenerateAccessToken(
+            It.IsAny<Guid>(),
+            It.IsAny<string>(),
+            It.IsAny<UserType>(),
+            It.IsAny<IEnumerable<string>>(),
+            It.IsAny<Guid?>()), Times.Never);
+        _mockContext.Verify(x => x.RefreshTokens.AddAsync(
+            It.IsAny<RefreshToken>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -324,21 +283,10 @@ public sealed class RegisterHandlerTests
         var permissionsDbSet = MockDbContext.CreateMockDbSet(permissions);
         _mockContext.Setup(x => x.SystemPermissions).Returns(permissionsDbSet.Object);
 
-        _mockTokenService.Setup(x => x.GenerateAccessToken(
-                It.IsAny<Guid>(),
-                It.IsAny<string>(),
-                It.IsAny<UserType>(),
-                It.IsAny<IEnumerable<string>>(),
-                It.IsAny<Guid?>()))
-            .Returns("access-token");
-        _mockTokenService.Setup(x => x.GenerateRefreshToken())
-            .Returns("refresh-token");
-
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
-        result.User.Email.Should().Be("admin@example.com"); // lowercase
+        // Assert - User is created with lowercase email
         _mockUserRepository.Verify(x => x.AddAsync(
             It.Is<SystemUser>(u => u.Email == "admin@example.com"),
             It.IsAny<CancellationToken>()), Times.Once);

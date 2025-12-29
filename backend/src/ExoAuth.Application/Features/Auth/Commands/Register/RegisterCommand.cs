@@ -16,5 +16,5 @@ public sealed record RegisterCommand(
     string? DeviceFingerprint = null,
     string? UserAgent = null,
     string? IpAddress = null,
-    string Language = "en"
+    string Language = "en-US"
 ) : ICommand<AuthResponse>;

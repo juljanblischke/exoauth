@@ -10,7 +10,7 @@ public sealed class SystemInvite : BaseEntity
     public string LastName { get; private set; } = null!;
     public string TokenHash { get; private set; } = null!;
     public JsonDocument PermissionIds { get; private set; } = null!;
-    public string Language { get; private set; } = "en";
+    public string Language { get; private set; } = "en-US";
     public DateTime ExpiresAt { get; private set; }
     public DateTime? AcceptedAt { get; private set; }
     public DateTime? RevokedAt { get; private set; }
@@ -29,7 +29,7 @@ public sealed class SystemInvite : BaseEntity
         List<Guid> permissionIds,
         Guid invitedBy,
         string tokenHash,
-        string language = "en",
+        string language = "en-US",
         int expirationHours = 24)
     {
         return new SystemInvite

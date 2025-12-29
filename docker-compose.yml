@@ -17,6 +17,8 @@ services:
       # GeoIP data volume (optional, for development)
       # Download GeoLite2-City.mmdb from MaxMind and place in ./data/geoip/
       - ./data/geoip:/app/data/geoip:ro
+      # Data Protection keys - CRITICAL: persist these or MFA secrets become unreadable after restart!
+      - dataprotection-keys:/app/data/keys
     depends_on:
       postgres:
         condition: service_healthy
@@ -136,6 +138,7 @@ volumes:
   pgadmin-data:
   redis-data:
   rabbitmq-data:
+  dataprotection-keys:
 
 networks:
   exoauth-network:

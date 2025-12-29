@@ -12,14 +12,14 @@ public interface IEmailService
     /// <param name="subject">The email subject.</param>
     /// <param name="templateName">The name of the email template.</param>
     /// <param name="variables">Variables to replace in the template.</param>
-    /// <param name="language">The language for the template (default: "en").</param>
+    /// <param name="language">The language for the template (default: "en-US").</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task SendAsync(
         string to,
         string subject,
         string templateName,
         Dictionary<string, string> variables,
-        string language = "en",
+        string language = "en-US",
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -29,14 +29,14 @@ public interface IEmailService
     /// <param name="firstName">The recipient's first name.</param>
     /// <param name="inviterName">The name of the person sending the invite.</param>
     /// <param name="inviteToken">The invitation token.</param>
-    /// <param name="language">The language for the template (default: "en").</param>
+    /// <param name="language">The language for the template (default: "en-US").</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task SendSystemInviteAsync(
         string email,
         string firstName,
         string inviterName,
         string inviteToken,
-        string language = "en",
+        string language = "en-US",
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -46,14 +46,14 @@ public interface IEmailService
     /// <param name="firstName">The recipient's first name.</param>
     /// <param name="resetToken">The URL token for reset link.</param>
     /// <param name="resetCode">The XXXX-XXXX code for manual entry.</param>
-    /// <param name="language">The language for the template (default: "en").</param>
+    /// <param name="language">The language for the template (default: "en-US").</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task SendPasswordResetAsync(
         string email,
         string firstName,
         string resetToken,
         string resetCode,
-        string language = "en",
+        string language = "en-US",
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -61,11 +61,11 @@ public interface IEmailService
     /// </summary>
     /// <param name="email">The recipient email address.</param>
     /// <param name="firstName">The recipient's first name.</param>
-    /// <param name="language">The language for the template (default: "en").</param>
+    /// <param name="language">The language for the template (default: "en-US").</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task SendPasswordChangedAsync(
         string email,
         string firstName,
-        string language = "en",
+        string language = "en-US",
         CancellationToken cancellationToken = default);
 }

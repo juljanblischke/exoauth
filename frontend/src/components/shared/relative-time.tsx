@@ -12,8 +12,8 @@ interface RelativeTimeProps {
 }
 
 const locales: Record<string, Locale> = {
-  en: enUS,
-  de: de,
+  'en-US': enUS,
+  'de-DE': de,
 }
 
 export function RelativeTime({

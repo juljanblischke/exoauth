@@ -7,6 +7,8 @@ export interface User {
   fullName: string
   isActive: boolean
   emailVerified: boolean
+  mfaEnabled: boolean
+  preferredLanguage: string
   lastLoginAt: string | null
   createdAt: string
   permissions: string[]
@@ -23,37 +25,65 @@ export interface AuthState {
 
 // Auth Responses
 export interface AuthResponse {
-  user: User
-  accessToken: string
-  refreshToken: string
+  user: User | null
+  accessToken: string | null
+  refreshToken: string | null
+  sessionId: string | null
+  deviceId: string | null
+  isNewDevice: boolean
+  isNewLocation: boolean
+  mfaRequired: boolean
+  mfaToken: string | null
+  mfaSetupRequired: boolean
+  setupToken: string | null
 }
 
 export interface TokenResponse {
   accessToken: string
   refreshToken: string
+  sessionId: string | null
 }
 
 export interface LogoutResponse {
   success: boolean
 }
 
-// Auth Requests
-export interface LoginRequest {
-  email: string
-  password: string
+export interface ForgotPasswordResponse {
+  success: boolean
+  message: string
 }
 
-export interface RegisterRequest {
+export interface ResetPasswordResponse {
+  success: boolean
+  message: string
+}
+
+// Device info for auth requests
+export interface DeviceInfo {
+  deviceId: string | null
+  deviceFingerprint: string | null
+}
+
+// Auth Requests
+export interface LoginRequest extends DeviceInfo {
+  email: string
+  password: string
+  rememberMe: boolean
+}
+
+export interface RegisterRequest extends DeviceInfo {
   email: string
   password: string
   firstName: string
   lastName: string
   organizationName?: string
+  language?: string
 }
 
-export interface AcceptInviteRequest {
+export interface AcceptInviteRequest extends DeviceInfo {
   token: string
   password: string
+  language: string
 }
 
 export interface RefreshTokenRequest {
@@ -65,13 +95,16 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  token: string
-  password: string
+  token?: string
+  email?: string
+  code?: string
+  newPassword: string
 }
 
-export interface MfaVerifyRequest {
+export interface MfaVerifyRequest extends DeviceInfo {
+  mfaToken: string
   code: string
-  backupCode?: boolean
+  rememberMe: boolean
 }
 
 export interface SessionInfo {

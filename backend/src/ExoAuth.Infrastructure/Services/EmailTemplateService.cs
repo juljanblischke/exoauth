@@ -14,14 +14,14 @@ public sealed class EmailTemplateService : IEmailTemplateService
         _templatesBasePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "templates", "emails");
     }
 
-    public string Render(string templateName, Dictionary<string, string> variables, string language = "en")
+    public string Render(string templateName, Dictionary<string, string> variables, string language = "en-US")
     {
         var templatePath = GetTemplatePath(templateName, language);
 
         if (!File.Exists(templatePath))
         {
             _logger.LogWarning("Email template not found: {TemplatePath}, falling back to English", templatePath);
-            templatePath = GetTemplatePath(templateName, "en");
+            templatePath = GetTemplatePath(templateName, "en-US");
         }
 
         if (!File.Exists(templatePath))

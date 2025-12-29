@@ -1,23 +1,31 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { authApi } from '../api/auth-api'
-import type { RegisterRequest } from '../types'
+import type { RegisterRequest, AuthResponse } from '../types'
 
 const AUTH_QUERY_KEY = ['auth', 'me'] as const
 const AUTH_SESSION_KEY = 'exoauth_has_session'
 
-export function useRegister() {
+export interface UseRegisterOptions {
+  onMfaSetupRequired?: (response: AuthResponse) => void
+}
+
+export function useRegister(options?: UseRegisterOptions) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
   return useMutation({
     mutationFn: (data: RegisterRequest) => authApi.register(data),
     onSuccess: (response) => {
-      // Set session flag for page refresh detection
+      // Check if MFA setup is required (first user with system permissions)
+      if (response.mfaSetupRequired && response.setupToken) {
+        options?.onMfaSetupRequired?.(response)
+        return
+      }
+
+      // Normal register success - set session and navigate
       localStorage.setItem(AUTH_SESSION_KEY, 'true')
-      // Update the auth cache with the user data
       queryClient.setQueryData(AUTH_QUERY_KEY, response.user)
-      // Navigate to dashboard
       navigate({ to: '/dashboard' })
     },
   })

@@ -1,0 +1,40 @@
+{
+  "title": "Aktive Sitzungen",
+  "description": "Verwalten Sie Ihre aktiven Sitzungen auf verschiedenen Geraeten",
+  "current": "Aktuelle Sitzung",
+  "trusted": "Vertrauenswuerdig",
+  "lastActive": "Zuletzt aktiv",
+  "location": "Standort",
+  "created": "Erstellt",
+  "empty": "Keine weiteren aktiven Sitzungen",
+  "loading": "Sitzungen werden geladen...",
+  "revoke": {
+    "button": "Abmelden",
+    "title": "Geraet abmelden",
+    "description": "Dies beendet die Sitzung auf diesem Geraet. Der Benutzer muss sich erneut anmelden.",
+    "success": "Sitzung erfolgreich beendet"
+  },
+  "revokeAll": {
+    "button": "Alle anderen Geraete abmelden",
+    "title": "Alle anderen Geraete abmelden",
+    "description": "Dies beendet alle Sitzungen ausser Ihrer aktuellen. Sie bleiben auf diesem Geraet angemeldet.",
+    "success": "{{count}} Sitzung(en) erfolgreich abgemeldet"
+  },
+  "trust": {
+    "button": "Geraet vertrauen",
+    "title": "Diesem Geraet vertrauen",
+    "description": "Vertrauenswuerdige Geraete haben moeglicherweise reduzierte Sicherheitspruefungen",
+    "success": "Geraet als vertrauenswuerdig markiert"
+  },
+  "rename": {
+    "button": "Umbenennen",
+    "title": "Sitzung umbenennen",
+    "placeholder": "Geben Sie einen Namen fuer diese Sitzung ein",
+    "success": "Sitzung erfolgreich umbenannt"
+  },
+  "errors": {
+    "loadFailed": "Sitzungen konnten nicht geladen werden",
+    "revokeFailed": "Sitzung konnte nicht beendet werden",
+    "cannotRevokeCurrent": "Die aktuelle Sitzung kann nicht beendet werden"
+  }
+}

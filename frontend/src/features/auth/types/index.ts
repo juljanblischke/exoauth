@@ -6,10 +6,16 @@ export type {
   AuthResponse,
   TokenResponse,
   LogoutResponse,
+  ForgotPasswordResponse,
+  ResetPasswordResponse,
+  DeviceInfo,
   LoginRequest,
   RegisterRequest,
   AcceptInviteRequest,
   RefreshTokenRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  MfaVerifyRequest,
   SessionInfo,
 } from '@/types/auth'
 
@@ -31,6 +37,7 @@ export const createLoginSchema = (t: TFunction) =>
   z.object({
     email: z.string().email(t('validation:email')),
     password: z.string().min(1, t('validation:required')),
+    rememberMe: z.boolean().default(false),
   })
 
 export const createRegisterSchema = (t: TFunction) =>
@@ -57,6 +64,7 @@ export const createAcceptInviteSchema = (t: TFunction) =>
 export interface LoginFormData {
   email: string
   password: string
+  rememberMe: boolean
 }
 
 export interface RegisterFormData {
@@ -93,3 +101,22 @@ export interface InviteValidationDto {
   errorCode: string | null
   errorMessage: string | null
 }
+
+// Re-export session types
+export type {
+  DeviceSessionDto,
+  UpdateSessionRequest,
+  RevokeSessionResponse,
+  RevokeAllSessionsResponse,
+} from './sessions'
+
+// Re-export MFA types
+export type {
+  MfaSetupResponse,
+  MfaConfirmRequest,
+  MfaConfirmResponse,
+  MfaDisableRequest,
+  MfaDisableResponse,
+  RegenerateBackupCodesRequest,
+  RegenerateBackupCodesResponse,
+} from './mfa'

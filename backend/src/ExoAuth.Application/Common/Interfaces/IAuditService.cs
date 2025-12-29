@@ -90,6 +90,7 @@ public static class AuditActions
     public const string MfaChallengeSent = "system.mfa.challenge_sent";
     public const string MfaSetupRequiredSent = "system.mfa.setup_required_sent";
     public const string MfaSetupStarted = "system.mfa.setup_started";
+    public const string MfaSetupCompleted = "system.mfa.setup_completed";
     public const string MfaEnabled = "system.mfa.enabled";
     public const string MfaDisabled = "system.mfa.disabled";
     public const string MfaVerified = "system.mfa.verified";

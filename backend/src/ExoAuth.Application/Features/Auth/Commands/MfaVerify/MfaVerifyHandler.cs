@@ -4,6 +4,7 @@ using ExoAuth.Application.Features.Auth.Models;
 using ExoAuth.Domain.Enums;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ExoAuth.Application.Features.Auth.Commands.MfaVerify;
 
@@ -20,6 +21,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
     private readonly IForceReauthService _forceReauthService;
     private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
 
     public MfaVerifyHandler(
         IAppDbContext context,
@@ -32,7 +34,8 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         IPermissionCacheService permissionCache,
         IForceReauthService forceReauthService,
         IAuditService auditService,
-        IEmailService emailService)
+        IEmailService emailService,
+        IConfiguration configuration)
     {
         _context = context;
         _userRepository = userRepository;
@@ -45,6 +48,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         _forceReauthService = forceReauthService;
         _auditService = auditService;
         _emailService = emailService;
+        _configuration = configuration;
     }
 
     public async ValueTask<AuthResponse> Handle(MfaVerifyCommand command, CancellationToken ct)
@@ -121,9 +125,13 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
                     );
 
                     // Send notification email
+                    var backupCodeSubject = user.PreferredLanguage.StartsWith("de")
+                        ? "Backup-Code verwendet"
+                        : "Backup Code Used";
+
                     await _emailService.SendAsync(
                         user.Email,
-                        "Backup Code Used",
+                        backupCodeSubject,
                         "mfa-backup-code-used",
                         new Dictionary<string, string>
                         {
@@ -207,6 +215,41 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
             ct
         );
 
+        // Log new device/location events and send notification emails
+        if (isNewDevice)
+        {
+            await _auditService.LogWithContextAsync(
+                AuditActions.LoginNewDevice,
+                userId,
+                null,
+                "DeviceSession",
+                deviceSession.Id,
+                new { DeviceId = deviceId, Browser = deviceSession.Browser, Os = deviceSession.OperatingSystem },
+                ct
+            );
+
+            await SendNewDeviceEmailAsync(user, deviceSession, ct);
+        }
+
+        if (isNewLocation)
+        {
+            await _auditService.LogWithContextAsync(
+                AuditActions.LoginNewLocation,
+                userId,
+                null,
+                "DeviceSession",
+                deviceSession.Id,
+                new { Country = deviceSession.Country, City = deviceSession.City },
+                ct
+            );
+
+            // Send new location notification email (only if not already sent new device email)
+            if (!isNewDevice)
+            {
+                await SendNewLocationEmailAsync(user, deviceSession, ct);
+            }
+        }
+
         return new AuthResponse(
             User: new UserDto(
                 Id: user.Id,
@@ -228,6 +271,86 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
             DeviceId: deviceId,
             IsNewDevice: isNewDevice,
             IsNewLocation: isNewLocation
+        );
+    }
+
+    private async Task SendNewDeviceEmailAsync(
+        Domain.Entities.SystemUser user,
+        Domain.Entities.DeviceSession deviceSession,
+        CancellationToken ct)
+    {
+        var baseUrl = _configuration["SystemInvite:BaseUrl"] ?? "http://localhost:5173";
+        var deviceName = !string.IsNullOrEmpty(deviceSession.OperatingSystem)
+            ? $"{deviceSession.OperatingSystem}"
+            : "Unknown Device";
+        var location = !string.IsNullOrEmpty(deviceSession.City) && !string.IsNullOrEmpty(deviceSession.Country)
+            ? $"{deviceSession.City}, {deviceSession.Country}"
+            : deviceSession.Country ?? "Unknown Location";
+
+        var variables = new Dictionary<string, string>
+        {
+            ["firstName"] = user.FirstName,
+            ["deviceName"] = deviceName,
+            ["browser"] = deviceSession.Browser ?? "Unknown Browser",
+            ["location"] = location,
+            ["ipAddress"] = deviceSession.IpAddress ?? "Unknown",
+            ["loginTime"] = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm 'UTC'"),
+            ["sessionsUrl"] = $"{baseUrl}/settings/sessions",
+            ["changePasswordUrl"] = $"{baseUrl}/settings/security",
+            ["year"] = DateTime.UtcNow.Year.ToString()
+        };
+
+        var subject = user.PreferredLanguage.StartsWith("de")
+            ? "Anmeldung von einem neuen Gerät erkannt"
+            : "New Device Login Detected";
+
+        await _emailService.SendAsync(
+            to: user.Email,
+            subject: subject,
+            templateName: "new-device-login",
+            variables: variables,
+            language: user.PreferredLanguage,
+            cancellationToken: ct
+        );
+    }
+
+    private async Task SendNewLocationEmailAsync(
+        Domain.Entities.SystemUser user,
+        Domain.Entities.DeviceSession deviceSession,
+        CancellationToken ct)
+    {
+        var baseUrl = _configuration["SystemInvite:BaseUrl"] ?? "http://localhost:5173";
+        var deviceName = !string.IsNullOrEmpty(deviceSession.OperatingSystem)
+            ? $"{deviceSession.OperatingSystem}"
+            : "Unknown Device";
+        var newLocation = !string.IsNullOrEmpty(deviceSession.City) && !string.IsNullOrEmpty(deviceSession.Country)
+            ? $"{deviceSession.City}, {deviceSession.Country}"
+            : deviceSession.Country ?? "Unknown Location";
+
+        var variables = new Dictionary<string, string>
+        {
+            ["firstName"] = user.FirstName,
+            ["newLocation"] = newLocation,
+            ["previousLocation"] = "Your usual location",
+            ["deviceName"] = deviceName,
+            ["ipAddress"] = deviceSession.IpAddress ?? "Unknown",
+            ["loginTime"] = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm 'UTC'"),
+            ["sessionsUrl"] = $"{baseUrl}/settings/sessions",
+            ["changePasswordUrl"] = $"{baseUrl}/settings/security",
+            ["year"] = DateTime.UtcNow.Year.ToString()
+        };
+
+        var subject = user.PreferredLanguage.StartsWith("de")
+            ? "Anmeldung von einem neuen Standort"
+            : "Login from New Location";
+
+        await _emailService.SendAsync(
+            to: user.Email,
+            subject: subject,
+            templateName: "new-location-login",
+            variables: variables,
+            language: user.PreferredLanguage,
+            cancellationToken: ct
         );
     }
 }

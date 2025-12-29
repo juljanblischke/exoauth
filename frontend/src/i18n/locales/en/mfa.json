@@ -1,0 +1,92 @@
+{
+  "title": "Two-Factor Authentication",
+  "description": "Add an extra layer of security to your account",
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "enable": {
+    "button": "Enable 2FA",
+    "description": "Protect your account with two-factor authentication"
+  },
+  "setup": {
+    "title": "Set Up Two-Factor Authentication",
+    "description": "Use an authenticator app to generate verification codes",
+    "step1": {
+      "title": "Step 1: Install an Authenticator App",
+      "description": "Download Google Authenticator, Authy, or any TOTP-compatible app"
+    },
+    "step2": {
+      "title": "Step 2: Scan QR Code",
+      "description": "Open your authenticator app and scan this QR code"
+    },
+    "manualEntry": {
+      "title": "Can't scan?",
+      "description": "Enter this code manually in your authenticator app:",
+      "button": "Enter code manually"
+    },
+    "step3": {
+      "title": "Step 3: Verify",
+      "description": "Enter the 6-digit code from your authenticator app",
+      "placeholder": "000000",
+      "button": "Verify & Enable",
+      "verifying": "Verifying..."
+    },
+    "cancel": "Cancel Setup"
+  },
+  "confirm": {
+    "title": "Save Your Backup Codes",
+    "description": "These codes can be used to access your account if you lose your authenticator device. Each code can only be used once.",
+    "warning": "Store these codes in a safe place. You won't be able to see them again!",
+    "downloaded": "Backup codes downloaded",
+    "copied": "Backup codes copied to clipboard",
+    "downloadButton": "Download Codes",
+    "copyButton": "Copy Codes",
+    "continueButton": "I've saved my codes",
+    "continueWarning": "Make sure you've saved your backup codes before continuing"
+  },
+  "verify": {
+    "title": "Two-Factor Authentication",
+    "description": "Enter the 6-digit code from your authenticator app",
+    "placeholder": "000000",
+    "button": "Verify",
+    "verifying": "Verifying...",
+    "useBackupCode": "Use a backup code instead",
+    "backupCodeTitle": "Enter Backup Code",
+    "backupCodeDescription": "Enter one of your backup codes",
+    "backupCodePlaceholder": "XXXXXXXX",
+    "backToCode": "Use authenticator code"
+  },
+  "disable": {
+    "title": "Disable Two-Factor Authentication",
+    "description": "This will make your account less secure. Are you sure?",
+    "warning": "After disabling 2FA, anyone with your password can access your account.",
+    "enterCode": "Enter your current authenticator code to confirm",
+    "placeholder": "000000",
+    "button": "Disable 2FA",
+    "disabling": "Disabling...",
+    "cancel": "Cancel",
+    "success": "Two-factor authentication disabled"
+  },
+  "backupCodes": {
+    "title": "Backup Codes",
+    "description": "Use these codes if you lose access to your authenticator app",
+    "regenerate": "Regenerate Codes",
+    "regenerateDescription": "This will invalidate all existing backup codes",
+    "remaining": "{{count}} codes remaining",
+    "viewCodes": "View Backup Codes"
+  },
+  "required": {
+    "title": "Two-Factor Authentication Required",
+    "description": "Your account requires two-factor authentication to be enabled for security purposes."
+  },
+  "errors": {
+    "codeInvalid": "Invalid verification code. Please try again.",
+    "codeTooManyAttempts": "Too many failed attempts. Please try again later.",
+    "tokenInvalid": "Invalid or expired authentication token. Please log in again.",
+    "tokenExpired": "Authentication token has expired. Please log in again.",
+    "alreadyEnabled": "Two-factor authentication is already enabled",
+    "notEnabled": "Two-factor authentication is not enabled",
+    "setupFailed": "Failed to start 2FA setup. Please try again."
+  }
+}

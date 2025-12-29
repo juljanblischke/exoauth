@@ -140,7 +140,7 @@ Frontend-Implementierung für alle Backend-Features aus Task 007:
 | Endpoint | Method | New Request Fields | New Response Fields |
 |----------|--------|-------------------|---------------------|
 | `/api/auth/login` | POST | `deviceId, deviceFingerprint, userAgent, ipAddress, rememberMe` | `sessionId, deviceId, isNewDevice, isNewLocation, mfaRequired?, mfaToken?, mfaSetupRequired?, setupToken?` |
-| `/api/auth/register` | POST | `deviceId, deviceFingerprint, userAgent, ipAddress` | `sessionId, deviceId` |
+| `/api/auth/register` | POST | `deviceId, deviceFingerprint, userAgent, ipAddress, language` | `sessionId, deviceId` |
 | `/api/auth/invite/accept` | POST | `deviceId, deviceFingerprint, userAgent, ipAddress, language` | `sessionId, deviceId` |
 
 ### 3.6 Current User (Updates)
@@ -341,7 +341,7 @@ Frontend-Implementierung für alle Backend-Features aus Task 007:
 | `src/features/auth/types/index.ts` | + AuthResponse neue Felder, + Device Types |
 | `src/features/auth/api/auth-api.ts` | + Device Info in login/register/invite |
 | `src/features/auth/components/login-form.tsx` | + Remember Me, + Device Info, + MFA Handling |
-| `src/features/auth/components/register-form.tsx` | + Device Info |
+| `src/features/auth/components/register-form.tsx` | + Device Info, + Language |
 | `src/features/auth/components/accept-invite-form.tsx` | + Device Info, + Language |
 | `src/features/auth/hooks/index.ts` | + neue Hook Exports |
 | `src/features/auth/components/index.ts` | + neue Component Exports |
@@ -394,57 +394,57 @@ Alle benötigten bereits installiert (Dialog, Tabs, Switch, Badge, etc.)
 
 ## 9. Implementation Reihenfolge
 
-### Phase 1: Foundation & Types
-1. [ ] **Types**: Update auth types (User, AuthResponse)
-2. [ ] **Types**: Update user types (SystemUser)
-3. [ ] **Types**: Create session types
-4. [ ] **Types**: Create MFA types
-5. [ ] **Utils**: Create device utils (deviceId, fingerprint)
+### Phase 1: Foundation & Types ✅
+1. [x] **Types**: Update auth types (User, AuthResponse)
+2. [x] **Types**: Update user types (SystemUser)
+3. [x] **Types**: Create session types
+4. [x] **Types**: Create MFA types
+5. [x] **Utils**: Create device utils (deviceId, fingerprint)
 
-### Phase 2: Auth Flow Updates
-6. [ ] **API**: Update auth-api.ts with device info
-7. [ ] **Login**: Add Remember Me checkbox
-8. [ ] **Login**: Send device info
-9. [ ] **Register**: Send device info
-10. [ ] **Accept Invite**: Send device info + language
-11. [ ] **Context**: Add sessionId, deviceId to auth context
-12. [ ] **Context**: Sync preferredLanguage with i18n
+### Phase 2: Auth Flow Updates ✅
+6. [x] **API**: Update auth-api.ts with device info
+7. [x] **Login**: Add Remember Me checkbox
+8. [x] **Login**: Send device info
+9. [x] **Register**: Send device info
+10. [x] **Accept Invite**: Send device info + language
+11. [x] **Context**: Add sessionId, deviceId to auth context
+12. [x] **Context**: Sync preferredLanguage with i18n
 
-### Phase 3: Settings Page Foundation
-13. [ ] **Route**: Create /settings route
-14. [ ] **Page**: Create settings page with tabs
-15. [ ] **i18n**: Add settings translations
-16. [ ] **Nav**: Add settings to user menu
+### Phase 3: Settings Page Foundation ✅
+13. [x] **Route**: Create /settings route
+14. [x] **Page**: Create settings page with tabs
+15. [x] **i18n**: Add settings translations
+16. [x] **Nav**: Add settings to user menu
 
-### Phase 4: Language Settings
-17. [ ] **API**: Create preferences API
-18. [ ] **Hook**: Create useUpdatePreferences
-19. [ ] **Component**: Create language settings tab
-20. [ ] **i18n**: Update on preference change
+### Phase 4: Language Settings ✅
+17. [x] **API**: Create preferences API
+18. [x] **Hook**: Create useUpdatePreferences
+19. [x] **Component**: Create language settings tab
+20. [x] **i18n**: Update on preference change
 
-### Phase 5: Sessions Management
-21. [ ] **API**: Create sessions API
-22. [ ] **Hooks**: Create session hooks (query, revoke, trust, update)
-23. [ ] **Component**: Create sessions list
-24. [ ] **Component**: Create session card
-25. [ ] **i18n**: Add sessions translations
-26. [ ] **Settings**: Add sessions section to security tab
+### Phase 5: Sessions Management ✅
+21. [x] **API**: Create sessions API
+22. [x] **Hooks**: Create session hooks (query, revoke, trust, update, revokeAll)
+23. [x] **Component**: Create sessions list
+24. [x] **Component**: Create session card
+25. [x] **i18n**: Add sessions translations
+26. [x] **Settings**: Add sessions section to security tab
 
-### Phase 6: MFA - Settings
-27. [ ] **API**: Create MFA API
-28. [ ] **Hooks**: Create MFA hooks (setup, confirm, disable, backup codes)
-29. [ ] **Component**: Create MFA setup modal
-30. [ ] **Component**: Create MFA confirm modal (with backup codes)
-31. [ ] **Component**: Create backup codes display
-32. [ ] **Component**: Create MFA disable modal
-33. [ ] **i18n**: Add MFA translations
-34. [ ] **Settings**: Add MFA section to security tab
+### Phase 6: MFA - Settings ✅
+27. [x] **API**: Create MFA API
+28. [x] **Hooks**: Create MFA hooks (setup, confirm, disable, backup codes)
+29. [x] **Component**: Create MFA setup modal
+30. [x] **Component**: Create MFA confirm modal (with backup codes)
+31. [x] **Component**: Create backup codes display
+32. [x] **Component**: Create MFA disable modal
+33. [x] **i18n**: Add MFA translations
+34. [x] **Settings**: Add MFA section to security tab
 
-### Phase 7: MFA - Login Flow
-35. [ ] **Component**: Create MFA verify modal
-36. [ ] **Login**: Handle mfaRequired state
-37. [ ] **Login**: Handle mfaSetupRequired state
-38. [ ] **Context**: Update auth flow for MFA
+### Phase 7: MFA - Login Flow ✅
+35. [x] **Component**: Create MFA verify modal
+36. [x] **Login**: Handle mfaRequired state
+37. [x] **Login**: Handle mfaSetupRequired state
+38. [x] **Context**: Update auth flow for MFA
 
 ### Phase 8: Password Reset
 39. [ ] **API**: Create password reset API
@@ -575,6 +575,8 @@ Alle benötigten bereits installiert (Dialog, Tabs, Switch, Badge, etc.)
 | `MFA_REQUIRED` | - | Zeige MFA Verify Modal |
 | `MFA_SETUP_REQUIRED` | - | Zeige MFA Setup Modal |
 | `MFA_CODE_INVALID` | `errors:mfa.codeInvalid` | Code falsch |
+| `MFA_TOKEN_INVALID` | `errors:mfa.tokenInvalid` | MFA/Setup token ungültig oder abgelaufen |
+| `MFA_TOKEN_EXPIRED` | `errors:mfa.tokenExpired` | MFA/Setup token abgelaufen |
 | `MFA_ALREADY_ENABLED` | `errors:mfa.alreadyEnabled` | Bereits aktiv |
 | `MFA_NOT_ENABLED` | `errors:mfa.notEnabled` | Nicht aktiv |
 | `SESSION_NOT_FOUND` | `errors:sessions.notFound` | Session nicht gefunden |
@@ -633,8 +635,78 @@ Wird in `localStorage` gespeichert, bleibt bis Cache clear.
 
 ---
 
-## 15. Letzte Änderung
+## 15. Implementation Notes
+
+### MFA SetupToken Flow (2025-12-29)
+
+The backend returns `mfaSetupRequired: true` with a `setupToken` when:
+1. User with system permissions logs in but hasn't set up MFA
+2. First user registers (gets all permissions, must have MFA)
+
+**Problem solved:** The MFA setup/confirm endpoints required JWT auth, but the user only has a `setupToken` at this point.
+
+**Frontend changes:**
+- `mfa-api.ts`: `setup()` and `confirm()` accept optional `setupToken` parameter
+- When `setupToken` is provided, it's passed in the Authorization header
+- `MfaConfirmRequest` extended with `Partial<DeviceInfo>` for session creation
+- `MfaConfirmResponse` extended with optional auth data (user, accessToken, refreshToken, etc.)
+- `login-form.tsx`: Stores `setupToken`, passes to MfaSetupModal, handles auth after MFA confirm
+- `register-form.tsx`: Same handling for first user registration
+- `mfa-setup-modal.tsx`: Accepts `setupToken` prop, includes device info when confirming
+- `mfa-confirm-modal.tsx`: Accepts `onContinue` callback for navigation after showing backup codes
+
+**Flow:**
+1. Login/Register → `mfaSetupRequired: true, setupToken: "..."`
+2. MfaSetupModal opens with `setupToken`
+3. MFA setup sends in body: `{ setupToken }`
+4. MFA confirm sends in body: `{ code, setupToken, deviceId, deviceFingerprint }`
+5. After confirm → returns backup codes + full auth response (user, tokens, sessionId)
+6. MfaConfirmModal shows backup codes
+7. User clicks Continue → Navigate to dashboard
+
+### Enhanced Device Fingerprint (2025-12-29)
+
+Improved `getDeviceFingerprint()` in `src/lib/device.ts` to collect 20+ data points and return a 64-character hex hash.
+
+**Data points collected:**
+- **Navigator:** userAgent, language, languages, platform, vendor, hardwareConcurrency, maxTouchPoints, cookieEnabled, doNotTrack, deviceMemory
+- **Screen:** width, height, availWidth, availHeight, colorDepth, devicePixelRatio
+- **Timezone:** offset, name (via Intl)
+- **Canvas:** rendering fingerprint (draws shapes/text, extracts data URL)
+- **WebGL:** vendor, renderer (via WEBGL_debug_renderer_info)
+- **Audio:** sample rate (via AudioContext)
+
+**Hashing:**
+- Uses SHA-256 via Web Crypto API (async, upgraded in background)
+- Fallback to synchronous murmur-style hash if crypto.subtle unavailable
+- Result is cached for performance
+
+**Output:** 64-character hex string (e.g., `"a1b2c3d4e5f67890..."`)
+
+### Language Switcher Sync (2025-12-29)
+
+The header `LanguageSwitcher` component now uses `useUpdatePreferences` hook (same as settings page) instead of just `i18n.changeLanguage()`. This ensures:
+- Language preference is persisted to backend
+- User cache is updated with `preferredLanguage`
+- Both header and settings page are synchronized
+
+### Language Locale Format (2025-12-29)
+
+Updated all language codes from short format (`en`, `de`) to full locale format (`en-US`, `de-DE`):
+
+**Files changed:**
+- `src/i18n/index.ts` - resources keys and fallbackLng
+- `src/components/shared/layout/language-switcher.tsx` - language codes
+- `src/features/settings/components/language-settings.tsx` - language codes
+
+**Request format:**
+- All API calls (register, accept-invite, preferences) now send full locale: `"en-US"` or `"de-DE"`
+- Register now sends `language: i18n.language` to set user's preferred language on account creation
+
+---
+
+## 16. Letzte Änderung
 
 - **Datum:** 2025-12-29
-- **Status:** Planning Complete
+- **Status:** In Progress (Phase 1, 2, 3, 4, 5, 6 & 7 Complete)
 - **Backend Dependency:** Task 007 ✅ Complete (232 tests)

@@ -33,7 +33,7 @@ public sealed class EmailService : IEmailService
         string subject,
         string templateName,
         Dictionary<string, string> variables,
-        string language = "en",
+        string language = "en-US",
         CancellationToken cancellationToken = default)
     {
         var message = new SendEmailMessage(
@@ -54,7 +54,7 @@ public sealed class EmailService : IEmailService
         string firstName,
         string inviterName,
         string inviteToken,
-        string language = "en",
+        string language = "en-US",
         CancellationToken cancellationToken = default)
     {
         var inviteLink = $"{_baseUrl}/invite?token={inviteToken}";
@@ -68,7 +68,7 @@ public sealed class EmailService : IEmailService
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = language == "de"
+        var subject = language.StartsWith("de")
             ? "Einladung zu ExoAuth"
             : "You're invited to ExoAuth";
 
@@ -87,7 +87,7 @@ public sealed class EmailService : IEmailService
         string firstName,
         string resetToken,
         string resetCode,
-        string language = "en",
+        string language = "en-US",
         CancellationToken cancellationToken = default)
     {
         var resetUrl = $"{_baseUrl}/auth/reset-password?token={resetToken}";
@@ -101,7 +101,7 @@ public sealed class EmailService : IEmailService
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = language == "de"
+        var subject = language.StartsWith("de")
             ? "Passwort zurücksetzen"
             : "Reset Your Password";
 
@@ -118,7 +118,7 @@ public sealed class EmailService : IEmailService
     public async Task SendPasswordChangedAsync(
         string email,
         string firstName,
-        string language = "en",
+        string language = "en-US",
         CancellationToken cancellationToken = default)
     {
         var variables = new Dictionary<string, string>
@@ -127,7 +127,7 @@ public sealed class EmailService : IEmailService
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = language == "de"
+        var subject = language.StartsWith("de")
             ? "Dein Passwort wurde geändert"
             : "Your Password Has Been Changed";
 

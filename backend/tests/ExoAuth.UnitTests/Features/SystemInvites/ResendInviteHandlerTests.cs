@@ -88,7 +88,7 @@ public sealed class ResendInviteHandlerTests
             "John",
             "Admin User",
             It.IsAny<string>(),
-            "en",
+            "en-US",
             It.IsAny<CancellationToken>()), Times.Once);
 
         // Verify SaveChanges was called

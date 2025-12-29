@@ -14,6 +14,7 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
     private readonly IDeviceSessionService _deviceSessionService;
+    private readonly IMfaService _mfaService;
     private readonly IAuditService _auditService;
 
     public RegisterHandler(
@@ -22,6 +23,7 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
         IDeviceSessionService deviceSessionService,
+        IMfaService mfaService,
         IAuditService auditService)
     {
         _context = context;
@@ -29,6 +31,7 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
         _deviceSessionService = deviceSessionService;
+        _mfaService = mfaService;
         _auditService = auditService;
     }
 
@@ -83,47 +86,6 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
 
         await _userRepository.SetUserPermissionsAsync(user.Id, allPermissions, null, ct);
 
-        // Get permission names for token
-        var permissionNames = global::ExoAuth.Domain.Constants.SystemPermissions.AllNames.ToList();
-
-        // Create device session for the registration device
-        var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();
-        var (session, _, _) = await _deviceSessionService.CreateOrUpdateSessionAsync(
-            user.Id,
-            deviceId,
-            command.UserAgent,
-            command.IpAddress,
-            command.DeviceFingerprint,
-            ct
-        );
-
-        // Generate tokens with session ID
-        var accessToken = _tokenService.GenerateAccessToken(
-            user.Id,
-            user.Email,
-            UserType.System,
-            permissionNames,
-            session.Id
-        );
-
-        var refreshTokenString = _tokenService.GenerateRefreshToken();
-        var refreshToken = global::ExoAuth.Domain.Entities.RefreshToken.Create(
-            userId: user.Id,
-            userType: UserType.System,
-            token: refreshTokenString,
-            expirationDays: (int)_tokenService.RefreshTokenExpiration.TotalDays
-        );
-
-        // Link refresh token to device session
-        refreshToken.LinkToSession(session.Id);
-
-        await _context.RefreshTokens.AddAsync(refreshToken, ct);
-        await _context.SaveChangesAsync(ct);
-
-        // Record login
-        user.RecordLogin();
-        await _userRepository.UpdateAsync(user, ct);
-
         // Audit log
         await _auditService.LogWithContextAsync(
             AuditActions.UserRegistered,
@@ -135,25 +97,21 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
             ct
         );
 
-        return new AuthResponse(
-            User: new UserDto(
-                Id: user.Id,
-                Email: user.Email,
-                FirstName: user.FirstName,
-                LastName: user.LastName,
-                FullName: user.FullName,
-                IsActive: user.IsActive,
-                EmailVerified: user.EmailVerified,
-                MfaEnabled: user.MfaEnabled,
-                PreferredLanguage: user.PreferredLanguage,
-                LastLoginAt: user.LastLoginAt,
-                CreatedAt: user.CreatedAt,
-                Permissions: permissionNames
-            ),
-            AccessToken: accessToken,
-            RefreshToken: refreshTokenString,
-            SessionId: session.Id,
-            DeviceId: deviceId
+        // First user has system permissions - require MFA setup before granting access
+        // Generate setup token for forced MFA flow
+        var setupToken = _mfaService.GenerateMfaToken(user.Id, null);
+
+        // Audit log for MFA setup required
+        await _auditService.LogAsync(
+            AuditActions.MfaSetupRequiredSent,
+            user.Id,
+            null,
+            "SystemUser",
+            user.Id,
+            new { Reason = "FirstUserRegistration" },
+            ct
         );
+
+        return AuthResponse.RequiresMfaSetup(setupToken);
     }
 }

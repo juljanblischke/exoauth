@@ -10,6 +10,9 @@ import enUsers from './locales/en/users.json'
 import enErrors from './locales/en/errors.json'
 import enValidation from './locales/en/validation.json'
 import enAuditLogs from './locales/en/auditLogs.json'
+import enSettings from './locales/en/settings.json'
+import enMfa from './locales/en/mfa.json'
+import enSessions from './locales/en/sessions.json'
 
 // DE imports
 import deCommon from './locales/de/common.json'
@@ -19,10 +22,13 @@ import deUsers from './locales/de/users.json'
 import deErrors from './locales/de/errors.json'
 import deValidation from './locales/de/validation.json'
 import deAuditLogs from './locales/de/auditLogs.json'
+import deSettings from './locales/de/settings.json'
+import deMfa from './locales/de/mfa.json'
+import deSessions from './locales/de/sessions.json'
 
 export const defaultNS = 'common'
 export const resources = {
-  en: {
+  'en-US': {
     common: enCommon,
     auth: enAuth,
     navigation: enNavigation,
@@ -30,8 +36,11 @@ export const resources = {
     errors: enErrors,
     validation: enValidation,
     auditLogs: enAuditLogs,
+    settings: enSettings,
+    mfa: enMfa,
+    sessions: enSessions,
   },
-  de: {
+  'de-DE': {
     common: deCommon,
     auth: deAuth,
     navigation: deNavigation,
@@ -39,6 +48,9 @@ export const resources = {
     errors: deErrors,
     validation: deValidation,
     auditLogs: deAuditLogs,
+    settings: deSettings,
+    mfa: deMfa,
+    sessions: deSessions,
   },
 } as const
 
@@ -47,9 +59,9 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'en',
+    fallbackLng: 'en-US',
     defaultNS,
-    ns: ['common', 'auth', 'navigation', 'users', 'errors', 'validation', 'auditLogs'],
+    ns: ['common', 'auth', 'navigation', 'users', 'errors', 'validation', 'auditLogs', 'settings', 'mfa', 'sessions'],
     interpolation: {
       escapeValue: false,
     },

@@ -9,7 +9,7 @@ namespace ExoAuth.Application.Features.Auth.Commands.AcceptInvite;
 public sealed record AcceptInviteCommand(
     string Token,
     string Password,
-    string Language = "en",
+    string Language = "en-US",
     string? DeviceId = null,
     string? DeviceFingerprint = null,
     string? UserAgent = null,

@@ -10,7 +10,12 @@ export interface SystemUserDto {
   fullName: string
   isActive: boolean
   emailVerified: boolean
+  mfaEnabled: boolean
   lastLoginAt: string | null
+  lockedUntil: string | null
+  isLocked: boolean
+  isAnonymized: boolean
+  failedLoginAttempts: number
   createdAt: string
   updatedAt: string | null
 }

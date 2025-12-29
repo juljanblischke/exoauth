@@ -23,14 +23,14 @@ public sealed class EmailTemplateService : IEmailTemplateService
         _logger.LogInformation("Email templates base path: {Path}", _templatesBasePath);
     }
 
-    public string Render(string templateName, Dictionary<string, string> variables, string language = "en")
+    public string Render(string templateName, Dictionary<string, string> variables, string language = "en-US")
     {
         var templatePath = GetTemplatePath(templateName, language);
 
         if (!File.Exists(templatePath))
         {
-            _logger.LogWarning("Email template not found: {TemplatePath}, falling back to English", templatePath);
-            templatePath = GetTemplatePath(templateName, "en");
+            _logger.LogWarning("Email template not found: {TemplatePath}, falling back to en-US", templatePath);
+            templatePath = GetTemplatePath(templateName, "en-US");
         }
 
         if (!File.Exists(templatePath))

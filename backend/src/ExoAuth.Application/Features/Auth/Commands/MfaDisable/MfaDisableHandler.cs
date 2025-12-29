@@ -91,9 +91,13 @@ public sealed class MfaDisableHandler : ICommandHandler<MfaDisableCommand, MfaDi
         );
 
         // Send notification email
+        var subject = user.PreferredLanguage.StartsWith("de")
+            ? "Zwei-Faktor-Authentifizierung deaktiviert"
+            : "Two-Factor Authentication Disabled";
+
         await _emailService.SendAsync(
             user.Email,
-            "Two-Factor Authentication Disabled",
+            subject,
             "mfa-disabled",
             new Dictionary<string, string>
             {

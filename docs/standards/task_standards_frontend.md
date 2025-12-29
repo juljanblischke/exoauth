@@ -470,9 +470,10 @@ frontend/
 
 ## Shadcn/UI Komponenten
 
-### Installiert (23 Komponenten)
+### Installiert (24 Komponenten)
 | Komponente | Datei | Status |
 |------------|-------|--------|
+| Alert | `src/components/ui/alert.tsx` | ✅ (Task 008) |
 | Alert Dialog | `src/components/ui/alert-dialog.tsx` | ✅ |
 | Avatar | `src/components/ui/avatar.tsx` | ✅ |
 | Badge | `src/components/ui/badge.tsx` | ✅ |
@@ -500,7 +501,7 @@ frontend/
 ### Noch nicht installiert (bei Bedarf)
 Wenn benötigt, mit `npx shadcn@latest add [name]` installieren:
 
-- accordion, alert, aspect-ratio, card
+- accordion, aspect-ratio, card
 - carousel, chart, collapsible, context-menu
 - date-picker, drawer, form, hover-card, menubar
 - navigation-menu, pagination, radio-group, resizable

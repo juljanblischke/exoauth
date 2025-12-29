@@ -16,7 +16,7 @@ public sealed class SystemUser : BaseEntity
     public DateTime? MfaEnabledAt { get; private set; }
 
     // User preferences
-    public string PreferredLanguage { get; private set; } = "en";
+    public string PreferredLanguage { get; private set; } = "en-US";
 
     // Lockout fields
     public DateTime? LockedUntil { get; private set; }

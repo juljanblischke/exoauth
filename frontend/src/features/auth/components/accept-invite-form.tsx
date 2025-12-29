@@ -12,13 +12,14 @@ import { useAcceptInvite } from '../hooks/use-accept-invite'
 import { createAcceptInviteSchema, type AcceptInviteFormData } from '../types'
 import { PasswordRequirements } from './password-requirements'
 import { getErrorMessage } from '@/lib/error-utils'
+import { getDeviceInfo } from '@/lib/device'
 
 interface AcceptInviteFormProps {
   token: string
 }
 
 export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { mutate: acceptInvite, isPending, error } = useAcceptInvite()
   const [password, setPassword] = useState('')
 
@@ -34,9 +35,12 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
   })
 
   const onSubmit = (data: AcceptInviteFormData) => {
+    const deviceInfo = getDeviceInfo()
     acceptInvite({
       token: data.token,
       password: data.password,
+      language: i18n.language,
+      ...deviceInfo,
     })
   }
 

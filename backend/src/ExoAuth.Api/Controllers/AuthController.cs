@@ -37,6 +37,7 @@ public sealed class AuthController : ApiControllerBase
 
     /// <summary>
     /// Register a new user. First user becomes a SystemUser with all permissions.
+    /// First user must complete MFA setup before gaining access.
     /// </summary>
     [HttpPost("register")]
     [RateLimit(5)]
@@ -54,12 +55,17 @@ public sealed class AuthController : ApiControllerBase
             request.DeviceId,
             request.DeviceFingerprint,
             Request.Headers.UserAgent.ToString(),
-            HttpContext.Connection.RemoteIpAddress?.ToString()
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            request.Language
         );
 
         var result = await Mediator.Send(command, ct);
 
-        SetAuthCookies(result.AccessToken!, result.RefreshToken!);
+        // Only set cookies when registration is complete (not during MFA setup flow)
+        if (!result.MfaSetupRequired && result.AccessToken != null && result.RefreshToken != null)
+        {
+            SetAuthCookies(result.AccessToken, result.RefreshToken);
+        }
 
         return ApiCreated(result);
     }
@@ -334,33 +340,52 @@ public sealed class AuthController : ApiControllerBase
 
     /// <summary>
     /// Start MFA setup. Returns QR code and manual entry key.
+    /// Supports dual-mode authentication:
+    /// - JWT auth header: For users already logged in
+    /// - SetupToken in body: For forced MFA setup during login flow
     /// </summary>
     [HttpPost("mfa/setup")]
-    [Authorize]
     [RateLimit(3)]
     [ProducesResponseType(typeof(MfaSetupResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> MfaSetup(CancellationToken ct)
+    public async Task<IActionResult> MfaSetup(MfaSetupRequest? request, CancellationToken ct)
     {
-        var command = new MfaSetupCommand();
+        var command = new MfaSetupCommand(request?.SetupToken);
         var result = await Mediator.Send(command, ct);
         return ApiOk(result);
     }
 
     /// <summary>
     /// Confirm MFA setup with first TOTP code. Returns backup codes.
+    /// Supports dual-mode authentication:
+    /// - JWT auth header: For users already logged in (returns backup codes only)
+    /// - SetupToken in body: For forced MFA setup during login/registration (returns tokens + backup codes)
     /// </summary>
     [HttpPost("mfa/confirm")]
-    [Authorize]
     [RateLimit(5)]
     [ProducesResponseType(typeof(MfaConfirmResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> MfaConfirm(MfaConfirmRequest request, CancellationToken ct)
     {
-        var command = new MfaConfirmCommand(request.Code);
+        var command = new MfaConfirmCommand(
+            request.Code,
+            request.SetupToken,
+            request.DeviceId,
+            request.DeviceFingerprint,
+            Request.Headers.UserAgent.ToString(),
+            HttpContext.Connection.RemoteIpAddress?.ToString()
+        );
+
         var result = await Mediator.Send(command, ct);
+
+        // Set cookies when completing forced setup flow (tokens returned)
+        if (result.AccessToken != null && result.RefreshToken != null)
+        {
+            SetAuthCookies(result.AccessToken, result.RefreshToken);
+        }
+
         return ApiOk(result);
     }
 
@@ -489,7 +514,8 @@ public sealed record RegisterRequest(
     string LastName,
     string? OrganizationName = null,
     string? DeviceId = null,
-    string? DeviceFingerprint = null
+    string? DeviceFingerprint = null,
+    string Language = "en-US"
 );
 
 public sealed record LoginRequest(
@@ -511,7 +537,7 @@ public sealed record LogoutRequest(
 public sealed record AcceptInviteRequest(
     string Token,
     string Password,
-    string Language = "en",
+    string Language = "en-US",
     string? DeviceId = null,
     string? DeviceFingerprint = null
 );
@@ -532,8 +558,16 @@ public sealed record UpdateSessionRequest(
     bool? IsTrusted = null
 );
 
+public sealed record MfaSetupRequest(
+    string? SetupToken = null
+);
+
 public sealed record MfaConfirmRequest(
-    string Code
+    string Code,
+    string? SetupToken = null,
+    // Device info - needed for forced setup flow to create session
+    string? DeviceId = null,
+    string? DeviceFingerprint = null
 );
 
 public sealed record MfaVerifyRequest(

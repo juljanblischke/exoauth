@@ -5,6 +5,7 @@ import {
   useCallback,
   useMemo,
   useEffect,
+  useState,
   type ReactNode,
 } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -22,14 +23,16 @@ import type {
 } from '@/types'
 
 interface AuthContextValue extends AuthState {
-  login: (data: LoginRequest) => Promise<User>
-  register: (data: RegisterRequest) => Promise<User>
+  login: (data: LoginRequest) => Promise<AuthResponse>
+  register: (data: RegisterRequest) => Promise<AuthResponse>
   logout: () => Promise<void>
   refetch: () => Promise<void>
   hasPermission: (permission: string) => boolean
   hasAnyPermission: (permissions: string[]) => boolean
   hasAllPermissions: (permissions: string[]) => boolean
   tokenExpiresAt: string | null
+  sessionId: string | null
+  deviceId: string | null
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -53,7 +56,9 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const queryClient = useQueryClient()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [deviceId, setDeviceId] = useState<string | null>(null)
 
   // Listen for session expired events from axios interceptor
   useEffect(() => {
@@ -109,6 +114,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
+  // Sync preferredLanguage with i18n when user data changes
+  useEffect(() => {
+    if (user?.preferredLanguage && user.preferredLanguage !== i18n.language) {
+      i18n.changeLanguage(user.preferredLanguage)
+    }
+  }, [user?.preferredLanguage, i18n])
+
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (data: LoginRequest) => {
@@ -120,6 +132,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     },
     onSuccess: (data) => {
       setSession(true)
+      setSessionId(data.sessionId)
+      setDeviceId(data.deviceId)
       queryClient.setQueryData(AUTH_QUERY_KEY, data.user)
     },
   })
@@ -135,6 +149,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     },
     onSuccess: (data) => {
       setSession(true)
+      setSessionId(data.sessionId)
+      setDeviceId(data.deviceId)
       queryClient.setQueryData(AUTH_QUERY_KEY, data.user)
     },
   })
@@ -148,23 +164,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     },
     onSuccess: () => {
       setSession(false)
+      setSessionId(null)
+      setDeviceId(null)
       queryClient.setQueryData(AUTH_QUERY_KEY, null)
       queryClient.clear()
     },
   })
 
   const login = useCallback(
-    async (data: LoginRequest): Promise<User> => {
+    async (data: LoginRequest): Promise<AuthResponse> => {
       const result = await loginMutation.mutateAsync(data)
-      return result.user
+      return result
     },
     [loginMutation]
   )
 
   const register = useCallback(
-    async (data: RegisterRequest): Promise<User> => {
+    async (data: RegisterRequest): Promise<AuthResponse> => {
       const result = await registerMutation.mutateAsync(data)
-      return result.user
+      return result
     },
     [registerMutation]
   )
@@ -208,6 +226,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isAuthenticated: !!user,
       isLoading,
       tokenExpiresAt: null, // TODO: Get from session/cookie when backend provides it
+      sessionId,
+      deviceId,
       login,
       register,
       logout,
@@ -219,6 +239,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [
       user,
       isLoading,
+      sessionId,
+      deviceId,
       login,
       register,
       logout,

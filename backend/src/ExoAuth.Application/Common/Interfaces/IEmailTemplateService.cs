@@ -10,9 +10,9 @@ public interface IEmailTemplateService
     /// </summary>
     /// <param name="templateName">The name of the template (without extension).</param>
     /// <param name="variables">Variables to replace in the template.</param>
-    /// <param name="language">The language for the template (default: "en").</param>
+    /// <param name="language">The language for the template (default: "en-US").</param>
     /// <returns>The rendered template content.</returns>
-    string Render(string templateName, Dictionary<string, string> variables, string language = "en");
+    string Render(string templateName, Dictionary<string, string> variables, string language = "en-US");
 
     /// <summary>
     /// Checks if a template exists for the given language.

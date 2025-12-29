@@ -22,8 +22,8 @@ public sealed class EmailTemplateServiceTests : IDisposable
         _templatesDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "templates", "emails");
 
         // Ensure template directories exist for tests that need them
-        Directory.CreateDirectory(Path.Combine(_templatesDir, "en"));
-        Directory.CreateDirectory(Path.Combine(_templatesDir, "de"));
+        Directory.CreateDirectory(Path.Combine(_templatesDir, "en-US"));
+        Directory.CreateDirectory(Path.Combine(_templatesDir, "de-DE"));
     }
 
     public void Dispose()
@@ -39,7 +39,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
     public void Render_ReplacesVariablesCorrectly()
     {
         // Arrange
-        var templatePath = Path.Combine(_templatesDir, "en", "test-template.html");
+        var templatePath = Path.Combine(_templatesDir, "en-US", "test-template.html");
         var templateContent = "<html><body>Hello {{firstName}} {{lastName}}!</body></html>";
 
         try
@@ -53,7 +53,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
             };
 
             // Act
-            var result = _service.Render("test-template", variables, "en");
+            var result = _service.Render("test-template", variables, "en-US");
 
             // Assert
             result.Should().Contain("Hello John Doe!");
@@ -69,7 +69,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
     public void Render_WithMissingVariables_LeavesPlaceholdersIntact()
     {
         // Arrange
-        var templatePath = Path.Combine(_templatesDir, "en", "test-missing-var.html");
+        var templatePath = Path.Combine(_templatesDir, "en-US", "test-missing-var.html");
         var templateContent = "<html><body>Hello {{firstName}} {{unknownVar}}!</body></html>";
 
         try
@@ -82,7 +82,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
             };
 
             // Act
-            var result = _service.Render("test-missing-var", variables, "en");
+            var result = _service.Render("test-missing-var", variables, "en-US");
 
             // Assert
             result.Should().Contain("Hello John {{unknownVar}}!");
@@ -98,7 +98,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
     public void Render_FallsBackToEnglishWhenLanguageNotFound()
     {
         // Arrange
-        var templatePath = Path.Combine(_templatesDir, "en", "test-fallback.html");
+        var templatePath = Path.Combine(_templatesDir, "en-US", "test-fallback.html");
         var templateContent = "<html><body>English content</body></html>";
 
         try
@@ -108,7 +108,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
             var variables = new Dictionary<string, string>();
 
             // Act - request German but only English exists
-            var result = _service.Render("test-fallback", variables, "de");
+            var result = _service.Render("test-fallback", variables, "de-DE");
 
             // Assert
             result.Should().Contain("English content");
@@ -124,8 +124,8 @@ public sealed class EmailTemplateServiceTests : IDisposable
     public void Render_UsesCorrectLanguageWhenAvailable()
     {
         // Arrange
-        var enPath = Path.Combine(_templatesDir, "en", "test-lang.html");
-        var dePath = Path.Combine(_templatesDir, "de", "test-lang.html");
+        var enPath = Path.Combine(_templatesDir, "en-US", "test-lang.html");
+        var dePath = Path.Combine(_templatesDir, "de-DE", "test-lang.html");
 
         try
         {
@@ -135,8 +135,8 @@ public sealed class EmailTemplateServiceTests : IDisposable
             var variables = new Dictionary<string, string>();
 
             // Act
-            var resultEn = _service.Render("test-lang", variables, "en");
-            var resultDe = _service.Render("test-lang", variables, "de");
+            var resultEn = _service.Render("test-lang", variables, "en-US");
+            var resultDe = _service.Render("test-lang", variables, "de-DE");
 
             // Assert
             resultEn.Should().Contain("English");
@@ -158,7 +158,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
         var variables = new Dictionary<string, string>();
 
         // Act & Assert
-        var act = () => _service.Render("non-existent-template", variables, "en");
+        var act = () => _service.Render("non-existent-template", variables, "en-US");
         act.Should().Throw<FileNotFoundException>();
     }
 
@@ -166,14 +166,14 @@ public sealed class EmailTemplateServiceTests : IDisposable
     public void TemplateExists_ReturnsTrueWhenExists()
     {
         // Arrange
-        var templatePath = Path.Combine(_templatesDir, "en", "test-exists.html");
+        var templatePath = Path.Combine(_templatesDir, "en-US", "test-exists.html");
 
         try
         {
             File.WriteAllText(templatePath, "<html></html>");
 
             // Act
-            var result = _service.TemplateExists("test-exists", "en");
+            var result = _service.TemplateExists("test-exists", "en-US");
 
             // Assert
             result.Should().BeTrue();
@@ -189,7 +189,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
     public void TemplateExists_ReturnsFalseWhenNotExists()
     {
         // Act
-        var result = _service.TemplateExists("definitely-not-exists-" + Guid.NewGuid(), "en");
+        var result = _service.TemplateExists("definitely-not-exists-" + Guid.NewGuid(), "en-US");
 
         // Assert
         result.Should().BeFalse();
@@ -199,7 +199,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
     public void Render_HandlesMultipleVariableReplacements()
     {
         // Arrange
-        var templatePath = Path.Combine(_templatesDir, "en", "test-multi.html");
+        var templatePath = Path.Combine(_templatesDir, "en-US", "test-multi.html");
         var templateContent = @"
             <html>
                 <body>
@@ -228,7 +228,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
             };
 
             // Act
-            var result = _service.Render("test-multi", variables, "en");
+            var result = _service.Render("test-multi", variables, "en-US");
 
             // Assert
             result.Should().Contain("Jane Smith");
@@ -249,7 +249,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
     public void Render_WithEmptyVariables_ReturnsTemplateUnchanged()
     {
         // Arrange
-        var templatePath = Path.Combine(_templatesDir, "en", "test-empty.html");
+        var templatePath = Path.Combine(_templatesDir, "en-US", "test-empty.html");
         var templateContent = "<html><body>Static content</body></html>";
 
         try
@@ -259,7 +259,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
             var variables = new Dictionary<string, string>();
 
             // Act
-            var result = _service.Render("test-empty", variables, "en");
+            var result = _service.Render("test-empty", variables, "en-US");
 
             // Assert
             result.Should().Be(templateContent);
@@ -275,7 +275,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
     public void Render_HandlesSpecialCharactersInVariables()
     {
         // Arrange
-        var templatePath = Path.Combine(_templatesDir, "en", "test-special.html");
+        var templatePath = Path.Combine(_templatesDir, "en-US", "test-special.html");
         var templateContent = "<html><body>Name: {{name}}</body></html>";
 
         try
@@ -288,7 +288,7 @@ public sealed class EmailTemplateServiceTests : IDisposable
             };
 
             // Act
-            var result = _service.Render("test-special", variables, "en");
+            var result = _service.Render("test-special", variables, "en-US");
 
             // Assert
             // Note: The service does NOT escape HTML - that should be done before passing variables

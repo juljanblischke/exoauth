@@ -84,9 +84,13 @@ public sealed class RevokeUserSessionsHandler : ICommandHandler<RevokeUserSessio
         // Send notification email to user (skip for anonymized users)
         if (!user.IsAnonymized)
         {
+            var subject = user.PreferredLanguage.StartsWith("de")
+                ? "Alle Ihre Sitzungen wurden widerrufen"
+                : "All Your Sessions Have Been Revoked";
+
             await _emailService.SendAsync(
                 user.Email,
-                "All Your Sessions Have Been Revoked",
+                subject,
                 "sessions-revoked-admin",
                 new Dictionary<string, string>
                 {
