@@ -48,6 +48,12 @@ public sealed class ForgotPasswordHandler : ICommandHandler<ForgotPasswordComman
             return successResponse;
         }
 
+        if (user.IsAnonymized)
+        {
+            _logger.LogDebug("Password reset requested for anonymized user: {Email}", email);
+            return successResponse;
+        }
+
         // Create reset token
         var result = await _passwordResetService.CreateResetTokenAsync(user.Id, ct);
 
@@ -57,7 +63,7 @@ public sealed class ForgotPasswordHandler : ICommandHandler<ForgotPasswordComman
             firstName: user.FirstName,
             resetToken: result.Token,
             resetCode: result.Code,
-            language: "en", // TODO: Use user's preferred language when implemented
+            language: user.PreferredLanguage,
             cancellationToken: ct
         );
 

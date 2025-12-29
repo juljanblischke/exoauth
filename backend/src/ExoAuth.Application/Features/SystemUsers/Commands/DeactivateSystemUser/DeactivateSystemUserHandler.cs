@@ -1,31 +1,38 @@
 using ExoAuth.Application.Common.Exceptions;
 using ExoAuth.Application.Common.Interfaces;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 
-namespace ExoAuth.Application.Features.SystemUsers.Commands.DeleteSystemUser;
+namespace ExoAuth.Application.Features.SystemUsers.Commands.DeactivateSystemUser;
 
-public sealed class DeleteSystemUserHandler : ICommandHandler<DeleteSystemUserCommand, bool>
+public sealed class DeactivateSystemUserHandler : ICommandHandler<DeactivateSystemUserCommand, bool>
 {
+    private readonly IAppDbContext _context;
     private readonly ISystemUserRepository _userRepository;
     private readonly IPermissionCacheService _permissionCache;
     private readonly ICurrentUserService _currentUser;
     private readonly IAuditService _auditService;
+    private readonly IRevokedSessionService _revokedSessionService;
 
-    public DeleteSystemUserHandler(
+    public DeactivateSystemUserHandler(
+        IAppDbContext context,
         ISystemUserRepository userRepository,
         IPermissionCacheService permissionCache,
         ICurrentUserService currentUser,
-        IAuditService auditService)
+        IAuditService auditService,
+        IRevokedSessionService revokedSessionService)
     {
+        _context = context;
         _userRepository = userRepository;
         _permissionCache = permissionCache;
         _currentUser = currentUser;
         _auditService = auditService;
+        _revokedSessionService = revokedSessionService;
     }
 
-    public async ValueTask<bool> Handle(DeleteSystemUserCommand command, CancellationToken ct)
+    public async ValueTask<bool> Handle(DeactivateSystemUserCommand command, CancellationToken ct)
     {
-        // Check if trying to delete self
+        // Check if trying to deactivate self
         if (_currentUser.UserId == command.Id)
         {
             throw new CannotDeleteSelfException();
@@ -36,6 +43,11 @@ public sealed class DeleteSystemUserHandler : ICommandHandler<DeleteSystemUserCo
         if (user is null)
         {
             throw new SystemUserNotFoundException(command.Id);
+        }
+
+        if (!user.IsActive)
+        {
+            throw new UserAlreadyDeactivatedException(command.Id);
         }
 
         // Check if user is last holder of critical permission
@@ -55,12 +67,36 @@ public sealed class DeleteSystemUserHandler : ICommandHandler<DeleteSystemUserCo
         user.Deactivate();
         await _userRepository.UpdateAsync(user, ct);
 
+        // Revoke all sessions for immediate logout
+        var sessions = await _context.DeviceSessions
+            .Where(s => s.UserId == command.Id)
+            .ToListAsync(ct);
+
+        foreach (var session in sessions)
+        {
+            await _revokedSessionService.RevokeSessionAsync(session.Id, ct);
+        }
+
+        _context.DeviceSessions.RemoveRange(sessions);
+
+        // Revoke all refresh tokens
+        var refreshTokens = await _context.RefreshTokens
+            .Where(t => t.UserId == command.Id && !t.IsRevoked)
+            .ToListAsync(ct);
+
+        foreach (var token in refreshTokens)
+        {
+            token.Revoke();
+        }
+
+        await _context.SaveChangesAsync(ct);
+
         // Invalidate permission cache
         await _permissionCache.InvalidateAsync(command.Id, ct);
 
         // Audit log
         await _auditService.LogWithContextAsync(
-            AuditActions.UserDeleted,
+            AuditActions.UserDeactivated,
             _currentUser.UserId,
             command.Id, // targetUserId
             "SystemUser",

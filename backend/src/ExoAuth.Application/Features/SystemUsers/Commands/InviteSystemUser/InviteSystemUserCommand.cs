@@ -10,5 +10,6 @@ public sealed record InviteSystemUserCommand(
     string Email,
     string FirstName,
     string LastName,
-    List<Guid> PermissionIds
+    List<Guid> PermissionIds,
+    string Language = "en"
 ) : ICommand<SystemInviteDto>;

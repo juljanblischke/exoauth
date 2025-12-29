@@ -45,6 +45,16 @@ public sealed class RegenerateBackupCodesHandler : ICommandHandler<RegenerateBac
             .FirstOrDefaultAsync(u => u.Id == userId, ct)
             ?? throw new UnauthorizedException();
 
+        if (!user.IsActive)
+        {
+            throw new UserInactiveException();
+        }
+
+        if (user.IsLocked)
+        {
+            throw new AccountLockedException(user.LockedUntil);
+        }
+
         if (!user.MfaEnabled || string.IsNullOrEmpty(user.MfaSecret))
         {
             throw new MfaNotEnabledException();

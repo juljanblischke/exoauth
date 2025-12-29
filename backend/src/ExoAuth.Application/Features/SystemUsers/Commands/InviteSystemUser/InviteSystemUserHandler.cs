@@ -44,6 +44,7 @@ public sealed class InviteSystemUserHandler : ICommandHandler<InviteSystemUserCo
         var existingInvite = await _context.SystemInvites
             .FirstOrDefaultAsync(i => i.Email == command.Email.ToLowerInvariant()
                 && i.AcceptedAt == null
+                && i.RevokedAt == null
                 && i.ExpiresAt > DateTime.UtcNow, ct);
 
         if (existingInvite is not null)
@@ -81,19 +82,31 @@ public sealed class InviteSystemUserHandler : ICommandHandler<InviteSystemUserCo
             lastName: command.LastName,
             permissionIds: command.PermissionIds,
             invitedBy: inviterId,
-            tokenHash: tokenResult.TokenHash
+            tokenHash: tokenResult.TokenHash,
+            language: command.Language
         );
+
+        // Ensure unique ID (handles extremely rare GUID collision)
+        const int maxRetries = 3;
+        for (var i = 0; i < maxRetries; i++)
+        {
+            if (!await _context.SystemInvites.AnyAsync(inv => inv.Id == invite.Id, ct))
+                break;
+            invite.RegenerateId();
+            if (i == maxRetries - 1)
+                throw new InvalidOperationException("Failed to generate unique invite ID after multiple attempts");
+        }
 
         await _context.SystemInvites.AddAsync(invite, ct);
         await _context.SaveChangesAsync(ct);
 
-        // Send invitation email
+        // Send invitation email in the invited person's language preference
         await _emailService.SendSystemInviteAsync(
             email: invite.Email,
             firstName: invite.FirstName,
             inviterName: inviter.FullName,
             inviteToken: tokenResult.Token,
-            language: "en", // TODO: Could be based on user preference
+            language: invite.Language,
             cancellationToken: ct
         );
 

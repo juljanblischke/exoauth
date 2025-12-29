@@ -60,6 +60,20 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
             emailVerified: true // First user is auto-verified
         );
 
+        // Set preferred language
+        user.SetPreferredLanguage(command.Language);
+
+        // Ensure unique ID (handles extremely rare GUID collision)
+        const int maxRetries = 3;
+        for (var i = 0; i < maxRetries; i++)
+        {
+            if (!await _context.SystemUsers.AnyAsync(u => u.Id == user.Id, ct))
+                break;
+            user.RegenerateId();
+            if (i == maxRetries - 1)
+                throw new InvalidOperationException("Failed to generate unique user ID after multiple attempts");
+        }
+
         await _userRepository.AddAsync(user, ct);
 
         // Get all system permissions and assign to first user
@@ -77,9 +91,9 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
         var (session, _, _) = await _deviceSessionService.CreateOrUpdateSessionAsync(
             user.Id,
             deviceId,
-            command.DeviceFingerprint,
             command.UserAgent,
             command.IpAddress,
+            command.DeviceFingerprint,
             ct
         );
 
@@ -130,12 +144,16 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
                 FullName: user.FullName,
                 IsActive: user.IsActive,
                 EmailVerified: user.EmailVerified,
+                MfaEnabled: user.MfaEnabled,
+                PreferredLanguage: user.PreferredLanguage,
                 LastLoginAt: user.LastLoginAt,
                 CreatedAt: user.CreatedAt,
                 Permissions: permissionNames
             ),
             AccessToken: accessToken,
-            RefreshToken: refreshTokenString
+            RefreshToken: refreshTokenString,
+            SessionId: session.Id,
+            DeviceId: deviceId
         );
     }
 }

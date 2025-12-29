@@ -9,7 +9,9 @@ public sealed class InviteSystemUserValidator : AbstractValidator<InviteSystemUs
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email is required")
             .EmailAddress().WithMessage("Invalid email format")
-            .MaximumLength(256).WithMessage("Email must not exceed 256 characters");
+            .MaximumLength(256).WithMessage("Email must not exceed 256 characters")
+            .Must(email => !email.EndsWith("@deleted.local", StringComparison.OrdinalIgnoreCase))
+                .WithMessage("Invalid email domain");
 
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("First name is required")
@@ -21,5 +23,9 @@ public sealed class InviteSystemUserValidator : AbstractValidator<InviteSystemUs
 
         RuleFor(x => x.PermissionIds)
             .NotEmpty().WithMessage("At least one permission is required");
+
+        RuleFor(x => x.Language)
+            .Must(lang => lang is "en" or "de")
+                .WithMessage("Language must be 'en' or 'de'");
     }
 }

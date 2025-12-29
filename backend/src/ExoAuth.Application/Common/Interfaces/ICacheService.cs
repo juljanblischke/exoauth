@@ -7,5 +7,6 @@ public interface ICacheService
     Task RemoveAsync(string key, CancellationToken ct = default);
     Task<bool> ExistsAsync(string key, CancellationToken ct = default);
     Task<long> IncrementAsync(string key, long value = 1, TimeSpan? expiration = null, CancellationToken ct = default);
+    Task<long?> GetIntegerAsync(string key, CancellationToken ct = default);
     Task DeleteByPatternAsync(string pattern, CancellationToken ct = default);
 }

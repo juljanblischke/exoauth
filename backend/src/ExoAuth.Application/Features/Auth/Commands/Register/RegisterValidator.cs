@@ -9,7 +9,9 @@ public sealed class RegisterValidator : AbstractValidator<RegisterCommand>
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email is required")
             .EmailAddress().WithMessage("Invalid email format")
-            .MaximumLength(256).WithMessage("Email must not exceed 256 characters");
+            .MaximumLength(256).WithMessage("Email must not exceed 256 characters")
+            .Must(email => !email.EndsWith("@deleted.local", StringComparison.OrdinalIgnoreCase))
+                .WithMessage("Invalid email domain");
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password is required")
@@ -27,5 +29,9 @@ public sealed class RegisterValidator : AbstractValidator<RegisterCommand>
         RuleFor(x => x.LastName)
             .NotEmpty().WithMessage("Last name is required")
             .MaximumLength(100).WithMessage("Last name must not exceed 100 characters");
+
+        RuleFor(x => x.Language)
+            .Must(lang => lang is "en" or "de")
+                .WithMessage("Language must be 'en' or 'de'");
     }
 }

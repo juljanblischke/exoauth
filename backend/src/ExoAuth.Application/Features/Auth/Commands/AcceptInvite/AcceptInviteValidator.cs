@@ -17,5 +17,9 @@ public sealed class AcceptInviteValidator : AbstractValidator<AcceptInviteComman
             .Matches("[a-z]").WithMessage("Password must contain at least one lowercase letter")
             .Matches("[0-9]").WithMessage("Password must contain at least one digit")
             .Matches("[^a-zA-Z0-9]").WithMessage("Password must contain at least one special character");
+
+        RuleFor(x => x.Language)
+            .Must(lang => lang is "en" or "de")
+                .WithMessage("Language must be 'en' or 'de'");
     }
 }

@@ -1,7 +1,18 @@
 namespace ExoAuth.Application.Common.Interfaces;
 
 /// <summary>
-/// Service for brute force attack protection using Redis.
+/// Result of a failed login attempt with progressive lockout information.
+/// </summary>
+public sealed record LockoutResult(
+    int Attempts,
+    bool IsLocked,
+    int LockoutSeconds,
+    DateTime? LockedUntil,
+    bool ShouldNotify
+);
+
+/// <summary>
+/// Service for brute force attack protection using Redis with progressive lockout.
 /// </summary>
 public interface IBruteForceProtectionService
 {
@@ -14,12 +25,20 @@ public interface IBruteForceProtectionService
     Task<bool> IsBlockedAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Records a failed login attempt for an email.
+    /// Gets the lockout status for an email, including when the lockout expires.
+    /// </summary>
+    /// <param name="email">The email to check.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Lockout information including when it expires, or null if not locked.</returns>
+    Task<LockoutResult?> GetLockoutStatusAsync(string email, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records a failed login attempt for an email with progressive lockout.
     /// </summary>
     /// <param name="email">The email that failed to login.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The current number of failed attempts and whether the email is now blocked.</returns>
-    Task<(int Attempts, bool IsBlocked)> RecordFailedAttemptAsync(string email, CancellationToken cancellationToken = default);
+    /// <returns>Lockout result with attempt count, lockout duration, and notification flag.</returns>
+    Task<LockoutResult> RecordFailedAttemptAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Resets the failed attempt counter for an email after successful login.
@@ -29,10 +48,10 @@ public interface IBruteForceProtectionService
     Task ResetAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the number of remaining attempts before the email is blocked.
+    /// Gets the number of remaining attempts before the email starts getting progressive lockouts.
     /// </summary>
     /// <param name="email">The email to check.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Number of remaining attempts.</returns>
+    /// <returns>Number of remaining attempts before lockout delays begin.</returns>
     Task<int> GetRemainingAttemptsAsync(string email, CancellationToken cancellationToken = default);
 }

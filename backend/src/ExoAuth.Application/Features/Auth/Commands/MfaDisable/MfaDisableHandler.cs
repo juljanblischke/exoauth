@@ -40,6 +40,17 @@ public sealed class MfaDisableHandler : ICommandHandler<MfaDisableCommand, MfaDi
             .FirstOrDefaultAsync(u => u.Id == userId, ct)
             ?? throw new UnauthorizedException();
 
+        // Check user state
+        if (!user.IsActive)
+        {
+            throw new UserInactiveException();
+        }
+
+        if (user.IsLocked)
+        {
+            throw new AccountLockedException(user.LockedUntil);
+        }
+
         if (!user.MfaEnabled || string.IsNullOrEmpty(user.MfaSecret))
         {
             throw new MfaNotEnabledException();

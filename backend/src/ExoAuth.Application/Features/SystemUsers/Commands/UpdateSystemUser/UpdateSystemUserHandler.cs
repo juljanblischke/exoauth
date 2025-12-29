@@ -2,6 +2,7 @@ using ExoAuth.Application.Common.Exceptions;
 using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Application.Features.SystemUsers.Models;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExoAuth.Application.Features.SystemUsers.Commands.UpdateSystemUser;
 
@@ -10,15 +11,24 @@ public sealed class UpdateSystemUserHandler : ICommandHandler<UpdateSystemUserCo
     private readonly ISystemUserRepository _userRepository;
     private readonly ICurrentUserService _currentUser;
     private readonly IAuditService _auditService;
+    private readonly IAppDbContext _context;
+    private readonly IRevokedSessionService _revokedSessionService;
+    private readonly IPermissionCacheService _permissionCache;
 
     public UpdateSystemUserHandler(
         ISystemUserRepository userRepository,
         ICurrentUserService currentUser,
-        IAuditService auditService)
+        IAuditService auditService,
+        IAppDbContext context,
+        IRevokedSessionService revokedSessionService,
+        IPermissionCacheService permissionCache)
     {
         _userRepository = userRepository;
         _currentUser = currentUser;
         _auditService = auditService;
+        _context = context;
+        _revokedSessionService = revokedSessionService;
+        _permissionCache = permissionCache;
     }
 
     public async ValueTask<SystemUserDto> Handle(UpdateSystemUserCommand command, CancellationToken ct)
@@ -28,6 +38,36 @@ public sealed class UpdateSystemUserHandler : ICommandHandler<UpdateSystemUserCo
         if (user is null)
         {
             throw new SystemUserNotFoundException(command.Id);
+        }
+
+        // Cannot modify anonymized users
+        if (user.IsAnonymized)
+        {
+            throw new UserAnonymizedException(command.Id);
+        }
+
+        // If deactivating via Update, apply the same safeguards as DeactivateSystemUserHandler
+        if (command.IsActive == false && user.IsActive)
+        {
+            // Check if trying to deactivate self
+            if (_currentUser.UserId == command.Id)
+            {
+                throw new CannotDeleteSelfException();
+            }
+
+            // Check if user is last holder of critical permission
+            var userPermissions = await _userRepository.GetUserPermissionNamesAsync(command.Id, ct);
+
+            if (userPermissions.Contains(global::ExoAuth.Domain.Constants.SystemPermissions.UsersUpdate))
+            {
+                var holdersCount = await _userRepository.CountUsersWithPermissionAsync(
+                    global::ExoAuth.Domain.Constants.SystemPermissions.UsersUpdate, ct);
+
+                if (holdersCount <= 1)
+                {
+                    throw new LastPermissionHolderException(global::ExoAuth.Domain.Constants.SystemPermissions.UsersUpdate);
+                }
+            }
         }
 
         var changes = new Dictionary<string, object?>();
@@ -47,6 +87,9 @@ public sealed class UpdateSystemUserHandler : ICommandHandler<UpdateSystemUserCo
             changes["IsActive"] = new { Old = user.IsActive, New = command.IsActive.Value };
         }
 
+        // Track if we're deactivating for post-update actions
+        var isDeactivating = command.IsActive == false && user.IsActive;
+
         // Update user
         user.Update(
             firstName: command.FirstName,
@@ -55,6 +98,37 @@ public sealed class UpdateSystemUserHandler : ICommandHandler<UpdateSystemUserCo
         );
 
         await _userRepository.UpdateAsync(user, ct);
+
+        // If deactivating, revoke all sessions and tokens for immediate logout
+        if (isDeactivating)
+        {
+            // Revoke all sessions for immediate access token invalidation
+            var sessions = await _context.DeviceSessions
+                .Where(s => s.UserId == command.Id)
+                .ToListAsync(ct);
+
+            foreach (var session in sessions)
+            {
+                await _revokedSessionService.RevokeSessionAsync(session.Id, ct);
+            }
+
+            _context.DeviceSessions.RemoveRange(sessions);
+
+            // Revoke all refresh tokens
+            var refreshTokens = await _context.RefreshTokens
+                .Where(t => t.UserId == command.Id && !t.IsRevoked)
+                .ToListAsync(ct);
+
+            foreach (var token in refreshTokens)
+            {
+                token.Revoke();
+            }
+
+            await _context.SaveChangesAsync(ct);
+
+            // Invalidate permission cache
+            await _permissionCache.InvalidateAsync(command.Id, ct);
+        }
 
         // Audit log
         if (changes.Count > 0)

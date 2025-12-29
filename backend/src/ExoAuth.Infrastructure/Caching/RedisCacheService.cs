@@ -109,6 +109,28 @@ public sealed class RedisCacheService : ICacheService
         }
     }
 
+    public async Task<long?> GetIntegerAsync(string key, CancellationToken ct = default)
+    {
+        try
+        {
+            var db = await _connectionFactory.GetDatabaseAsync(ct);
+            var value = await db.StringGetAsync(key);
+
+            if (value.IsNullOrEmpty)
+                return null;
+
+            if (long.TryParse(value, out var result))
+                return result;
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get integer cache key: {Key}", key);
+            return null;
+        }
+    }
+
     public async Task DeleteByPatternAsync(string pattern, CancellationToken ct = default)
     {
         try

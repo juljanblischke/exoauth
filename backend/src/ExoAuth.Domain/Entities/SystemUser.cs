@@ -94,6 +94,12 @@ public sealed class SystemUser : BaseEntity
         SetUpdated();
     }
 
+    public void Activate()
+    {
+        IsActive = true;
+        SetUpdated();
+    }
+
     public void SetMfaSecret(string encryptedSecret)
     {
         MfaSecret = encryptedSecret;

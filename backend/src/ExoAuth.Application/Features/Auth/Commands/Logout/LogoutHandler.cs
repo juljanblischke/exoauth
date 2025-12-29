@@ -9,17 +9,20 @@ public sealed class LogoutHandler : ICommandHandler<LogoutCommand, LogoutRespons
 {
     private readonly IAppDbContext _context;
     private readonly ITokenBlacklistService _tokenBlacklist;
+    private readonly IRevokedSessionService _revokedSessionService;
     private readonly IAuditService _auditService;
     private readonly ICurrentUserService _currentUser;
 
     public LogoutHandler(
         IAppDbContext context,
         ITokenBlacklistService tokenBlacklist,
+        IRevokedSessionService revokedSessionService,
         IAuditService auditService,
         ICurrentUserService currentUser)
     {
         _context = context;
         _tokenBlacklist = tokenBlacklist;
+        _revokedSessionService = revokedSessionService;
         _auditService = auditService;
         _currentUser = currentUser;
     }
@@ -38,6 +41,21 @@ public sealed class LogoutHandler : ICommandHandler<LogoutCommand, LogoutRespons
             // Revoke the token
             storedToken.Revoke();
             await _tokenBlacklist.BlacklistAsync(storedToken.Id, storedToken.ExpiresAt, ct);
+
+            // Also revoke the linked device session for immediate access token invalidation
+            if (storedToken.DeviceSessionId.HasValue)
+            {
+                await _revokedSessionService.RevokeSessionAsync(storedToken.DeviceSessionId.Value, ct);
+
+                // Remove the device session from DB
+                var session = await _context.DeviceSessions
+                    .FirstOrDefaultAsync(s => s.Id == storedToken.DeviceSessionId.Value, ct);
+                if (session is not null)
+                {
+                    _context.DeviceSessions.Remove(session);
+                }
+            }
+
             await _context.SaveChangesAsync(ct);
 
             // Audit log

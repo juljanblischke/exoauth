@@ -71,6 +71,8 @@ public sealed record UserDto(
     string FullName,
     bool IsActive,
     bool EmailVerified,
+    bool MfaEnabled,
+    string PreferredLanguage,
     DateTime? LastLoginAt,
     DateTime CreatedAt,
     IReadOnlyList<string> Permissions

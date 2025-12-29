@@ -31,6 +31,16 @@ public sealed class UpdatePreferencesHandler : ICommandHandler<UpdatePreferences
             .FirstOrDefaultAsync(u => u.Id == userId, ct)
             ?? throw new UnauthorizedException();
 
+        if (!user.IsActive)
+        {
+            throw new UserInactiveException();
+        }
+
+        if (user.IsLocked)
+        {
+            throw new AccountLockedException(user.LockedUntil);
+        }
+
         var oldLanguage = user.PreferredLanguage;
         user.SetPreferredLanguage(command.Language);
 

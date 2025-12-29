@@ -143,7 +143,9 @@ Umfassende Sicherheitserweiterungen für das Auth-System:
 | POST | `/api/users/{id}/unlock` | `{ reason? }` | `{ success: true }` | JWT | `users:unlock` | Default | Entsperrt Account |
 | GET | `/api/users/{id}/sessions` | - | `DeviceSession[]` | JWT | `users:sessions:view` | Default | Admin sieht User Sessions |
 | DELETE | `/api/users/{id}/sessions` | - | `{ revokedCount: int }` | JWT | `users:sessions:revoke` | Default | Admin revoked alle Sessions |
-| DELETE | `/api/users/{id}` | - | `{ success: true }` | JWT | `users:delete` | Default | Anonymisiert User |
+| POST | `/api/users/{id}/deactivate` | - | `204 No Content` | JWT | `users:deactivate` | Default | Deaktiviert User |
+| POST | `/api/users/{id}/activate` | - | `204 No Content` | JWT | `users:activate` | Default | Aktiviert User |
+| POST | `/api/users/{id}/anonymize` | - | `{ success: true }` | JWT | `users:anonymize` | Default | Anonymisiert User (GDPR) |
 
 ---
 
@@ -165,6 +167,9 @@ Umfassende Sicherheitserweiterungen für das Auth-System:
 | `SESSION_CANNOT_REVOKE_CURRENT` | 400 | Aktuelle Session kann nicht revoked werden |
 | `ACCOUNT_LOCKED` | 423 | Account temporär gesperrt |
 | `ACCOUNT_LOCKED_PERMANENT` | 423 | Account dauerhaft gesperrt |
+| `SYSTEM_USER_ALREADY_DEACTIVATED` | 400 | User ist bereits deaktiviert |
+| `SYSTEM_USER_ALREADY_ACTIVATED` | 400 | User ist bereits aktiv |
+| `SYSTEM_USER_ANONYMIZED` | 400 | User ist anonymisiert und kann nicht modifiziert werden |
 
 > ⚠️ **Nach Completion:** Diese Codes zu `coding_standards_backend.md` (Error Codes Tabelle) hinzufügen!
 
@@ -505,50 +510,103 @@ public DeviceSession? DeviceSession { get; set; }
 |-------|------|--------|-------|
 | Test | `tests/ExoAuth.UnitTests/Features/Auth/LoginHandlerTests.cs` | ✅ | Updated with 2 new MFA tests (167 total tests pass) |
 
-### Phase 5: User Preferences & Admin
+### Phase 5: User Preferences & Admin ✅
 
 #### Application Layer
 
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Command | `src/ExoAuth.Application/Features/Auth/Commands/UpdatePreferences/UpdatePreferencesCommand.cs` | Update Prefs |
-| Handler | `src/ExoAuth.Application/Features/Auth/Commands/UpdatePreferences/UpdatePreferencesHandler.cs` | Handler |
-| Validator | `src/ExoAuth.Application/Features/Auth/Commands/UpdatePreferences/UpdatePreferencesValidator.cs` | Validation |
-| Command | `src/ExoAuth.Application/Features/SystemUsers/Commands/ResetUserMfa/ResetUserMfaCommand.cs` | Admin Reset |
-| Handler | `src/ExoAuth.Application/Features/SystemUsers/Commands/ResetUserMfa/ResetUserMfaHandler.cs` | Handler |
-| Command | `src/ExoAuth.Application/Features/SystemUsers/Commands/UnlockUser/UnlockUserCommand.cs` | Unlock Account |
-| Handler | `src/ExoAuth.Application/Features/SystemUsers/Commands/UnlockUser/UnlockUserHandler.cs` | Handler |
-| Query | `src/ExoAuth.Application/Features/SystemUsers/Queries/GetUserSessions/GetUserSessionsQuery.cs` | Admin View |
-| Handler | `src/ExoAuth.Application/Features/SystemUsers/Queries/GetUserSessions/GetUserSessionsHandler.cs` | Handler |
-| Command | `src/ExoAuth.Application/Features/SystemUsers/Commands/RevokeUserSessions/RevokeUserSessionsCommand.cs` | Admin Revoke |
-| Handler | `src/ExoAuth.Application/Features/SystemUsers/Commands/RevokeUserSessions/RevokeUserSessionsHandler.cs` | Handler |
-| Command | `src/ExoAuth.Application/Features/SystemUsers/Commands/AnonymizeUser/AnonymizeUserCommand.cs` | Anonymize |
-| Handler | `src/ExoAuth.Application/Features/SystemUsers/Commands/AnonymizeUser/AnonymizeUserHandler.cs` | Handler |
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Command | `src/ExoAuth.Application/Features/Auth/Commands/UpdatePreferences/UpdatePreferencesCommand.cs` | ✅ | Update Prefs |
+| Handler | `src/ExoAuth.Application/Features/Auth/Commands/UpdatePreferences/UpdatePreferencesHandler.cs` | ✅ | Handler |
+| Validator | `src/ExoAuth.Application/Features/Auth/Commands/UpdatePreferences/UpdatePreferencesValidator.cs` | ✅ | Validation |
+| Command | `src/ExoAuth.Application/Features/SystemUsers/Commands/ResetUserMfa/ResetUserMfaCommand.cs` | ✅ | Admin Reset |
+| Handler | `src/ExoAuth.Application/Features/SystemUsers/Commands/ResetUserMfa/ResetUserMfaHandler.cs` | ✅ | Handler |
+| Command | `src/ExoAuth.Application/Features/SystemUsers/Commands/UnlockUser/UnlockUserCommand.cs` | ✅ | Unlock Account |
+| Handler | `src/ExoAuth.Application/Features/SystemUsers/Commands/UnlockUser/UnlockUserHandler.cs` | ✅ | Handler |
+| Query | `src/ExoAuth.Application/Features/SystemUsers/Queries/GetUserSessions/GetUserSessionsQuery.cs` | ✅ | Admin View |
+| Handler | `src/ExoAuth.Application/Features/SystemUsers/Queries/GetUserSessions/GetUserSessionsHandler.cs` | ✅ | Handler |
+| Command | `src/ExoAuth.Application/Features/SystemUsers/Commands/RevokeUserSessions/RevokeUserSessionsCommand.cs` | ✅ | Admin Revoke |
+| Handler | `src/ExoAuth.Application/Features/SystemUsers/Commands/RevokeUserSessions/RevokeUserSessionsHandler.cs` | ✅ | Handler |
+| Command | `src/ExoAuth.Application/Features/SystemUsers/Commands/AnonymizeUser/AnonymizeUserCommand.cs` | ✅ | Anonymize |
+| Handler | `src/ExoAuth.Application/Features/SystemUsers/Commands/AnonymizeUser/AnonymizeUserHandler.cs` | ✅ | Handler |
+| Command | `src/ExoAuth.Application/Features/SystemUsers/Commands/DeactivateSystemUser/DeactivateSystemUserCommand.cs` | ✅ | Deactivate User |
+| Handler | `src/ExoAuth.Application/Features/SystemUsers/Commands/DeactivateSystemUser/DeactivateSystemUserHandler.cs` | ✅ | Handler |
+| Command | `src/ExoAuth.Application/Features/SystemUsers/Commands/ActivateSystemUser/ActivateSystemUserCommand.cs` | ✅ | Activate User |
+| Handler | `src/ExoAuth.Application/Features/SystemUsers/Commands/ActivateSystemUser/ActivateSystemUserHandler.cs` | ✅ | Handler |
 
-### Email Templates
+#### API Layer
 
-| Datei | Pfad | Beschreibung |
-|-------|------|--------------|
-| Template | `templates/emails/en/password-reset.html` | Password Reset EN |
-| Template | `templates/emails/de/password-reset.html` | Password Reset DE |
-| Template | `templates/emails/en/password-changed.html` | Password Changed EN |
-| Template | `templates/emails/de/password-changed.html` | Password Changed DE |
-| Template | `templates/emails/en/mfa-enabled.html` | MFA Enabled EN |
-| Template | `templates/emails/de/mfa-enabled.html` | MFA Enabled DE |
-| Template | `templates/emails/en/mfa-disabled.html` | MFA Disabled EN |
-| Template | `templates/emails/de/mfa-disabled.html` | MFA Disabled DE |
-| Template | `templates/emails/en/mfa-reset-admin.html` | MFA Reset by Admin EN |
-| Template | `templates/emails/de/mfa-reset-admin.html` | MFA Reset by Admin DE |
-| Template | `templates/emails/en/mfa-backup-code-used.html` | Backup Code Used EN |
-| Template | `templates/emails/de/mfa-backup-code-used.html` | Backup Code Used DE |
-| Template | `templates/emails/en/new-device-login.html` | New Device EN |
-| Template | `templates/emails/de/new-device-login.html` | New Device DE |
-| Template | `templates/emails/en/new-location-login.html` | New Location EN |
-| Template | `templates/emails/de/new-location-login.html` | New Location DE |
-| Template | `templates/emails/en/account-locked.html` | Account Locked EN |
-| Template | `templates/emails/de/account-locked.html` | Account Locked DE |
-| Template | `templates/emails/en/sessions-revoked.html` | Sessions Revoked EN |
-| Template | `templates/emails/de/sessions-revoked.html` | Sessions Revoked DE |
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Controller | `src/ExoAuth.Api/Controllers/AuthController.cs` | ✅ | Added PATCH /api/auth/me/preferences |
+| Controller | `src/ExoAuth.Api/Controllers/SystemUsersController.cs` | ✅ | Admin endpoints (MFA reset, unlock, sessions, deactivate, activate, anonymize) |
+
+#### Email Templates
+
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Template | `backend/templates/emails/en/mfa-reset-admin.html` | ✅ | MFA Reset by Admin EN |
+| Template | `backend/templates/emails/de/mfa-reset-admin.html` | ✅ | MFA Reset by Admin DE |
+| Template | `backend/templates/emails/en/account-unlocked.html` | ✅ | Account Unlocked EN |
+| Template | `backend/templates/emails/de/account-unlocked.html` | ✅ | Account Unlocked DE |
+| Template | `backend/templates/emails/en/sessions-revoked-admin.html` | ✅ | Sessions Revoked by Admin EN |
+| Template | `backend/templates/emails/de/sessions-revoked-admin.html` | ✅ | Sessions Revoked by Admin DE |
+
+#### Unit Tests
+
+| Datei | Pfad | Status | Tests |
+|-------|------|--------|-------|
+| Test | `tests/ExoAuth.UnitTests/Features/SystemUsers/ResetUserMfaHandlerTests.cs` | ✅ | 5 tests |
+| Test | `tests/ExoAuth.UnitTests/Features/SystemUsers/UnlockUserHandlerTests.cs` | ✅ | 6 tests |
+| Test | `tests/ExoAuth.UnitTests/Features/SystemUsers/GetUserSessionsHandlerTests.cs` | ✅ | 5 tests |
+| Test | `tests/ExoAuth.UnitTests/Features/SystemUsers/RevokeUserSessionsHandlerTests.cs` | ✅ | 6 tests |
+| Test | `tests/ExoAuth.UnitTests/Features/SystemUsers/AnonymizeUserHandlerTests.cs` | ✅ | 6 tests |
+| Test | `tests/ExoAuth.UnitTests/Features/SystemUsers/DeactivateSystemUserHandlerTests.cs` | ✅ | 7 tests |
+| Test | `tests/ExoAuth.UnitTests/Features/SystemUsers/ActivateSystemUserHandlerTests.cs` | ✅ | 5 tests |
+| Test | `tests/ExoAuth.UnitTests/Features/Auth/UpdatePreferencesHandlerTests.cs` | ✅ | 5 tests |
+
+#### Security Improvements (Added)
+
+| Datei | Status | Beschreibung |
+|-------|--------|--------------|
+| `BaseEntity.cs` | ✅ | Added `RegenerateId()` method for GUID collision handling |
+| `RegisterHandler.cs` | ✅ | Added GUID collision retry logic (3 attempts) |
+| `AcceptInviteHandler.cs` | ✅ | Added GUID collision retry logic (3 attempts) |
+| `InviteSystemUserHandler.cs` | ✅ | Added GUID collision retry logic (3 attempts) |
+| `RegisterValidator.cs` | ✅ | Block `@deleted.local` domain (reserved for anonymized users) |
+| `InviteSystemUserValidator.cs` | ✅ | Block `@deleted.local` domain (reserved for anonymized users) |
+| `ActivateSystemUserHandler.cs` | ✅ | Prevent reactivation of anonymized users |
+| `UpdateSystemUserHandler.cs` | ✅ | Prevent modification of anonymized users |
+| `SystemException.cs` | ✅ | Added `UserAnonymizedException` |
+
+### All Email Templates (Complete List)
+
+| Datei | Pfad | Status | Beschreibung |
+|-------|------|--------|--------------|
+| Template | `backend/templates/emails/en/system-invite.html` | ✅ | System Invite EN |
+| Template | `backend/templates/emails/de/system-invite.html` | ✅ | System Invite DE |
+| Template | `backend/templates/emails/en/password-reset.html` | ✅ | Password Reset EN |
+| Template | `backend/templates/emails/de/password-reset.html` | ✅ | Password Reset DE |
+| Template | `backend/templates/emails/en/password-changed.html` | ✅ | Password Changed EN |
+| Template | `backend/templates/emails/de/password-changed.html` | ✅ | Password Changed DE |
+| Template | `backend/templates/emails/en/mfa-enabled.html` | ✅ | MFA Enabled EN |
+| Template | `backend/templates/emails/de/mfa-enabled.html` | ✅ | MFA Enabled DE |
+| Template | `backend/templates/emails/en/mfa-disabled.html` | ✅ | MFA Disabled EN |
+| Template | `backend/templates/emails/de/mfa-disabled.html` | ✅ | MFA Disabled DE |
+| Template | `backend/templates/emails/en/mfa-reset-admin.html` | ✅ | MFA Reset by Admin EN |
+| Template | `backend/templates/emails/de/mfa-reset-admin.html` | ✅ | MFA Reset by Admin DE |
+| Template | `backend/templates/emails/en/mfa-backup-code-used.html` | ✅ | Backup Code Used EN |
+| Template | `backend/templates/emails/de/mfa-backup-code-used.html` | ✅ | Backup Code Used DE |
+| Template | `backend/templates/emails/en/new-device-login.html` | ✅ | New Device EN |
+| Template | `backend/templates/emails/de/new-device-login.html` | ✅ | New Device DE |
+| Template | `backend/templates/emails/en/new-location-login.html` | ✅ | New Location EN |
+| Template | `backend/templates/emails/de/new-location-login.html` | ✅ | New Location DE |
+| Template | `backend/templates/emails/en/account-unlocked.html` | ✅ | Account Unlocked EN |
+| Template | `backend/templates/emails/de/account-unlocked.html` | ✅ | Account Unlocked DE |
+| Template | `backend/templates/emails/en/sessions-revoked-admin.html` | ✅ | Sessions Revoked Admin EN |
+| Template | `backend/templates/emails/de/sessions-revoked-admin.html` | ✅ | Sessions Revoked Admin DE |
+| Template | `backend/templates/emails/en/account-locked.html` | ✅ | Account Locked EN (Phase 6) |
+| Template | `backend/templates/emails/de/account-locked.html` | ✅ | Account Locked DE (Phase 6) |
 
 ---
 
@@ -598,10 +656,13 @@ public DeviceSession? DeviceSession { get; set; }
 
 ```csharp
 // Add to SystemPermissions.cs
-public const string UsersMfaReset = "users:mfa:reset";
-public const string UsersUnlock = "users:unlock";
-public const string UsersSessionsView = "users:sessions:view";
-public const string UsersSessionsRevoke = "users:sessions:revoke";
+public const string UsersMfaReset = "system:users:mfa:reset";
+public const string UsersUnlock = "system:users:unlock";
+public const string UsersSessionsView = "system:users:sessions:view";
+public const string UsersSessionsRevoke = "system:users:sessions:revoke";
+public const string UsersDeactivate = "system:users:deactivate";
+public const string UsersActivate = "system:users:activate";
+public const string UsersAnonymize = "system:users:anonymize";
 ```
 
 ---
@@ -623,6 +684,8 @@ public const string UsersSessionsRevoke = "users:sessions:revoke";
 "session_trusted"
 "account_locked"
 "account_unlocked"
+"user_deactivated"
+"user_activated"
 "user_anonymized"
 "preferences_updated"
 "login_new_device"
@@ -712,26 +775,495 @@ public const string UsersSessionsRevoke = "users:sessions:revoke";
 39. [x] **Templates**: MFA Email Templates (EN/DE: mfa-enabled, mfa-disabled, mfa-backup-code-used)
 40. [X] **Tests**: Unit Tests (to be added)
 
-### Phase 5: User Preferences & Admin
-41. [ ] **Domain**: SystemUser Preferences Extension
-42. [ ] **Application**: UpdatePreferences Command/Handler
-43. [ ] **Application**: Admin Commands (Reset MFA, Unlock, Sessions)
-44. [ ] **API**: Preferences + Admin Endpoints
-45. [ ] **Tests**: Unit Tests
+### Phase 5: User Preferences & Admin ✅
+41. [x] **Domain**: SystemUser Preferences Extension (already done in Phase 4)
+42. [x] **Application**: UpdatePreferences Command/Handler
+43. [x] **Application**: Admin Commands (ResetUserMfa, UnlockUser, GetUserSessions, RevokeUserSessions, AnonymizeUser)
+44. [x] **API**: Preferences Endpoint (PATCH /api/auth/me/preferences)
+45. [x] **API**: Admin Endpoints in SystemUsersController (POST mfa/reset, POST unlock, GET/DELETE sessions, POST anonymize)
+46. [x] **Templates**: Email Templates (mfa-reset-admin, account-unlocked, sessions-revoked-admin - EN/DE)
+47. [x] **Tests**: Unit Tests (45 tests for Phase 5 handlers)
 
-### Phase 6: Progressive Lockout & Anonymization
-46. [ ] **Domain**: SystemUser Lockout Fields
-47. [ ] **Infrastructure**: BruteForceProtectionService Update
-48. [ ] **Application**: Lockout in Login Flow
-49. [ ] **Application**: AnonymizeUser Command/Handler
-50. [ ] **Templates**: Account Locked Email
-51. [ ] **Tests**: Unit Tests
+### Phase 6: Progressive Lockout ✅
+48. [x] **Infrastructure**: BruteForceProtectionService Update (Progressive Delays)
+49. [x] **Application**: Lockout in Login Flow
+50. [x] **Templates**: Account Locked Email (EN/DE)
+51. [x] **Tests**: Unit Tests (24 tests for BruteForceProtectionService)
+
+### Phase 6.5: Email Language Support & Accept Invite Device Sessions ✅
+52. [x] **Fix**: InviteSystemUserHandler - Use `invite.Language` instead of hardcoded "en" for invitation emails
+53. [x] **Feature**: AcceptInviteCommand - Added device fields (DeviceId, DeviceFingerprint, UserAgent, IpAddress, Language)
+54. [x] **Feature**: AcceptInviteHandler - Added device session creation (like RegisterHandler)
+55. [x] **Feature**: LoginHandler - Added new device/location email notifications using user's PreferredLanguage
+56. [x] **Fix**: AuthController AcceptInvite endpoint - Pass device info and language to command
+57. [x] **Tests**: LoginHandlerTests updated with IConfiguration mock (232 tests pass)
+
+### Phase 6.6: Bug Fixes ✅
+58. [x] **Bug Fix**: AcceptInviteHandler - Fixed wrong parameter order in `CreateOrUpdateSessionAsync` call
+    - Was: `(userId, deviceId, DeviceFingerprint, UserAgent, IpAddress)` ❌
+    - Now: `(userId, deviceId, UserAgent, IpAddress, DeviceFingerprint)` ✅
+    - Impact: Device detection and GeoIP lookup were failing for users accepting invites
+59. [x] **Bug Fix**: BruteForceProtectionService.GetRemainingAttemptsAsync - Fixed type mismatch
+    - Was trying to deserialize integer from Redis as `AttemptsInfo` record (always returned 0)
+    - Added `ICacheService.GetIntegerAsync()` method for raw integer retrieval
+    - Implemented in `RedisCacheService.GetIntegerAsync()`
+    - Removed unused `AttemptsInfo` record
+60. [x] **Tests**: All 232 tests still passing after fixes
 
 ### Phase 7: Finalization
-52. [ ] **Integration**: Alle Komponenten zusammen testen
-53. [ ] **Standards Update**: task_standards_backend.md aktualisieren
-54. [ ] **Standards Update**: coding_standards_backend.md Error Codes
-55. [ ] **Documentation**: API Documentation aktualisieren
+61. [ ] **Integration**: Alle Komponenten zusammen testen
+62. [ ] **Standards Update**: task_standards_backend.md aktualisieren
+63. [ ] **Standards Update**: coding_standards_backend.md Error Codes
+64. [ ] **Documentation**: API Documentation aktualisieren
+
+### Phase 8: Bug Fixes (Code Review Findings) ✅
+
+> ⚠️ **Discovered during code review on 2025-12-29**
+>
+> ✅ **All critical bugs resolved** (8 fixed, 1 verified as not a bug)
+
+#### 🔴 Critical Bugs (9) - ✅ COMPLETE
+
+| # | Bug | File | Line | Impact | Status |
+|---|-----|------|------|--------|--------|
+| 1 | **Wrong parameter order in CreateOrUpdateSessionAsync** | `RegisterHandler.cs` | 91-97 | DeviceFingerprint/UserAgent/IpAddress swapped - breaks device detection & GeoIP for registrations | [X] |
+| 2 | **Missing IsRevoked check** | `AcceptInviteHandler.cs` | 48-56 | Revoked invites can still be accepted | [X] |
+| 3 | **Missing RevokedAt filter in pending invite query** | `InviteSystemUserHandler.cs` | 44-47 | Revoked invites block new invites to same email | [X] |
+| 4 | **Missing Redis brute force reset on unlock** | `UnlockUserHandler.cs` | 44 | Admin unlocks user in DB but Redis still blocks them | [X] |
+| 5 | **Missing session revocation on deactivate** | `DeactivateSystemUserHandler.cs` | 59-61 | Deactivated users stay logged in with existing tokens | [X] |
+| 6 | **Missing IsActive/IsLocked checks in MFA verify** | `MfaVerifyHandler.cs` | 58-65 | Locked/deactivated users can complete MFA and login | [X] |
+| 7 | **Missing IsLocked check in refresh token** | `RefreshTokenHandler.cs` | 66-71 | Locked users can refresh tokens indefinitely | [X] |
+| 8 | **UpdateSystemUser bypasses deactivation safeguards** | `UpdateSystemUserHandler.cs` | 51-61 | Can deactivate self or last admin via IsActive=false | [X] |
+| 9 | ~~**MfaDisable missing system permission check**~~ | `MfaDisableHandler.cs` | - | ~~Users with system permissions can disable MFA~~ **VERIFIED - NOT A BUG**: Users CAN disable, but must re-enable on next login (enforced by LoginHandler:158-166) | ✅ |
+
+#### 🟡 Medium Bugs (5) - ✅ COMPLETE
+
+| # | Bug | File | Line | Impact | Status |
+|---|-----|------|------|--------|--------|
+| 10 | **Wrong audit action for MFA required** | `LoginHandler.cs` | 145-153 | Logs "UserLoginFailed" for normal MFA flow - misleading audit trail | [X] |
+| 11 | **Missing IsAnonymized check in forgot password** | `ForgotPasswordHandler.cs` | 45-49 | Sends password reset emails to fake anonymized addresses | [X] |
+| 12 | **Hardcoded language "en" in resend invite** | `ResendInviteHandler.cs` | 104 | Resent invites always in English, ignoring invite.Language | [X] |
+| 13 | **Missing force re-auth after admin MFA reset** | `ResetUserMfaHandler.cs` | 55 | User stays logged in after admin resets their MFA | [X] |
+| 14 | **Missing IsAnonymized check in permission update** | `UpdateSystemUserPermissionsHandler.cs` | 39-44 | Can update permissions on anonymized users | [X] |
+
+#### 🟢 Low Priority (5) - ✅ COMPLETE
+
+| # | Bug | File | Line | Impact | Status |
+|---|-----|------|------|--------|--------|
+| 15 | **Missing state checks in GetCurrentUser** | `GetCurrentUserHandler.cs` | 31-36 | Deactivated/locked user can fetch their profile | [X] |
+| 16 | **Missing state checks in MfaSetup** | `MfaSetupHandler.cs` | 40-47 | Edge case: user state change between login and MFA setup | [X] |
+| 17 | **Missing state checks in MfaConfirm** | `MfaConfirmHandler.cs` | 47-49 | Edge case: user state change between setup and confirm | [X] |
+| 18 | **Missing state checks in RegenerateBackupCodes** | `RegenerateBackupCodesHandler.cs` | 44-46 | Edge case: locked/inactive user regenerating codes | [X] |
+| 19 | **Missing state checks in UpdatePreferences** | `UpdatePreferencesHandler.cs` | 30-32 | Edge case: locked/inactive user updating preferences | [X] |
+
+#### Bug Details & Fixes
+
+**Bug #1: RegisterHandler Wrong Parameter Order**
+```csharp
+// CURRENT (WRONG):
+await _deviceSessionService.CreateOrUpdateSessionAsync(
+    user.Id, deviceId,
+    command.DeviceFingerprint,  // ❌ Should be UserAgent
+    command.UserAgent,          // ❌ Should be IpAddress
+    command.IpAddress, ct);     // ❌ Should be DeviceFingerprint
+
+// FIX:
+await _deviceSessionService.CreateOrUpdateSessionAsync(
+    user.Id, deviceId,
+    command.UserAgent,          // ✅
+    command.IpAddress,          // ✅
+    command.DeviceFingerprint, ct); // ✅
+```
+
+**Bug #2: AcceptInviteHandler Missing IsRevoked**
+```csharp
+// ADD after line 53:
+if (invite.IsRevoked)
+{
+    throw new AuthException("AUTH_INVITE_REVOKED", "This invitation has been revoked", 400);
+}
+```
+
+**Bug #3: InviteSystemUserHandler Missing RevokedAt Filter**
+```csharp
+// CURRENT:
+.FirstOrDefaultAsync(i => i.Email == command.Email.ToLowerInvariant()
+    && i.AcceptedAt == null
+    && i.ExpiresAt > DateTime.UtcNow, ct);
+
+// FIX - ADD:
+    && i.RevokedAt == null
+```
+
+**Bug #4: UnlockUserHandler Missing Redis Reset**
+```csharp
+// ADD after user.Unlock():
+await _bruteForceService.ResetAsync(user.Email, ct);
+```
+Requires injecting `IBruteForceProtectionService` into handler.
+
+**Bug #5: DeactivateSystemUserHandler Missing Session Revocation**
+```csharp
+// ADD after user.Deactivate():
+// Revoke all sessions
+var sessions = await _context.DeviceSessions.Where(s => s.UserId == command.Id).ToListAsync(ct);
+foreach (var session in sessions)
+    await _revokedSessionService.RevokeSessionAsync(session.Id, ct);
+_context.DeviceSessions.RemoveRange(sessions);
+
+// Revoke all refresh tokens
+var tokens = await _context.RefreshTokens.Where(t => t.UserId == command.Id && !t.IsRevoked).ToListAsync(ct);
+foreach (var token in tokens)
+    token.Revoke();
+```
+
+**Bug #6: MfaVerifyHandler Missing State Checks**
+```csharp
+// ADD after fetching user:
+if (!user.IsActive)
+    throw new UserInactiveException();
+if (user.IsLocked)
+    throw new AccountLockedException(user.LockedUntil);
+```
+
+**Bug #7: RefreshTokenHandler Missing IsLocked**
+```csharp
+// CURRENT:
+if (user is null || !user.IsActive)
+
+// FIX:
+if (user is null || !user.IsActive || user.IsLocked)
+```
+
+**Bug #8: UpdateSystemUserHandler Bypasses Safeguards**
+```csharp
+// ADD checks before user.Update() when IsActive is being set to false:
+if (command.IsActive == false && user.IsActive)
+{
+    // Check self-deactivation
+    if (_currentUser.UserId == command.Id)
+        throw new CannotDeleteSelfException();
+
+    // Check last permission holder
+    // (copy logic from DeactivateSystemUserHandler)
+}
+```
+
+**Bug #9: MfaDisableHandler Missing Permission Check - ~~INVALID~~**
+> **VERIFIED NOT A BUG**: After analysis, this was determined to be secure by design:
+> 1. Users must provide valid TOTP code to disable (ownership verified)
+> 2. The handler only operates on the current user's own account
+> 3. LoginHandler (line 158-166) enforces MFA re-setup on next login for system permission users
+> 4. There's no security gap - users cannot access the system without MFA once they login again
+>
+> No code changes needed.
+
+**Bug #10: LoginHandler Wrong Audit Action**
+```csharp
+// CHANGE from UserLoginFailed to a neutral action or new action:
+// Option A: Don't log as failure
+// Option B: Create new AuditActions.MfaChallengeSent
+```
+
+**Bug #12: ResendInviteHandler Hardcoded Language**
+```csharp
+// CURRENT:
+language: "en",
+
+// FIX:
+language: invite.Language,
+```
+
+**Bug #13: ResetUserMfaHandler Missing Force Re-auth**
+```csharp
+// ADD after user.DisableMfa():
+await _forceReauthService.SetFlagAsync(command.UserId, ct);
+// And revoke all refresh tokens for this user
+```
+
+---
+
+### Phase 9: Additional Bug Fixes (Code Review Round 2) ✅
+
+> ⚠️ **Discovered during comprehensive code review on 2025-12-29**
+>
+> Second round of code review after Phase 8 fixes, cross-referencing with Tasks 002 and 005.
+
+#### 🔴 Critical Bugs (2)
+
+| # | Bug | File | Line | Impact | Status |
+|---|-----|------|------|--------|--------|
+| 1 | **UpdateSystemUserHandler missing session/token revocation on deactivation** | `UpdateSystemUserHandler.cs` | 39-87 | When admin sets `IsActive=false` via PUT, user stays logged in with valid tokens - security bypass! | [x] |
+| 2 | **AnonymizeUserHandler missing last permission holder check** | `AnonymizeUserHandler.cs` | 28-108 | Can anonymize last user with `system:users:update` - orphans the system, no one can manage users | [x] |
+
+#### 🟠 Medium Bugs (3)
+
+| # | Bug | File | Line | Impact | Status |
+|---|-----|------|------|--------|--------|
+| 3 | **MfaDisableHandler missing IsActive/IsLocked checks** | `MfaDisableHandler.cs` | 34-96 | Deactivated or locked users can disable their MFA - all other MFA handlers have these checks | [x] |
+| 4 | **ResetPasswordHandler missing IsLocked check** | `ResetPasswordHandler.cs` | 63 | Locked users can reset password and bypass lockout - only checks `!user.IsActive` | [x] |
+| 5 | **RegisterHandler missing SessionId/DeviceId in response** | `RegisterHandler.cs` | 138-153 | First user doesn't receive session info in response - inconsistent with AcceptInviteHandler | [x] |
+
+#### 🟢 Low Priority (2)
+
+| # | Bug | File | Line | Impact | Status |
+|---|-----|------|------|--------|--------|
+| 6 | **LogoutHandler doesn't revoke device session** | `LogoutHandler.cs` | 27-57 | Only revokes refresh token, doesn't call `_revokedSessionService` - access token valid until expiry | [x] |
+| 7 | **RevokeUserSessionsHandler can email anonymized users** | `RevokeUserSessionsHandler.cs` | 84-96 | Sends email to `anonymized_xxx@deleted.local` - should check IsAnonymized first | [x] |
+
+#### Bug Details & Fixes
+
+**Bug #1: UpdateSystemUserHandler Missing Session/Token Revocation (CRITICAL)**
+
+The handler has deactivation safeguards (self-deactivation, last permission holder) but does NOT revoke sessions/tokens like `DeactivateSystemUserHandler` does.
+
+```csharp
+// CURRENT (UpdateSystemUserHandler.cs:80-87):
+user.Update(firstName, lastName, isActive);
+await _userRepository.UpdateAsync(user, ct);
+// ❌ NO session revocation!
+// ❌ NO token revocation!
+// ❌ NO permission cache invalidation!
+
+// FIX - ADD after user.Update() when IsActive changes to false:
+if (command.IsActive == false && user.IsActive)
+{
+    // Revoke all sessions for immediate logout
+    var sessions = await _context.DeviceSessions
+        .Where(s => s.UserId == command.Id)
+        .ToListAsync(ct);
+    foreach (var session in sessions)
+        await _revokedSessionService.RevokeSessionAsync(session.Id, ct);
+    _context.DeviceSessions.RemoveRange(sessions);
+
+    // Revoke all refresh tokens
+    var refreshTokens = await _context.RefreshTokens
+        .Where(t => t.UserId == command.Id && !t.IsRevoked)
+        .ToListAsync(ct);
+    foreach (var token in refreshTokens)
+        token.Revoke();
+
+    // Invalidate permission cache
+    await _permissionCache.InvalidateAsync(command.Id, ct);
+}
+```
+
+Requires injecting: `IAppDbContext`, `IRevokedSessionService`, `IPermissionCacheService`
+
+**Bug #2: AnonymizeUserHandler Missing Last Permission Holder Check (CRITICAL)**
+
+```csharp
+// CURRENT (AnonymizeUserHandler.cs:87-89):
+var permissions = user.Permissions.ToList();
+_context.SystemUserPermissions.RemoveRange(permissions);
+// ❌ No check if user is last holder of critical permissions!
+
+// FIX - ADD before removing permissions:
+var userPermissionNames = user.Permissions.Select(p => p.Permission.Name).ToList();
+if (userPermissionNames.Contains(SystemPermissions.UsersUpdate))
+{
+    var holdersCount = await _context.SystemUserPermissions
+        .Include(p => p.Permission)
+        .Where(p => p.Permission.Name == SystemPermissions.UsersUpdate && p.User.IsActive && !p.User.IsAnonymized)
+        .Select(p => p.UserId)
+        .Distinct()
+        .CountAsync(ct);
+
+    if (holdersCount <= 1)
+        throw new LastPermissionHolderException(SystemPermissions.UsersUpdate);
+}
+```
+
+**Bug #3: MfaDisableHandler Missing State Checks**
+
+```csharp
+// CURRENT (MfaDisableHandler.cs:39-41):
+var user = await _context.SystemUsers
+    .FirstOrDefaultAsync(u => u.Id == userId, ct)
+    ?? throw new UnauthorizedException();
+// ❌ No IsActive/IsLocked checks!
+
+// FIX - ADD after fetching user:
+if (!user.IsActive)
+    throw new UserInactiveException();
+
+if (user.IsLocked)
+    throw new AccountLockedException(user.LockedUntil);
+```
+
+**Bug #4: ResetPasswordHandler Missing IsLocked Check**
+
+```csharp
+// CURRENT (ResetPasswordHandler.cs:63):
+if (user is null || !user.IsActive)
+// ❌ Missing IsLocked check!
+
+// FIX:
+if (user is null || !user.IsActive || user.IsLocked)
+```
+
+**Bug #5: RegisterHandler Missing SessionId/DeviceId in Response**
+
+```csharp
+// CURRENT (RegisterHandler.cs:138-153):
+return new AuthResponse(
+    User: new UserDto(...),
+    AccessToken: accessToken,
+    RefreshToken: refreshTokenString
+);
+// ❌ Missing SessionId and DeviceId!
+
+// FIX:
+return new AuthResponse(
+    User: new UserDto(...),
+    AccessToken: accessToken,
+    RefreshToken: refreshTokenString,
+    SessionId: session.Id,      // ✅ ADD
+    DeviceId: deviceId          // ✅ ADD
+);
+```
+
+**Bug #6: LogoutHandler Missing Session Revocation**
+
+```csharp
+// CURRENT (LogoutHandler.cs:36-41):
+if (storedToken is not null)
+{
+    storedToken.Revoke();
+    await _tokenBlacklist.BlacklistAsync(storedToken.Id, storedToken.ExpiresAt, ct);
+    // ❌ Device session not revoked - access token still valid!
+}
+
+// FIX - ADD after revoking refresh token:
+if (storedToken.DeviceSessionId.HasValue)
+{
+    await _revokedSessionService.RevokeSessionAsync(storedToken.DeviceSessionId.Value, ct);
+
+    var session = await _context.DeviceSessions
+        .FirstOrDefaultAsync(s => s.Id == storedToken.DeviceSessionId.Value, ct);
+    if (session is not null)
+        _context.DeviceSessions.Remove(session);
+}
+```
+
+Requires injecting: `IRevokedSessionService`
+
+**Bug #7: RevokeUserSessionsHandler Can Email Anonymized Users**
+
+```csharp
+// CURRENT (RevokeUserSessionsHandler.cs:36-38):
+var user = await _context.SystemUsers
+    .FirstOrDefaultAsync(u => u.Id == command.UserId, ct)
+    ?? throw new SystemUserNotFoundException(command.UserId);
+// Then sends email at line 85-96 without checking IsAnonymized
+
+// FIX - ADD check before sending email:
+// Send notification email to user (only if not anonymized)
+if (!user.IsAnonymized)
+{
+    await _emailService.SendAsync(
+        user.Email,
+        "All Your Sessions Have Been Revoked",
+        ...
+    );
+}
+```
+
+#### Cross-Reference with Other Tasks
+
+| Task | Related Issue | Status |
+|------|---------------|--------|
+| Task 002 | Force Re-Auth marked as "pending" - implemented in Task 005/007 | ✅ Implemented |
+| Task 002 | Error Audit Logging marked as "pending" - implemented | ✅ Implemented |
+| Task 005 | Invitation management - working correctly | ✅ Verified |
+| Task 005 | `@deleted.local` domain blocked - working correctly | ✅ Verified |
+
+---
+
+### Phase 10: Bug Fixes (Code Review Round 3) ✅
+
+> ⚠️ **Discovered during testing on 2025-12-29**
+>
+> Runtime errors and missing data fields discovered during manual testing.
+
+#### 🔴 Critical Bugs (1)
+
+| # | Bug | File | Line | Impact | Status |
+|---|-----|------|------|--------|--------|
+| 1 | **AuthController.Login calls SetAuthCookies with null tokens during MFA flow** | `AuthController.cs` | 89 | When MFA is required (MfaRequired or MfaSetupRequired), AccessToken and RefreshToken are null but SetAuthCookies is called unconditionally → `System.ArgumentNullException: Value cannot be null. (Parameter 'stringToEscape')` | [x] |
+
+#### 🟠 Medium Bugs (1)
+
+| # | Bug | File | Line | Impact | Status |
+|---|-----|------|------|--------|--------|
+| 2 | **UserDto missing MfaEnabled and PreferredLanguage fields** | `AuthResponse.cs` | 66-77 | `/api/auth/me` endpoint doesn't return user's MFA status or language preference - frontend can't display these settings | [x] |
+
+#### Bug Details & Fixes
+
+**Bug #1: AuthController.Login SetAuthCookies with null tokens (CRITICAL)**
+
+```csharp
+// CURRENT (AuthController.cs:89):
+var result = await Mediator.Send(command, ct);
+SetAuthCookies(result.AccessToken, result.RefreshToken);  // ❌ Crashes when MFA required!
+return ApiOk(result);
+
+// FIX:
+var result = await Mediator.Send(command, ct);
+
+// Only set cookies when login is complete (not during MFA flow)
+if (!result.MfaRequired && !result.MfaSetupRequired)
+{
+    SetAuthCookies(result.AccessToken!, result.RefreshToken!);
+}
+
+return ApiOk(result);
+```
+
+**Bug #2: UserDto missing MfaEnabled and PreferredLanguage**
+
+```csharp
+// CURRENT (AuthResponse.cs:66-77):
+public sealed record UserDto(
+    Guid Id,
+    string Email,
+    string FirstName,
+    string LastName,
+    string FullName,
+    bool IsActive,
+    bool EmailVerified,
+    DateTime? LastLoginAt,
+    DateTime CreatedAt,
+    IReadOnlyList<string> Permissions
+);  // ❌ Missing MfaEnabled and PreferredLanguage!
+
+// FIX - Added fields:
+public sealed record UserDto(
+    Guid Id,
+    string Email,
+    string FirstName,
+    string LastName,
+    string FullName,
+    bool IsActive,
+    bool EmailVerified,
+    bool MfaEnabled,              // ✅ Added
+    string PreferredLanguage,     // ✅ Added
+    DateTime? LastLoginAt,
+    DateTime CreatedAt,
+    IReadOnlyList<string> Permissions
+);
+```
+
+**Files Updated:**
+- `AuthController.cs` - Line 89-93: Added MFA flow check before SetAuthCookies
+- `AuthResponse.cs` - Lines 66-79: Added MfaEnabled and PreferredLanguage to UserDto
+- `GetCurrentUserHandler.cs` - Lines 54-67: Added new fields to UserDto construction
+- `LoginHandler.cs` - Lines 275-288: Added new fields to UserDto construction
+- `MfaVerifyHandler.cs` - Lines 211-224: Added new fields to UserDto construction
+- `RegisterHandler.cs` - Lines 139-152: Added new fields to UserDto construction
+- `AcceptInviteHandler.cs` - Lines 155-168: Added new fields to UserDto construction
+
+**Tests:** All 234 unit tests pass ✅
 
 ---
 
@@ -894,6 +1426,38 @@ Das erste Gerät bei der Registration wird automatisch als "trusted" markiert un
 ```
 
 **Implementierung:** `DeviceSessionService.CreateOrUpdateSessionAsync()` prüft ob der User bereits Sessions hat. Falls nicht (erste Session), wird `session.Trust()` aufgerufen.
+
+### Architektur-Entscheidung: GUID Collision Prevention
+
+Obwohl GUID-Kollisionen extrem unwahrscheinlich sind (1 in 2.71 Quintillionen), implementieren wir Defense-in-Depth:
+
+**Lösung:**
+1. `BaseEntity.RegenerateId()` Methode für ID-Neugenerierung
+2. Pre-Check vor Insert: Prüfung ob ID bereits existiert
+3. Bis zu 3 Retry-Versuche bei Kollision
+4. `@deleted.local` Domain blockiert (reserviert für anonymisierte User)
+
+**Flow:**
+```
+Entity erstellt → ID = Guid.NewGuid()
+                → Check: SELECT COUNT(*) WHERE Id = {id}
+                → Falls existiert: entity.RegenerateId(), retry
+                → Nach 3 Versuchen: InvalidOperationException
+```
+
+**Betroffene Handler:**
+- `RegisterHandler` (SystemUser)
+- `AcceptInviteHandler` (SystemUser)
+- `InviteSystemUserHandler` (SystemInvite)
+
+### Architektur-Entscheidung: Anonymized User Protection
+
+Anonymisierte User dürfen nicht reaktiviert oder modifiziert werden (GDPR/Datenschutz).
+
+**Checks:**
+- `ActivateSystemUserHandler`: Wirft `UserAnonymizedException` wenn `IsAnonymized = true`
+- `UpdateSystemUserHandler`: Wirft `UserAnonymizedException` wenn `IsAnonymized = true`
+- `RegisterValidator` & `InviteValidator`: Blockieren `@deleted.local` Domain
 
 ---
 

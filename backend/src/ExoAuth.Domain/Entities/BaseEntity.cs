@@ -16,4 +16,12 @@ public abstract class BaseEntity
     {
         UpdatedAt = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Regenerates the entity ID. Used for retry logic on extremely rare GUID collisions.
+    /// </summary>
+    public void RegenerateId()
+    {
+        Id = Guid.NewGuid();
+    }
 }

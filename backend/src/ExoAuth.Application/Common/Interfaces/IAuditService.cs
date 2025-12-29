@@ -52,6 +52,8 @@ public static class AuditActions
     public const string UserUpdated = "system.user.updated";
     public const string UserPermissionsUpdated = "system.user.permissions.updated";
     public const string UserDeleted = "system.user.deleted";
+    public const string UserDeactivated = "system.user.deactivated";
+    public const string UserActivated = "system.user.activated";
 
     // Token actions
     public const string TokenRefreshed = "system.token.refreshed";
@@ -85,6 +87,8 @@ public static class AuditActions
     public const string LoginNewLocation = "system.login.new_location";
 
     // MFA actions
+    public const string MfaChallengeSent = "system.mfa.challenge_sent";
+    public const string MfaSetupRequiredSent = "system.mfa.setup_required_sent";
     public const string MfaSetupStarted = "system.mfa.setup_started";
     public const string MfaEnabled = "system.mfa.enabled";
     public const string MfaDisabled = "system.mfa.disabled";

@@ -28,6 +28,11 @@ public static class ErrorCodes
     public const string AuthRegistrationClosed = "AUTH_REGISTRATION_CLOSED";
     public const string AuthPasswordTooWeak = "AUTH_PASSWORD_TOO_WEAK";
 
+    // Password Reset Errors (400)
+    public const string PasswordResetTokenInvalid = "PASSWORD_RESET_TOKEN_INVALID";
+    public const string PasswordResetTokenExpired = "PASSWORD_RESET_TOKEN_EXPIRED";
+    public const string PasswordResetTokenUsed = "PASSWORD_RESET_TOKEN_USED";
+
     // Conflict Errors (409)
     public const string AuthEmailExists = "AUTH_EMAIL_EXISTS";
 
@@ -43,6 +48,9 @@ public static class ErrorCodes
     // System Business Errors (400)
     public const string SystemLastPermissionHolder = "SYSTEM_LAST_PERMISSION_HOLDER";
     public const string SystemCannotDeleteSelf = "SYSTEM_CANNOT_DELETE_SELF";
+    public const string SystemUserAlreadyDeactivated = "SYSTEM_USER_ALREADY_DEACTIVATED";
+    public const string SystemUserAlreadyActivated = "SYSTEM_USER_ALREADY_ACTIVATED";
+    public const string SystemUserAnonymized = "SYSTEM_USER_ANONYMIZED";
 
     // Invite Errors (400/404/429)
     public const string InviteNotFound = "INVITE_NOT_FOUND";

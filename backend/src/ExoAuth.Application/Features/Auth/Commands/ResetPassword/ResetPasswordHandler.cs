@@ -60,7 +60,7 @@ public sealed class ResetPasswordHandler : ICommandHandler<ResetPasswordCommand,
         // Get the user
         var user = await _userRepository.GetByIdAsync(resetToken.UserId, ct);
 
-        if (user is null || !user.IsActive)
+        if (user is null || !user.IsActive || user.IsLocked)
         {
             throw new PasswordResetTokenInvalidException();
         }
@@ -80,7 +80,7 @@ public sealed class ResetPasswordHandler : ICommandHandler<ResetPasswordCommand,
         await _emailService.SendPasswordChangedAsync(
             email: user.Email,
             firstName: user.FirstName,
-            language: "en", // TODO: Use user's preferred language when implemented
+            language: user.PreferredLanguage,
             cancellationToken: ct
         );
 

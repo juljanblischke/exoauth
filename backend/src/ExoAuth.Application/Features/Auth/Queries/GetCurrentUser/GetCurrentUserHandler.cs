@@ -35,6 +35,16 @@ public sealed class GetCurrentUserHandler : IQueryHandler<GetCurrentUserQuery, U
             throw new AuthException("AUTH_UNAUTHORIZED", "User not found", 401);
         }
 
+        if (!user.IsActive)
+        {
+            throw new UserInactiveException();
+        }
+
+        if (user.IsLocked)
+        {
+            throw new AccountLockedException(user.LockedUntil);
+        }
+
         var permissions = await _permissionCache.GetOrSetPermissionsAsync(
             user.Id,
             () => _userRepository.GetUserPermissionNamesAsync(user.Id, ct),
@@ -49,6 +59,8 @@ public sealed class GetCurrentUserHandler : IQueryHandler<GetCurrentUserQuery, U
             FullName: user.FullName,
             IsActive: user.IsActive,
             EmailVerified: user.EmailVerified,
+            MfaEnabled: user.MfaEnabled,
+            PreferredLanguage: user.PreferredLanguage,
             LastLoginAt: user.LastLoginAt,
             CreatedAt: user.CreatedAt,
             Permissions: permissions

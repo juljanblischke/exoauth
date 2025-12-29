@@ -21,8 +21,18 @@ public sealed class BruteForceProtectionServiceTests
         _configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["BruteForce:MaxAttempts"] = "5",
-                ["BruteForce:LockoutMinutes"] = "15"
+                ["BruteForce:MaxAttempts"] = "10",
+                ["BruteForce:LockoutMinutes"] = "60",
+                ["Lockout:ProgressiveDelays:0"] = "0",
+                ["Lockout:ProgressiveDelays:1"] = "0",
+                ["Lockout:ProgressiveDelays:2"] = "60",
+                ["Lockout:ProgressiveDelays:3"] = "120",
+                ["Lockout:ProgressiveDelays:4"] = "300",
+                ["Lockout:ProgressiveDelays:5"] = "600",
+                ["Lockout:ProgressiveDelays:6"] = "900",
+                ["Lockout:ProgressiveDelays:7"] = "1800",
+                ["Lockout:ProgressiveDelays:8"] = "3600",
+                ["Lockout:NotifyAfterSeconds"] = "900"
             })
             .Build();
 
@@ -79,7 +89,7 @@ public sealed class BruteForceProtectionServiceTests
     }
 
     [Fact]
-    public async Task RecordFailedAttemptAsync_IncrementsCounter()
+    public async Task RecordFailedAttemptAsync_FirstTwoAttempts_NoLockout()
     {
         // Arrange
         var email = "test@example.com";
@@ -87,155 +97,91 @@ public sealed class BruteForceProtectionServiceTests
             .ReturnsAsync(1);
 
         // Act
-        var (attempts, isBlocked) = await _service.RecordFailedAttemptAsync(email);
+        var result = await _service.RecordFailedAttemptAsync(email);
 
         // Assert
-        attempts.Should().Be(1);
-        isBlocked.Should().BeFalse();
-        _mockCache.Verify(x => x.IncrementAsync(
-            "login:attempts:test@example.com",
-            1,
-            TimeSpan.FromMinutes(15),
-            It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task RecordFailedAttemptAsync_BlocksAfterMaxAttempts()
-    {
-        // Arrange
-        var email = "test@example.com";
-        _mockCache.Setup(x => x.IncrementAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(5); // Max attempts reached
-
-        // Act
-        var (attempts, isBlocked) = await _service.RecordFailedAttemptAsync(email);
-
-        // Assert
-        attempts.Should().Be(5);
-        isBlocked.Should().BeTrue();
-
-        // Verify blocked flag was set
-        _mockCache.Verify(x => x.SetAsync(
-            "login:blocked:test@example.com",
-            It.IsAny<object>(),
-            TimeSpan.FromMinutes(15),
-            It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task RecordFailedAttemptAsync_BlocksWhenExceedingMaxAttempts()
-    {
-        // Arrange
-        var email = "test@example.com";
-        _mockCache.Setup(x => x.IncrementAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(10); // More than max attempts
-
-        // Act
-        var (attempts, isBlocked) = await _service.RecordFailedAttemptAsync(email);
-
-        // Assert
-        attempts.Should().Be(10);
-        isBlocked.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task RecordFailedAttemptAsync_DoesNotBlockBeforeMaxAttempts()
-    {
-        // Arrange
-        var email = "test@example.com";
-        _mockCache.Setup(x => x.IncrementAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(4); // One less than max
-
-        // Act
-        var (attempts, isBlocked) = await _service.RecordFailedAttemptAsync(email);
-
-        // Assert
-        attempts.Should().Be(4);
-        isBlocked.Should().BeFalse();
+        result.Attempts.Should().Be(1);
+        result.IsLocked.Should().BeFalse();
+        result.LockoutSeconds.Should().Be(0);
+        result.LockedUntil.Should().BeNull();
+        result.ShouldNotify.Should().BeFalse();
 
         // Verify blocked flag was NOT set
         _mockCache.Verify(x => x.SetAsync(
-            It.IsAny<string>(),
+            "login:blocked:test@example.com",
             It.IsAny<object>(),
             It.IsAny<TimeSpan?>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task ResetAsync_RemovesBothKeys()
+    public async Task RecordFailedAttemptAsync_ThirdAttempt_60SecondLockout()
     {
         // Arrange
         var email = "test@example.com";
+        _mockCache.Setup(x => x.IncrementAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(3);
 
         // Act
-        await _service.ResetAsync(email);
+        var result = await _service.RecordFailedAttemptAsync(email);
 
         // Assert
-        _mockCache.Verify(x => x.RemoveAsync("login:attempts:test@example.com", It.IsAny<CancellationToken>()), Times.Once);
-        _mockCache.Verify(x => x.RemoveAsync("login:blocked:test@example.com", It.IsAny<CancellationToken>()), Times.Once);
+        result.Attempts.Should().Be(3);
+        result.IsLocked.Should().BeTrue();
+        result.LockoutSeconds.Should().Be(60);
+        result.LockedUntil.Should().NotBeNull();
+        result.ShouldNotify.Should().BeFalse(); // 60s < 900s NotifyAfterSeconds
+
+        // Verify blocked flag was set
+        _mockCache.Verify(x => x.SetAsync(
+            "login:blocked:test@example.com",
+            It.IsAny<object>(),
+            TimeSpan.FromSeconds(60),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task ResetAsync_NormalizesEmailToLowercase()
-    {
-        // Arrange
-        var email = "TEST@EXAMPLE.COM";
-
-        // Act
-        await _service.ResetAsync(email);
-
-        // Assert
-        _mockCache.Verify(x => x.RemoveAsync("login:attempts:test@example.com", It.IsAny<CancellationToken>()), Times.Once);
-        _mockCache.Verify(x => x.RemoveAsync("login:blocked:test@example.com", It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task GetRemainingAttemptsAsync_WithNoAttempts_ReturnsMaxAttempts()
-    {
-        // Arrange
-        var email = "test@example.com";
-        // The service uses GetAsync<AttemptsInfo> which is a private nested type.
-        // Since nothing is cached, the method returns null by default via Moq's default value provider.
-
-        // Act
-        var result = await _service.GetRemainingAttemptsAsync(email);
-
-        // Assert
-        result.Should().Be(5); // Max attempts from config (when no attempts recorded)
-    }
-
-    [Fact]
-    public async Task GetRemainingAttemptsAsync_WithSomeAttempts_ReturnsCorrectRemaining()
+    public async Task RecordFailedAttemptAsync_SeventhAttempt_15MinuteLockoutWithNotification()
     {
         // Arrange
         var email = "test@example.com";
-
-        // Note: The actual implementation might need adjustment based on how it stores the count
-        // This test assumes the cache stores the count in a way that can be retrieved
+        _mockCache.Setup(x => x.IncrementAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(7);
 
         // Act
-        var result = await _service.GetRemainingAttemptsAsync(email);
+        var result = await _service.RecordFailedAttemptAsync(email);
 
         // Assert
-        result.Should().BeGreaterThanOrEqualTo(0);
+        result.Attempts.Should().Be(7);
+        result.IsLocked.Should().BeTrue();
+        result.LockoutSeconds.Should().Be(900); // 15 minutes
+        result.LockedUntil.Should().NotBeNull();
+        result.ShouldNotify.Should().BeTrue(); // 900s >= 900s NotifyAfterSeconds
+
+        // Verify blocked flag was set
+        _mockCache.Verify(x => x.SetAsync(
+            "login:blocked:test@example.com",
+            It.IsAny<object>(),
+            TimeSpan.FromSeconds(900),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public void Constructor_UsesDefaultValuesWhenNotConfigured()
+    public async Task RecordFailedAttemptAsync_MaxAttemptsExceeded_LongLockout()
     {
         // Arrange
-        var emptyConfig = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>())
-            .Build();
+        var email = "test@example.com";
+        _mockCache.Setup(x => x.IncrementAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(10); // Max attempts reached
 
-        // Act - should not throw
-        var service = new BruteForceProtectionService(
-            _mockCache.Object,
-            emptyConfig,
-            _mockLogger.Object);
+        // Act
+        var result = await _service.RecordFailedAttemptAsync(email);
 
-        // Assert - service was created successfully
-        service.Should().NotBeNull();
+        // Assert
+        result.Attempts.Should().Be(10);
+        result.IsLocked.Should().BeTrue();
+        result.LockoutSeconds.Should().Be(3600); // 60 minutes (from config)
+        result.ShouldNotify.Should().BeTrue();
     }
 
     [Fact]
@@ -257,14 +203,84 @@ public sealed class BruteForceProtectionServiceTests
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task ResetAsync_RemovesAllKeys()
+    {
+        // Arrange
+        var email = "test@example.com";
+
+        // Act
+        await _service.ResetAsync(email);
+
+        // Assert
+        _mockCache.Verify(x => x.RemoveAsync("login:attempts:test@example.com", It.IsAny<CancellationToken>()), Times.Once);
+        _mockCache.Verify(x => x.RemoveAsync("login:blocked:test@example.com", It.IsAny<CancellationToken>()), Times.Once);
+        _mockCache.Verify(x => x.RemoveAsync("login:lockout:test@example.com", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ResetAsync_NormalizesEmailToLowercase()
+    {
+        // Arrange
+        var email = "TEST@EXAMPLE.COM";
+
+        // Act
+        await _service.ResetAsync(email);
+
+        // Assert
+        _mockCache.Verify(x => x.RemoveAsync("login:attempts:test@example.com", It.IsAny<CancellationToken>()), Times.Once);
+        _mockCache.Verify(x => x.RemoveAsync("login:blocked:test@example.com", It.IsAny<CancellationToken>()), Times.Once);
+        _mockCache.Verify(x => x.RemoveAsync("login:lockout:test@example.com", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetRemainingAttemptsAsync_WithNoAttempts_ReturnsFirstLockoutAttempt()
+    {
+        // Arrange
+        var email = "test@example.com";
+        // The service uses GetAsync<AttemptsInfo> which is a private nested type.
+        // Since nothing is cached, the method returns null by default via Moq's default value provider.
+
+        // Act
+        var result = await _service.GetRemainingAttemptsAsync(email);
+
+        // Assert
+        // First lockout is at attempt 3 (index 2 in ProgressiveDelays where value > 0)
+        result.Should().Be(3);
+    }
+
+    [Fact]
+    public void Constructor_UsesDefaultValuesWhenNotConfigured()
+    {
+        // Arrange
+        var emptyConfig = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .Build();
+
+        // Act - should not throw
+        var service = new BruteForceProtectionService(
+            _mockCache.Object,
+            emptyConfig,
+            _mockLogger.Object);
+
+        // Assert - service was created successfully
+        service.Should().NotBeNull();
+    }
+
     [Theory]
-    [InlineData(1, false)]
-    [InlineData(2, false)]
-    [InlineData(3, false)]
-    [InlineData(4, false)]
-    [InlineData(5, true)]
-    [InlineData(6, true)]
-    public async Task RecordFailedAttemptAsync_BlocksCorrectlyAtThreshold(int attemptCount, bool expectedBlocked)
+    [InlineData(1, false, 0)]
+    [InlineData(2, false, 0)]
+    [InlineData(3, true, 60)]
+    [InlineData(4, true, 120)]
+    [InlineData(5, true, 300)]
+    [InlineData(6, true, 600)]
+    [InlineData(7, true, 900)]
+    [InlineData(8, true, 1800)]
+    [InlineData(9, true, 3600)]
+    [InlineData(10, true, 3600)] // Max attempts uses last delay
+    [InlineData(15, true, 3600)] // Beyond array uses last delay
+    public async Task RecordFailedAttemptAsync_ProgressiveLockout_ReturnsCorrectDelay(
+        int attemptCount, bool expectedLocked, int expectedSeconds)
     {
         // Arrange
         var email = "test@example.com";
@@ -272,9 +288,60 @@ public sealed class BruteForceProtectionServiceTests
             .ReturnsAsync(attemptCount);
 
         // Act
-        var (_, isBlocked) = await _service.RecordFailedAttemptAsync(email);
+        var result = await _service.RecordFailedAttemptAsync(email);
 
         // Assert
-        isBlocked.Should().Be(expectedBlocked);
+        result.IsLocked.Should().Be(expectedLocked);
+        result.LockoutSeconds.Should().Be(expectedSeconds);
+    }
+
+    [Theory]
+    [InlineData(60, false)]   // 1 minute - no notification
+    [InlineData(120, false)]  // 2 minutes - no notification
+    [InlineData(300, false)]  // 5 minutes - no notification
+    [InlineData(600, false)]  // 10 minutes - no notification
+    [InlineData(900, true)]   // 15 minutes - notification
+    [InlineData(1800, true)]  // 30 minutes - notification
+    [InlineData(3600, true)]  // 60 minutes - notification
+    public async Task RecordFailedAttemptAsync_ShouldNotify_CorrectlyDetermined(
+        int lockoutSeconds, bool expectedShouldNotify)
+    {
+        // Arrange
+        var email = "test@example.com";
+        // Find attempt number that gives the desired lockout
+        var attemptNumber = lockoutSeconds switch
+        {
+            60 => 3,
+            120 => 4,
+            300 => 5,
+            600 => 6,
+            900 => 7,
+            1800 => 8,
+            3600 => 9,
+            _ => 1
+        };
+
+        _mockCache.Setup(x => x.IncrementAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(attemptNumber);
+
+        // Act
+        var result = await _service.RecordFailedAttemptAsync(email);
+
+        // Assert
+        result.ShouldNotify.Should().Be(expectedShouldNotify);
+    }
+
+    [Fact]
+    public async Task GetLockoutStatusAsync_WhenNotLocked_ReturnsNull()
+    {
+        // Arrange
+        var email = "test@example.com";
+        // No setup needed - Moq returns null by default for reference types
+
+        // Act
+        var result = await _service.GetLockoutStatusAsync(email);
+
+        // Assert
+        result.Should().BeNull();
     }
 }

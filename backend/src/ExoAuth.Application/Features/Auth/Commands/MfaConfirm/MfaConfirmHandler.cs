@@ -48,6 +48,16 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
             .FirstOrDefaultAsync(u => u.Id == userId, ct)
             ?? throw new UnauthorizedException();
 
+        if (!user.IsActive)
+        {
+            throw new UserInactiveException();
+        }
+
+        if (user.IsLocked)
+        {
+            throw new AccountLockedException(user.LockedUntil);
+        }
+
         if (user.MfaEnabled)
         {
             throw new MfaAlreadyEnabledException();

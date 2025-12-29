@@ -13,6 +13,7 @@ using ExoAuth.Application.Features.Auth.Commands.Register;
 using ExoAuth.Application.Features.Auth.Commands.ResetPassword;
 using ExoAuth.Application.Features.Auth.Commands.RevokeAllSessions;
 using ExoAuth.Application.Features.Auth.Commands.RevokeSession;
+using ExoAuth.Application.Features.Auth.Commands.UpdatePreferences;
 using ExoAuth.Application.Features.Auth.Commands.UpdateSession;
 using ExoAuth.Application.Features.Auth.Models;
 using ExoAuth.Application.Features.Auth.Queries.GetCurrentUser;
@@ -58,7 +59,7 @@ public sealed class AuthController : ApiControllerBase
 
         var result = await Mediator.Send(command, ct);
 
-        SetAuthCookies(result.AccessToken, result.RefreshToken);
+        SetAuthCookies(result.AccessToken!, result.RefreshToken!);
 
         return ApiCreated(result);
     }
@@ -85,7 +86,11 @@ public sealed class AuthController : ApiControllerBase
 
         var result = await Mediator.Send(command, ct);
 
-        SetAuthCookies(result.AccessToken, result.RefreshToken);
+        // Only set cookies when login is complete (not during MFA flow)
+        if (!result.MfaRequired && !result.MfaSetupRequired)
+        {
+            SetAuthCookies(result.AccessToken!, result.RefreshToken!);
+        }
 
         return ApiOk(result);
     }
@@ -166,6 +171,22 @@ public sealed class AuthController : ApiControllerBase
     }
 
     /// <summary>
+    /// Update current user preferences (language, etc.).
+    /// </summary>
+    [HttpPatch("me/preferences")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(typeof(UpdatePreferencesResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> UpdatePreferences(UpdatePreferencesRequest request, CancellationToken ct)
+    {
+        var command = new UpdatePreferencesCommand(request.Language);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
     /// Validate an invitation token and get details.
     /// </summary>
     [HttpGet("invite")]
@@ -189,11 +210,19 @@ public sealed class AuthController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AcceptInvite(AcceptInviteRequest request, CancellationToken ct)
     {
-        var command = new AcceptInviteCommand(request.Token, request.Password);
+        var command = new AcceptInviteCommand(
+            request.Token,
+            request.Password,
+            request.Language,
+            request.DeviceId,
+            request.DeviceFingerprint,
+            Request.Headers.UserAgent.ToString(),
+            HttpContext.Connection.RemoteIpAddress?.ToString()
+        );
 
         var result = await Mediator.Send(command, ct);
 
-        SetAuthCookies(result.AccessToken, result.RefreshToken);
+        SetAuthCookies(result.AccessToken!, result.RefreshToken!);
 
         return ApiOk(result);
     }
@@ -481,7 +510,10 @@ public sealed record LogoutRequest(
 
 public sealed record AcceptInviteRequest(
     string Token,
-    string Password
+    string Password,
+    string Language = "en",
+    string? DeviceId = null,
+    string? DeviceFingerprint = null
 );
 
 public sealed record ForgotPasswordRequest(
@@ -518,4 +550,8 @@ public sealed record MfaDisableRequest(
 
 public sealed record RegenerateBackupCodesRequest(
     string Code
+);
+
+public sealed record UpdatePreferencesRequest(
+    string Language
 );

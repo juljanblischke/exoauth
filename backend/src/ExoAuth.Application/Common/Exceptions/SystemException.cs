@@ -60,13 +60,55 @@ public sealed class LastPermissionHolderException : SystemException
 }
 
 /// <summary>
-/// Exception for attempting to delete self.
+/// Exception for attempting to delete/deactivate self.
 /// </summary>
 public sealed class CannotDeleteSelfException : SystemException
 {
     public CannotDeleteSelfException()
-        : base("SYSTEM_CANNOT_DELETE_SELF", "Cannot delete your own account", 400)
+        : base("SYSTEM_CANNOT_DELETE_SELF", "Cannot deactivate your own account", 400)
     {
+    }
+}
+
+/// <summary>
+/// Exception when user is already deactivated.
+/// </summary>
+public sealed class UserAlreadyDeactivatedException : SystemException
+{
+    public Guid UserId { get; }
+
+    public UserAlreadyDeactivatedException(Guid userId)
+        : base("SYSTEM_USER_ALREADY_DEACTIVATED", $"User with ID {userId} is already deactivated", 400)
+    {
+        UserId = userId;
+    }
+}
+
+/// <summary>
+/// Exception when user is already activated.
+/// </summary>
+public sealed class UserAlreadyActivatedException : SystemException
+{
+    public Guid UserId { get; }
+
+    public UserAlreadyActivatedException(Guid userId)
+        : base("SYSTEM_USER_ALREADY_ACTIVATED", $"User with ID {userId} is already active", 400)
+    {
+        UserId = userId;
+    }
+}
+
+/// <summary>
+/// Exception when trying to modify an anonymized user.
+/// </summary>
+public sealed class UserAnonymizedException : SystemException
+{
+    public Guid UserId { get; }
+
+    public UserAnonymizedException(Guid userId)
+        : base("SYSTEM_USER_ANONYMIZED", $"User with ID {userId} has been anonymized and cannot be modified", 400)
+    {
+        UserId = userId;
     }
 }
 

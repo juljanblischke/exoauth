@@ -59,6 +59,17 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
             .FirstOrDefaultAsync(u => u.Id == userId, ct)
             ?? throw new UnauthorizedException();
 
+        // Check user state (could have changed between password step and MFA step)
+        if (!user.IsActive)
+        {
+            throw new UserInactiveException();
+        }
+
+        if (user.IsLocked)
+        {
+            throw new AccountLockedException(user.LockedUntil);
+        }
+
         if (!user.MfaEnabled || string.IsNullOrEmpty(user.MfaSecret))
         {
             throw new MfaNotEnabledException();
@@ -205,6 +216,8 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
                 FullName: user.FullName,
                 IsActive: user.IsActive,
                 EmailVerified: user.EmailVerified,
+                MfaEnabled: user.MfaEnabled,
+                PreferredLanguage: user.PreferredLanguage,
                 LastLoginAt: user.LastLoginAt,
                 CreatedAt: user.CreatedAt,
                 Permissions: permissions

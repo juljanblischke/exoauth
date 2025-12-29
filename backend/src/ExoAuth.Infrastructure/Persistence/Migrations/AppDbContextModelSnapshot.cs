@@ -479,6 +479,11 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("invited_by");
 
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("language");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -586,6 +591,10 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTime?>("AnonymizedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("anonymized_at");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -602,6 +611,10 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("email_verified");
 
+                    b.Property<int>("FailedLoginAttempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("failed_login_attempts");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -614,6 +627,10 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<bool>("IsAnonymized")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_anonymized");
+
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_login_at");
@@ -623,6 +640,10 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("last_name");
+
+                    b.Property<DateTime?>("LockedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("locked_until");
 
                     b.Property<bool>("MfaEnabled")
                         .ValueGeneratedOnAdd()

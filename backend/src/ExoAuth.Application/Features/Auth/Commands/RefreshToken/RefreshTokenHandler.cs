@@ -65,7 +65,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
 
         var user = await _userRepository.GetByIdAsync(storedToken.UserId, ct);
 
-        if (user is null || !user.IsActive)
+        if (user is null || !user.IsActive || user.IsLocked)
         {
             throw new InvalidRefreshTokenException();
         }

@@ -43,6 +43,12 @@ public sealed class UpdateSystemUserPermissionsHandler : ICommandHandler<UpdateS
             throw new SystemUserNotFoundException(command.UserId);
         }
 
+        // Cannot modify anonymized users
+        if (user.IsAnonymized)
+        {
+            throw new UserAnonymizedException(command.UserId);
+        }
+
         // Validate permissions exist
         var validPermissions = await _context.SystemPermissions
             .Where(p => command.PermissionIds.Contains(p.Id))

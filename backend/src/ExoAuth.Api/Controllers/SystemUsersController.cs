@@ -1,12 +1,19 @@
 using ExoAuth.Api.Filters;
 using ExoAuth.Application.Common.Models;
-using ExoAuth.Application.Features.SystemUsers.Commands.DeleteSystemUser;
+using ExoAuth.Application.Features.Auth.Models;
+using ExoAuth.Application.Features.SystemUsers.Commands.AnonymizeUser;
+using ExoAuth.Application.Features.SystemUsers.Commands.ActivateSystemUser;
+using ExoAuth.Application.Features.SystemUsers.Commands.DeactivateSystemUser;
 using ExoAuth.Application.Features.SystemUsers.Commands.InviteSystemUser;
+using ExoAuth.Application.Features.SystemUsers.Commands.ResetUserMfa;
+using ExoAuth.Application.Features.SystemUsers.Commands.RevokeUserSessions;
+using ExoAuth.Application.Features.SystemUsers.Commands.UnlockUser;
 using ExoAuth.Application.Features.SystemUsers.Commands.UpdatePermissions;
 using ExoAuth.Application.Features.SystemUsers.Commands.UpdateSystemUser;
 using ExoAuth.Application.Features.SystemUsers.Models;
 using ExoAuth.Application.Features.SystemUsers.Queries.GetSystemUser;
 using ExoAuth.Application.Features.SystemUsers.Queries.GetSystemUsers;
+using ExoAuth.Application.Features.SystemUsers.Queries.GetUserSessions;
 using ExoAuth.Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -144,23 +151,128 @@ public sealed class SystemUsersController : ApiControllerBase
     }
 
     /// <summary>
-    /// Delete (deactivate) a system user.
+    /// Deactivate a system user.
     /// </summary>
-    [HttpDelete("{id:guid}")]
-    [SystemPermission(SystemPermissions.UsersDelete)]
+    [HttpPost("{id:guid}/deactivate")]
+    [SystemPermission(SystemPermissions.UsersDeactivate)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Deactivate(Guid id, CancellationToken ct)
     {
-        var command = new DeleteSystemUserCommand(id);
+        var command = new DeactivateSystemUserCommand(id);
 
         await Mediator.Send(command, ct);
 
         return ApiNoContent();
     }
+
+    /// <summary>
+    /// Activate a previously deactivated system user.
+    /// </summary>
+    [HttpPost("{id:guid}/activate")]
+    [SystemPermission(SystemPermissions.UsersActivate)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Activate(Guid id, CancellationToken ct)
+    {
+        var command = new ActivateSystemUserCommand(id);
+
+        await Mediator.Send(command, ct);
+
+        return ApiNoContent();
+    }
+
+    #region Admin Security Actions
+
+    /// <summary>
+    /// Reset MFA for a system user (admin action).
+    /// </summary>
+    [HttpPost("{id:guid}/mfa/reset")]
+    [SystemPermission(SystemPermissions.UsersMfaReset)]
+    [ProducesResponseType(typeof(ResetUserMfaResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ResetMfa(Guid id, ResetUserMfaRequest? request, CancellationToken ct)
+    {
+        var command = new ResetUserMfaCommand(id, request?.Reason);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Unlock a locked system user account.
+    /// </summary>
+    [HttpPost("{id:guid}/unlock")]
+    [SystemPermission(SystemPermissions.UsersUnlock)]
+    [ProducesResponseType(typeof(UnlockUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Unlock(Guid id, UnlockUserRequest? request, CancellationToken ct)
+    {
+        var command = new UnlockUserCommand(id, request?.Reason);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Get all sessions for a system user.
+    /// </summary>
+    [HttpGet("{id:guid}/sessions")]
+    [SystemPermission(SystemPermissions.UsersSessionsView)]
+    [ProducesResponseType(typeof(List<DeviceSessionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetSessions(Guid id, CancellationToken ct)
+    {
+        var query = new GetUserSessionsQuery(id);
+        var result = await Mediator.Send(query, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Revoke all sessions for a system user.
+    /// </summary>
+    [HttpDelete("{id:guid}/sessions")]
+    [SystemPermission(SystemPermissions.UsersSessionsRevoke)]
+    [ProducesResponseType(typeof(RevokeUserSessionsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RevokeSessions(Guid id, CancellationToken ct)
+    {
+        var command = new RevokeUserSessionsCommand(id);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Anonymize a system user (GDPR deletion).
+    /// </summary>
+    [HttpPost("{id:guid}/anonymize")]
+    [SystemPermission(SystemPermissions.UsersAnonymize)]
+    [ProducesResponseType(typeof(AnonymizeUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Anonymize(Guid id, CancellationToken ct)
+    {
+        var command = new AnonymizeUserCommand(id);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    #endregion
 }
 
 // Request DTOs
@@ -179,4 +291,12 @@ public sealed record UpdateSystemUserRequest(
 
 public sealed record UpdatePermissionsRequest(
     List<Guid> PermissionIds
+);
+
+public sealed record ResetUserMfaRequest(
+    string? Reason = null
+);
+
+public sealed record UnlockUserRequest(
+    string? Reason = null
 );

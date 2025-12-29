@@ -101,7 +101,7 @@ public sealed class ResendInviteHandler : ICommandHandler<ResendInviteCommand, S
             firstName: invite.FirstName,
             inviterName: resender.FullName,
             inviteToken: tokenResult.Token,
-            language: "en",
+            language: invite.Language,
             cancellationToken: ct
         );
 

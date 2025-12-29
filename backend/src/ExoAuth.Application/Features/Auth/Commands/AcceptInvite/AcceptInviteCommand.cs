@@ -8,5 +8,10 @@ namespace ExoAuth.Application.Features.Auth.Commands.AcceptInvite;
 /// </summary>
 public sealed record AcceptInviteCommand(
     string Token,
-    string Password
+    string Password,
+    string Language = "en",
+    string? DeviceId = null,
+    string? DeviceFingerprint = null,
+    string? UserAgent = null,
+    string? IpAddress = null
 ) : ICommand<AuthResponse>;

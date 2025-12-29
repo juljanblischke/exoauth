@@ -5,6 +5,7 @@ using ExoAuth.Domain.Entities;
 using ExoAuth.Domain.Enums;
 using ExoAuth.UnitTests.Helpers;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Moq;
 
 namespace ExoAuth.UnitTests.Features.Auth;
@@ -21,6 +22,8 @@ public sealed class LoginHandlerTests
     private readonly Mock<IDeviceSessionService> _mockDeviceSessionService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly Mock<IMfaService> _mockMfaService;
+    private readonly Mock<IEmailService> _mockEmailService;
+    private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly LoginHandler _handler;
 
     public LoginHandlerTests()
@@ -35,9 +38,14 @@ public sealed class LoginHandlerTests
         _mockDeviceSessionService = new Mock<IDeviceSessionService>();
         _mockAuditService = new Mock<IAuditService>();
         _mockMfaService = new Mock<IMfaService>();
+        _mockEmailService = new Mock<IEmailService>();
+        _mockConfiguration = new Mock<IConfiguration>();
 
         // Default token service setup
         _mockTokenService.Setup(x => x.RefreshTokenExpiration).Returns(TimeSpan.FromDays(30));
+
+        // Default configuration setup
+        _mockConfiguration.Setup(x => x["SystemInvite:BaseUrl"]).Returns("http://localhost:5173");
 
         // Default device session service setup
         var mockSession = TestDataFactory.CreateDeviceSession(Guid.NewGuid());
@@ -61,7 +69,9 @@ public sealed class LoginHandlerTests
             _mockForceReauthService.Object,
             _mockDeviceSessionService.Object,
             _mockAuditService.Object,
-            _mockMfaService.Object);
+            _mockMfaService.Object,
+            _mockEmailService.Object,
+            _mockConfiguration.Object);
     }
 
     [Fact]
@@ -116,17 +126,22 @@ public sealed class LoginHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenBlocked_ThrowsTooManyAttemptsException()
+    public async Task Handle_WhenBlocked_ThrowsAccountLockedException()
     {
         // Arrange
         var command = new LoginCommand("blocked@example.com", "Password123!");
+        var lockedUntil = DateTime.UtcNow.AddMinutes(15);
 
         _mockBruteForceService.Setup(x => x.IsBlockedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
+        _mockBruteForceService.Setup(x => x.GetLockoutStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new LockoutResult(5, true, 900, lockedUntil, false));
 
         // Act & Assert
-        await Assert.ThrowsAsync<TooManyAttemptsException>(
+        var exception = await Assert.ThrowsAsync<AccountLockedException>(
             () => _handler.Handle(command, CancellationToken.None).AsTask());
+
+        exception.LockedUntil.Should().Be(lockedUntil);
 
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.LoginBlocked,
@@ -149,7 +164,7 @@ public sealed class LoginHandlerTests
         _mockUserRepository.Setup(x => x.GetByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((SystemUser?)null);
         _mockBruteForceService.Setup(x => x.RecordFailedAttemptAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((1, false));
+            .ReturnsAsync(new LockoutResult(1, false, 0, null, false));
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidCredentialsException>(
@@ -172,7 +187,7 @@ public sealed class LoginHandlerTests
         _mockPasswordHasher.Setup(x => x.Verify(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(false);
         _mockBruteForceService.Setup(x => x.RecordFailedAttemptAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((1, false));
+            .ReturnsAsync(new LockoutResult(1, false, 0, null, false));
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidCredentialsException>(
@@ -202,11 +217,12 @@ public sealed class LoginHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithFailedAttempts_RecordsFailedAttemptAndBlocksAfterMax()
+    public async Task Handle_WithFailedAttempts_RecordsFailedAttemptAndLocksAfterThreshold()
     {
         // Arrange
         var command = new LoginCommand("test@example.com", "WrongPassword!");
         var user = TestDataFactory.CreateSystemUser(email: "test@example.com", passwordHash: "hashed");
+        var lockedUntil = DateTime.UtcNow.AddMinutes(15);
 
         _mockBruteForceService.Setup(x => x.IsBlockedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
@@ -214,14 +230,17 @@ public sealed class LoginHandlerTests
             .ReturnsAsync(user);
         _mockPasswordHasher.Setup(x => x.Verify(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(false);
+        // 7th attempt triggers 15 min lockout (progressive delays: [0, 0, 60, 120, 300, 600, 900, ...])
         _mockBruteForceService.Setup(x => x.RecordFailedAttemptAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((5, true)); // 5th attempt, now blocked
+            .ReturnsAsync(new LockoutResult(7, true, 900, lockedUntil, true));
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidCredentialsException>(
+        var exception = await Assert.ThrowsAsync<AccountLockedException>(
             () => _handler.Handle(command, CancellationToken.None).AsTask());
 
-        // Should log both failed attempt and blocked events
+        exception.LockedUntil.Should().Be(lockedUntil);
+
+        // Should log failed attempt, account locked, and send email
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.UserLoginFailed,
             It.IsAny<Guid?>(),
@@ -230,6 +249,77 @@ public sealed class LoginHandlerTests
             It.IsAny<Guid?>(),
             It.IsAny<object?>(),
             It.IsAny<CancellationToken>()), Times.Once);
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
+            AuditActions.AccountLocked,
+            It.IsAny<Guid?>(),
+            It.IsAny<Guid?>(),
+            It.IsAny<string?>(),
+            It.IsAny<Guid?>(),
+            It.IsAny<object?>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+
+        // Email should be sent since ShouldNotify is true
+        _mockEmailService.Verify(x => x.SendAsync(
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            "account-locked",
+            It.IsAny<Dictionary<string, string>>(),
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WithProgressiveLockout_DoesNotSendEmailForShortLockout()
+    {
+        // Arrange
+        var command = new LoginCommand("test@example.com", "WrongPassword!");
+        var user = TestDataFactory.CreateSystemUser(email: "test@example.com", passwordHash: "hashed");
+        var lockedUntil = DateTime.UtcNow.AddSeconds(60);
+
+        _mockBruteForceService.Setup(x => x.IsBlockedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _mockUserRepository.Setup(x => x.GetByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _mockPasswordHasher.Setup(x => x.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(false);
+        // 3rd attempt triggers 60s lockout - too short for notification
+        _mockBruteForceService.Setup(x => x.RecordFailedAttemptAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new LockoutResult(3, true, 60, lockedUntil, false)); // ShouldNotify = false
+
+        // Act & Assert
+        await Assert.ThrowsAsync<AccountLockedException>(
+            () => _handler.Handle(command, CancellationToken.None).AsTask());
+
+        // Email should NOT be sent since ShouldNotify is false
+        _mockEmailService.Verify(x => x.SendAsync(
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<Dictionary<string, string>>(),
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithLockedUserInDatabase_ThrowsAccountLockedException()
+    {
+        // Arrange
+        var command = new LoginCommand("locked@example.com", "Password123!");
+        var user = TestDataFactory.CreateSystemUser(email: "locked@example.com", passwordHash: "hashed");
+        var lockedUntil = DateTime.UtcNow.AddHours(1);
+        user.Lock(lockedUntil); // Lock user in database
+
+        _mockBruteForceService.Setup(x => x.IsBlockedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false); // Not blocked in Redis
+        _mockUserRepository.Setup(x => x.GetByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<AccountLockedException>(
+            () => _handler.Handle(command, CancellationToken.None).AsTask());
+
+        exception.LockedUntil.Should().Be(lockedUntil);
+
         _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.LoginBlocked,
             It.IsAny<Guid?>(),
@@ -292,7 +382,7 @@ public sealed class LoginHandlerTests
         _mockUserRepository.Setup(x => x.GetByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((SystemUser?)null);
         _mockBruteForceService.Setup(x => x.RecordFailedAttemptAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((1, false));
+            .ReturnsAsync(new LockoutResult(1, false, 0, null, false));
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidCredentialsException>(
@@ -368,5 +458,45 @@ public sealed class LoginHandlerTests
         result.SetupToken.Should().Be("setup-token");
         result.AccessToken.Should().BeNull();
         result.RefreshToken.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_ResetsFailedAttemptsOnSuccessfulLogin()
+    {
+        // Arrange
+        var command = new LoginCommand("test@example.com", "Password123!");
+        var user = TestDataFactory.CreateSystemUser(email: "test@example.com", passwordHash: "hashed");
+        // Simulate user had some failed attempts before
+        user.RecordFailedLogin();
+        user.RecordFailedLogin();
+        var permissions = new List<string> { "clients:read" };
+
+        _mockBruteForceService.Setup(x => x.IsBlockedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _mockUserRepository.Setup(x => x.GetByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _mockPasswordHasher.Setup(x => x.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(true);
+        _mockPermissionCache.Setup(x => x.GetOrSetPermissionsAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Func<Task<List<string>>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(permissions);
+        _mockTokenService.Setup(x => x.GenerateAccessToken(
+                It.IsAny<Guid>(),
+                It.IsAny<string>(),
+                It.IsAny<UserType>(),
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<Guid?>()))
+            .Returns("access-token");
+        _mockTokenService.Setup(x => x.GenerateRefreshToken())
+            .Returns("refresh-token");
+
+        // Act
+        await _handler.Handle(command, CancellationToken.None);
+
+        // Assert - both Redis and database counters should be reset
+        _mockBruteForceService.Verify(x => x.ResetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockUserRepository.Verify(x => x.UpdateAsync(It.IsAny<SystemUser>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 }

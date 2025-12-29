@@ -9,7 +9,8 @@ public static class SystemPermissions
     public const string UsersRead = "system:users:read";
     public const string UsersCreate = "system:users:create";
     public const string UsersUpdate = "system:users:update";
-    public const string UsersDelete = "system:users:delete";
+    public const string UsersDeactivate = "system:users:deactivate";
+    public const string UsersActivate = "system:users:activate";
     public const string UsersMfaReset = "system:users:mfa:reset";
     public const string UsersUnlock = "system:users:unlock";
     public const string UsersSessionsView = "system:users:sessions:view";
@@ -47,7 +48,8 @@ public static class SystemPermissions
         (UsersRead, "View system users", "Users"),
         (UsersCreate, "Invite new system users", "Users"),
         (UsersUpdate, "Edit system users & permissions", "Users"),
-        (UsersDelete, "Deactivate/delete system users", "Users"),
+        (UsersDeactivate, "Deactivate system users", "Users"),
+        (UsersActivate, "Activate system users", "Users"),
         (UsersMfaReset, "Reset MFA for system users", "Users"),
         (UsersUnlock, "Unlock locked system users", "Users"),
         (UsersSessionsView, "View sessions of system users", "Users"),
