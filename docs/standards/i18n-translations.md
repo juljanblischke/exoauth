@@ -91,6 +91,9 @@ frontend/src/i18n/
 | `status.suspended` | Suspended | Gesperrt |
 | `status.enabled` | Enabled | Aktiviert |
 | `status.disabled` | Disabled | Deaktiviert |
+| `states.deleting` | Deleting... | Wird gelöscht... |
+| `states.saving` | Saving... | Wird gespeichert... |
+| `states.processing` | Processing... | Wird verarbeitet... |
 | `table.noResults` | No results found | Keine Ergebnisse gefunden |
 | `table.noData` | No data available | Keine Daten vorhanden |
 | `table.loading` | Loading data... | Daten werden geladen... |
@@ -112,7 +115,7 @@ frontend/src/i18n/
 | `confirm.deleteMessage` | Are you sure you want to delete...? | Sind Sie sicher, dass Sie...löschen möchten? |
 | `confirm.unsavedTitle` | Unsaved Changes | Ungespeicherte Änderungen |
 | `confirm.unsavedMessage` | You have unsaved changes... | Sie haben ungespeicherte Änderungen... |
-| `confirm.typeToConfirm` | Type "{{text}}" to confirm | Geben Sie "{{text}}" zur Bestätigung ein |
+| `confirm.typeToConfirm` | Type `<highlight>{{text}}</highlight>` to confirm | Geben Sie `<highlight>{{text}}</highlight>` zur Bestätigung ein |
 | `confirm.stay` | Stay | Bleiben |
 | `confirm.leave` | Leave | Verlassen |
 | `legal.imprint` | Imprint | Impressum |
@@ -199,12 +202,24 @@ frontend/src/i18n/
 | `invite.permissions` | You will receive the following permissions: | Sie erhalten folgende Berechtigungen: |
 | `invite.expiresAt` | Expires {{date}} | Läuft ab am {{date}} |
 | `forgotPassword.title` | Forgot Password | Passwort vergessen |
-| `forgotPassword.sendLink` | Send Reset Link | Link senden |
-| `forgotPassword.sent` | Reset link sent! | Link gesendet! |
+| `forgotPassword.subtitle` | Enter your email address and we'll send you a reset code | Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Code zum Zurücksetzen |
+| `forgotPassword.email` | Email | E-Mail |
+| `forgotPassword.sendLink` | Send Reset Code | Code senden |
+| `forgotPassword.sending` | Sending... | Wird gesendet... |
+| `forgotPassword.sent` | Reset code sent! | Code gesendet! |
+| `forgotPassword.sentMessage` | Check your email for the password reset code | Überprüfen Sie Ihre E-Mails für den Code zum Zurücksetzen des Passworts |
 | `forgotPassword.backToLogin` | Back to Sign In | Zurück zur Anmeldung |
+| `forgotPassword.enterCode` | Enter Reset Code | Code eingeben |
+| `forgotPassword.codeDescription` | Enter the code we sent to your email address | Geben Sie den Code ein, den wir an Ihre E-Mail-Adresse gesendet haben |
+| `forgotPassword.code` | Reset Code | Reset-Code |
 | `resetPassword.title` | Reset Password | Passwort zurücksetzen |
+| `resetPassword.subtitle` | Enter your new password | Geben Sie Ihr neues Passwort ein |
 | `resetPassword.newPassword` | New Password | Neues Passwort |
+| `resetPassword.confirmPassword` | Confirm Password | Passwort bestätigen |
+| `resetPassword.reset` | Reset Password | Passwort zurücksetzen |
+| `resetPassword.resetting` | Resetting... | Wird zurückgesetzt... |
 | `resetPassword.success` | Password reset successful! | Passwort erfolgreich zurückgesetzt! |
+| `resetPassword.successMessage` | You can now sign in with your new password | Sie können sich jetzt mit Ihrem neuen Passwort anmelden |
 | `logout.title` | Sign Out | Abmelden |
 | `logout.message` | Are you sure you want to sign out? | Möchten Sie sich wirklich abmelden? |
 | `logout.confirm` | Sign Out | Abmelden |
@@ -318,6 +333,15 @@ frontend/src/i18n/
 | `filters.all` | All | Alle |
 | `tabs.users` | Users | Benutzer |
 | `tabs.invitations` | Invitations | Einladungen |
+| `fields.security` | Security | Sicherheit |
+| `security.mfaEnabled` | Two-factor authentication is enabled | Zwei-Faktor-Authentifizierung ist aktiviert |
+| `security.mfaDisabled` | Two-factor authentication is not enabled | Zwei-Faktor-Authentifizierung ist nicht aktiviert |
+| `security.locked` | Locked | Gesperrt |
+| `security.accountLocked` | Account is temporarily locked due to failed login attempts | Konto ist aufgrund fehlgeschlagener Anmeldeversuche vorübergehend gesperrt |
+| `security.lockedUntil` | Locked until | Gesperrt bis |
+| `security.anonymized` | Anonymized | Anonymisiert |
+| `security.userAnonymized` | User data has been anonymized (GDPR) | Benutzerdaten wurden anonymisiert (DSGVO) |
+| `security.failedAttempts` | Failed Login Attempts | Fehlgeschlagene Anmeldeversuche |
 | `invites.title` | Invitations | Einladungen |
 | `invites.search` | Search invitations... | Einladungen suchen... |
 | `invites.empty.title` | No invitations | Keine Einladungen |
@@ -345,6 +369,43 @@ frontend/src/i18n/
 | `invites.revoke.success` | Invitation revoked | Einladung widerrufen |
 | `invites.details.title` | Invitation Details | Einladungsdetails |
 | `invites.details.permissions` | Permissions | Berechtigungen |
+| `admin.actions.title` | Admin Actions | Admin-Aktionen |
+| `admin.sessions.sectionTitle` | Active Sessions | Aktive Sitzungen |
+| `admin.sessions.title` | Sessions | Sitzungen |
+| `admin.sessions.empty` | No active sessions | Keine aktiven Sitzungen |
+| `admin.sessions.revokeAll` | Revoke All | Alle widerrufen |
+| `admin.sessions.revokeSingle` | Revoke session | Sitzung widerrufen |
+| `admin.sessions.revokeAllConfirm.title` | Revoke all sessions? | Alle Sitzungen widerrufen? |
+| `admin.sessions.revokeAllConfirm.description` | This will log the user out of all devices... | Der Benutzer wird von allen Geräten abgemeldet... |
+| `admin.mfa.reset` | Reset MFA | MFA zurücksetzen |
+| `admin.mfa.confirmTitle` | Reset MFA? | MFA zurücksetzen? |
+| `admin.mfa.confirmDescription` | This will disable two-factor authentication for {{name}}... | Dies deaktiviert die Zwei-Faktor-Authentifizierung für {{name}}... |
+| `admin.mfa.resetSuccess` | MFA has been reset successfully | MFA wurde erfolgreich zurückgesetzt |
+| `admin.mfa.resetError` | Failed to reset MFA | MFA konnte nicht zurückgesetzt werden |
+| `admin.unlock.action` | Unlock Account | Konto entsperren |
+| `admin.unlock.button` | Unlock Account | Konto entsperren |
+| `admin.unlock.confirmTitle` | Unlock account? | Konto entsperren? |
+| `admin.unlock.confirmDescription` | This will unlock {{name}}'s account... | Dies entsperrt das Konto von {{name}}... |
+| `admin.unlock.success` | Account has been unlocked | Konto wurde entsperrt |
+| `admin.unlock.error` | Failed to unlock account | Konto konnte nicht entsperrt werden |
+| `admin.deactivate.action` | Deactivate | Deaktivieren |
+| `admin.deactivate.confirmTitle` | Deactivate user? | Benutzer deaktivieren? |
+| `admin.deactivate.confirmDescription` | {{name}} will no longer be able to access the system... | {{name}} kann nicht mehr auf das System zugreifen... |
+| `admin.deactivate.success` | User has been deactivated | Benutzer wurde deaktiviert |
+| `admin.deactivate.error` | Failed to deactivate user | Benutzer konnte nicht deaktiviert werden |
+| `admin.activate.action` | Activate | Aktivieren |
+| `admin.activate.confirmTitle` | Activate user? | Benutzer aktivieren? |
+| `admin.activate.confirmDescription` | {{name}} will be able to access the system again... | {{name}} kann wieder auf das System zugreifen... |
+| `admin.activate.success` | User has been activated | Benutzer wurde aktiviert |
+| `admin.activate.error` | Failed to activate user | Benutzer konnte nicht aktiviert werden |
+| `admin.anonymize.action` | Anonymize (GDPR) | Anonymisieren (DSGVO) |
+| `admin.anonymize.button` | Anonymize (GDPR) | Anonymisieren (DSGVO) |
+| `admin.anonymize.confirmTitle` | Anonymize user? | Benutzer anonymisieren? |
+| `admin.anonymize.confirmDescription` | This will permanently remove all personal data for {{name}}... | Alle personenbezogenen Daten von {{name}} werden dauerhaft gelöscht... |
+| `admin.anonymize.placeholder` | Type email to confirm | E-Mail zur Bestätigung eingeben |
+| `admin.anonymize.success` | User data has been anonymized | Benutzerdaten wurden anonymisiert |
+| `admin.anonymize.error` | Failed to anonymize user | Benutzer konnte nicht anonymisiert werden |
+| `admin.anonymizedNoActions` | No actions available for anonymized users | Keine Aktionen für anonymisierte Benutzer verfügbar |
 
 ---
 
@@ -486,13 +547,19 @@ frontend/src/i18n/
 | `codes.AUTH_EMAIL_EXISTS` | Email is already in use | E-Mail wird bereits verwendet |
 | `codes.AUTH_PASSWORD_TOO_WEAK` | Password does not meet requirements | Passwort erfüllt die Anforderungen nicht |
 | `codes.AUTH_TOO_MANY_ATTEMPTS` | Too many attempts. Please wait 15 minutes. | Zu viele Versuche. Bitte 15 Minuten warten. |
+| `codes.AUTH_FORCE_REAUTH` | Your session has been invalidated. Please sign in again. | Ihre Sitzung wurde ungültig. Bitte melden Sie sich erneut an. |
 | `codes.AUTH_INVITE_EXPIRED` | Invitation expired. Please request a new one. | Einladung abgelaufen. Bitte neue anfordern. |
 | `codes.AUTH_INVITE_INVALID` | Invalid invitation link | Ungültiger Einladungslink |
+| `codes.PASSWORD_RESET_TOKEN_INVALID` | Invalid password reset link. Please request a new one. | Ungültiger Passwort-Reset-Link. Bitte fordern Sie einen neuen an. |
+| `codes.PASSWORD_RESET_TOKEN_EXPIRED` | Password reset link has expired. Please request a new one. | Der Passwort-Reset-Link ist abgelaufen. Bitte fordern Sie einen neuen an. |
+| `codes.AUTH_USER_NOT_FOUND` | No account found with this email address. | Kein Konto mit dieser E-Mail-Adresse gefunden. |
 | `codes.SYSTEM_USER_NOT_FOUND` | User not found | Benutzer nicht gefunden |
 | `codes.SYSTEM_PERMISSION_NOT_FOUND` | Permission not found | Berechtigung nicht gefunden |
 | `codes.SYSTEM_LAST_PERMISSION_HOLDER` | Cannot remove - last user with this permission | Kann nicht entfernen - letzter Benutzer mit dieser Berechtigung |
 | `codes.SYSTEM_CANNOT_DELETE_SELF` | Cannot delete yourself | Kann sich selbst nicht löschen |
+| `codes.SYSTEM_USER_ANONYMIZED` | This user has been anonymized and cannot be modified | Dieser Benutzer wurde anonymisiert und kann nicht bearbeitet werden |
 | `codes.SYSTEM_FORBIDDEN` | No permission for this action | Keine Berechtigung für diese Aktion |
+| `codes.INTERNAL_ERROR` | An internal error occurred. Please try again later. | Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es später erneut. |
 | `codes.VALIDATION_REQUIRED` | This field is required | Dieses Feld ist erforderlich |
 | `codes.VALIDATION_INVALID_FORMAT` | Invalid format | Ungültiges Format |
 | `codes.VALIDATION_MIN_LENGTH` | Minimum {{min}} characters required | Mindestens {{min}} Zeichen erforderlich |
@@ -585,4 +652,4 @@ function MyComponent() {
 
 ---
 
-**Last Updated:** 2025-12-29
+**Last Updated:** 2025-12-30

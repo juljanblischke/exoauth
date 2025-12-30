@@ -565,12 +565,16 @@ function MyComponent() {
 ```
 
 ### Available Namespaces
-- `common` - Default, buttons, labels, status
-- `auth` - Login, register, session
+- `common` - Default, buttons, labels, status, typeToConfirm
+- `auth` - Login, register, session, forgot password
 - `navigation` - Sidebar, breadcrumbs
-- `users` - User management
-- `errors` - Error messages
+- `users` - User management, admin actions, security status
+- `errors` - Error messages (incl. MFA, sessions, users)
 - `validation` - Form validation
+- `settings` - Settings page (Task 008)
+- `mfa` - MFA setup, verify, disable, backup codes (Task 008)
+- `sessions` - Device sessions management (Task 008)
+- `auditLogs` - Audit logs (Task 006)
 
 See `docs/standards/i18n-translations.md` for all keys.
 
@@ -797,5 +801,5 @@ Jede Task-Datei (`docs/tasks/XXX_*.md`) sollte:
 
 ## Letzte Änderung
 
-- **Datum:** 2025-12-28
-- **Änderungen:** Verified standards after Task 006 completion (no changes needed to coding patterns)
+- **Datum:** 2025-12-30
+- **Änderungen:** Updated i18n namespaces with Task 008 additions (settings, mfa, sessions)

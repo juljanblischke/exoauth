@@ -63,6 +63,7 @@
     "email": "E-Mail",
     "role": "Rolle",
     "status": "Status",
+    "security": "Sicherheit",
     "emailVerified": "E-Mail verifiziert",
     "createdAt": "Erstellt",
     "updatedAt": "Zuletzt aktualisiert",
@@ -70,6 +71,16 @@
     "mfaEnabled": "2FA aktiviert",
     "password": "Passwort",
     "confirmPassword": "Passwort bestätigen"
+  },
+  "security": {
+    "mfaEnabled": "Zwei-Faktor-Authentifizierung ist aktiviert",
+    "mfaDisabled": "Zwei-Faktor-Authentifizierung ist nicht aktiviert",
+    "locked": "Gesperrt",
+    "accountLocked": "Konto ist aufgrund fehlgeschlagener Anmeldeversuche vorübergehend gesperrt",
+    "lockedUntil": "Gesperrt bis",
+    "anonymized": "Anonymisiert",
+    "userAnonymized": "Benutzerdaten wurden anonymisiert (DSGVO)",
+    "failedAttempts": "Fehlgeschlagene Anmeldeversuche"
   },
   "roles": {
     "admin": "Administrator",
@@ -113,6 +124,61 @@
     "deactivateSuccess": "Benutzer erfolgreich deaktiviert",
     "suspendSuccess": "Benutzer erfolgreich gesperrt",
     "resetPasswordSuccess": "E-Mail zum Zurücksetzen des Passworts wurde gesendet"
+  },
+  "admin": {
+    "actions": {
+      "title": "Admin-Aktionen"
+    },
+    "sessions": {
+      "sectionTitle": "Aktive Sitzungen",
+      "title": "Sitzungen",
+      "empty": "Keine aktiven Sitzungen",
+      "revokeAll": "Alle widerrufen",
+      "revokeSingle": "Sitzung widerrufen",
+      "revokeAllConfirm": {
+        "title": "Alle Sitzungen widerrufen?",
+        "description": "Der Benutzer wird von allen Geräten abgemeldet. Er muss sich erneut anmelden."
+      }
+    },
+    "mfa": {
+      "reset": "MFA zurücksetzen",
+      "confirmTitle": "MFA zurücksetzen?",
+      "confirmDescription": "Dies deaktiviert die Zwei-Faktor-Authentifizierung für {{name}}. Er muss sie erneut einrichten.",
+      "resetSuccess": "MFA wurde erfolgreich zurückgesetzt",
+      "resetError": "MFA konnte nicht zurückgesetzt werden"
+    },
+    "unlock": {
+      "action": "Konto entsperren",
+      "button": "Konto entsperren",
+      "confirmTitle": "Konto entsperren?",
+      "confirmDescription": "Dies entsperrt das Konto von {{name}} und setzt den Zähler für fehlgeschlagene Anmeldeversuche zurück.",
+      "success": "Konto wurde entsperrt",
+      "error": "Konto konnte nicht entsperrt werden"
+    },
+    "deactivate": {
+      "action": "Deaktivieren",
+      "confirmTitle": "Benutzer deaktivieren?",
+      "confirmDescription": "{{name}} kann nicht mehr auf das System zugreifen. Sie können ihn später reaktivieren.",
+      "success": "Benutzer wurde deaktiviert",
+      "error": "Benutzer konnte nicht deaktiviert werden"
+    },
+    "activate": {
+      "action": "Aktivieren",
+      "confirmTitle": "Benutzer aktivieren?",
+      "confirmDescription": "{{name}} kann wieder auf das System zugreifen.",
+      "success": "Benutzer wurde aktiviert",
+      "error": "Benutzer konnte nicht aktiviert werden"
+    },
+    "anonymize": {
+      "action": "Anonymisieren (DSGVO)",
+      "button": "Anonymisieren (DSGVO)",
+      "confirmTitle": "Benutzer anonymisieren?",
+      "confirmDescription": "Alle personenbezogenen Daten von {{name}} werden gemäß DSGVO dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden. Geben Sie die E-Mail des Benutzers zur Bestätigung ein.",
+      "placeholder": "E-Mail zur Bestätigung eingeben",
+      "success": "Benutzerdaten wurden anonymisiert",
+      "error": "Benutzer konnte nicht anonymisiert werden"
+    },
+    "anonymizedNoActions": "Keine Aktionen für anonymisierte Benutzer verfügbar"
   },
   "confirmDelete": {
     "title": "Benutzer löschen",

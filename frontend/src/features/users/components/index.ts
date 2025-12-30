@@ -4,6 +4,10 @@ export { UserInviteModal } from './user-invite-modal'
 export { UserEditModal } from './user-edit-modal'
 export { UserDetailsSheet } from './user-details-sheet'
 export { UserPermissionsModal } from './user-permissions-modal'
+export { UserStatusBadges, MfaBadge, LockedBadge, AnonymizedBadge } from './user-status-badges'
+
+// Admin components
+export { UserSessionsSection } from './user-sessions-section'
 
 // Invitation management
 export { InvitationsTable } from './invitations-table'

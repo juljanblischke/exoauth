@@ -61,6 +61,11 @@
     "enabled": "Aktiviert",
     "disabled": "Deaktiviert"
   },
+  "states": {
+    "deleting": "Wird gelöscht...",
+    "saving": "Wird gespeichert...",
+    "processing": "Wird verarbeitet..."
+  },
   "table": {
     "noResults": "Keine Ergebnisse gefunden",
     "noData": "Keine Daten vorhanden",
@@ -98,7 +103,7 @@
     "deleteMessage": "Sind Sie sicher, dass Sie diesen Eintrag löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     "unsavedTitle": "Ungespeicherte Änderungen",
     "unsavedMessage": "Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?",
-    "typeToConfirm": "Geben Sie \"{{text}}\" zur Bestätigung ein",
+    "typeToConfirm": "Geben Sie <highlight>{{text}}</highlight> zur Bestätigung ein",
     "stay": "Bleiben",
     "leave": "Verlassen"
   },

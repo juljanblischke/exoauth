@@ -1,15 +1,32 @@
 import { useState, useMemo, useCallback, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Edit, Shield, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
+import {
+  Edit,
+  Shield,
+  KeyRound,
+  Unlock,
+  UserX,
+  UserCheck,
+  UserMinus,
+} from 'lucide-react'
 import { type SortingState } from '@tanstack/react-table'
 import { DataTable } from '@/components/shared/data-table'
 import { SelectFilter, type SelectFilterOption } from '@/components/shared/form'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { ConfirmDialog, TypeConfirmDialog } from '@/components/shared/feedback'
 import { useDebounce } from '@/hooks'
 import { useAuth, usePermissions } from '@/contexts/auth-context'
 import { useSystemPermissions } from '@/features/permissions'
-import { useSystemUsers } from '../hooks'
+import {
+  useSystemUsers,
+  useResetUserMfa,
+  useUnlockUser,
+  useDeactivateUser,
+  useActivateUser,
+  useAnonymizeUser,
+} from '../hooks'
 import { useUsersColumns } from './users-table-columns'
 import type { SystemUserDto } from '../types'
 import type { RowAction } from '@/types/table'
@@ -24,11 +41,10 @@ const sortFieldMap: Record<string, string> = {
 interface UsersTableProps {
   onEdit?: (user: SystemUserDto) => void
   onPermissions?: (user: SystemUserDto) => void
-  onDelete?: (user: SystemUserDto) => void
   onRowClick?: (user: SystemUserDto) => void
 }
 
-export function UsersTable({ onEdit, onPermissions, onDelete, onRowClick }: UsersTableProps) {
+export function UsersTable({ onEdit, onPermissions, onRowClick }: UsersTableProps) {
   const { t } = useTranslation()
   const { user: currentUser } = useAuth()
   const { hasPermission } = usePermissions()
@@ -37,8 +53,30 @@ export function UsersTable({ onEdit, onPermissions, onDelete, onRowClick }: User
   const [permissionFilters, setPermissionFilters] = useState<string[]>([])
   const debouncedSearch = useDebounce(search, 300)
 
+  // Admin action dialog states
+  const [selectedUser, setSelectedUser] = useState<SystemUserDto | null>(null)
+  const [resetMfaDialogOpen, setResetMfaDialogOpen] = useState(false)
+  const [unlockDialogOpen, setUnlockDialogOpen] = useState(false)
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false)
+  const [activateDialogOpen, setActivateDialogOpen] = useState(false)
+  const [anonymizeDialogOpen, setAnonymizeDialogOpen] = useState(false)
+
+  // Admin action mutations
+  const { mutate: resetMfa, isPending: isResettingMfa } = useResetUserMfa()
+  const { mutate: unlockUser, isPending: isUnlocking } = useUnlockUser()
+  const { mutate: deactivateUser, isPending: isDeactivating } = useDeactivateUser()
+  const { mutate: activateUser, isPending: isActivating } = useActivateUser()
+  const { mutate: anonymizeUser, isPending: isAnonymizing } = useAnonymizeUser()
+
   // Check if user can read permissions (to show the filter)
   const canReadPermissions = hasPermission('system:permissions:read')
+
+  // Admin permission checks
+  const canResetMfa = hasPermission('system:users:mfa:reset')
+  const canUnlock = hasPermission('system:users:unlock')
+  const canDeactivate = hasPermission('system:users:deactivate')
+  const canActivate = hasPermission('system:users:activate')
+  const canAnonymize = hasPermission('system:users:anonymize')
 
   // Fetch permissions for filter options (only if user has permission)
   const { data: permissionGroups } = useSystemPermissions()
@@ -71,13 +109,179 @@ export function UsersTable({ onEdit, onPermissions, onDelete, onRowClick }: User
     [data]
   )
 
+  // Admin action handlers
+  const handleResetMfa = useCallback((user: SystemUserDto) => {
+    setSelectedUser(user)
+    setResetMfaDialogOpen(true)
+  }, [])
+
+  const handleUnlock = useCallback((user: SystemUserDto) => {
+    setSelectedUser(user)
+    setUnlockDialogOpen(true)
+  }, [])
+
+  const handleDeactivate = useCallback((user: SystemUserDto) => {
+    setSelectedUser(user)
+    setDeactivateDialogOpen(true)
+  }, [])
+
+  const handleActivate = useCallback((user: SystemUserDto) => {
+    setSelectedUser(user)
+    setActivateDialogOpen(true)
+  }, [])
+
+  const handleAnonymize = useCallback((user: SystemUserDto) => {
+    setSelectedUser(user)
+    setAnonymizeDialogOpen(true)
+  }, [])
+
+  const confirmResetMfa = useCallback(() => {
+    if (!selectedUser) return
+    resetMfa(
+      { userId: selectedUser.id },
+      {
+        onSuccess: () => {
+          toast.success(t('users:admin.mfa.resetSuccess'))
+          setResetMfaDialogOpen(false)
+          setSelectedUser(null)
+        },
+      }
+    )
+  }, [selectedUser, resetMfa, t])
+
+  const confirmUnlock = useCallback(() => {
+    if (!selectedUser) return
+    unlockUser(
+      { userId: selectedUser.id },
+      {
+        onSuccess: () => {
+          toast.success(t('users:admin.unlock.success'))
+          setUnlockDialogOpen(false)
+          setSelectedUser(null)
+        },
+      }
+    )
+  }, [selectedUser, unlockUser, t])
+
+  const confirmDeactivate = useCallback(() => {
+    if (!selectedUser) return
+    deactivateUser(selectedUser.id, {
+      onSuccess: () => {
+        toast.success(t('users:admin.deactivate.success'))
+        setDeactivateDialogOpen(false)
+        setSelectedUser(null)
+      },
+    })
+  }, [selectedUser, deactivateUser, t])
+
+  const confirmActivate = useCallback(() => {
+    if (!selectedUser) return
+    activateUser(selectedUser.id, {
+      onSuccess: () => {
+        toast.success(t('users:admin.activate.success'))
+        setActivateDialogOpen(false)
+        setSelectedUser(null)
+      },
+    })
+  }, [selectedUser, activateUser, t])
+
+  const confirmAnonymize = useCallback(() => {
+    if (!selectedUser) return
+    anonymizeUser(selectedUser.id, {
+      onSuccess: () => {
+        toast.success(t('users:admin.anonymize.success'))
+        setAnonymizeDialogOpen(false)
+        setSelectedUser(null)
+      },
+    })
+  }, [selectedUser, anonymizeUser, t])
+
+  // Admin actions (used in both table and mobile card)
+  const adminActions: RowAction<SystemUserDto>[] = useMemo(() => {
+    const actions: RowAction<SystemUserDto>[] = []
+    const hasBasicActions = onEdit || onPermissions
+
+    // Reset MFA action
+    if (canResetMfa) {
+      actions.push({
+        label: t('users:admin.mfa.reset'),
+        icon: <KeyRound className="h-4 w-4" />,
+        onClick: handleResetMfa,
+        hidden: (user) => !user.mfaEnabled || user.isAnonymized,
+        separator: hasBasicActions,
+      })
+    }
+
+    // Unlock user action
+    if (canUnlock) {
+      actions.push({
+        label: t('users:admin.unlock.action'),
+        icon: <Unlock className="h-4 w-4" />,
+        onClick: handleUnlock,
+        hidden: (user) => !user.isLocked || user.isAnonymized,
+      })
+    }
+
+    // Deactivate user action
+    if (canDeactivate) {
+      actions.push({
+        label: t('users:admin.deactivate.action'),
+        icon: <UserX className="h-4 w-4" />,
+        onClick: handleDeactivate,
+        hidden: (user) => !user.isActive || user.isAnonymized || user.id === currentUser?.id,
+        variant: 'destructive',
+      })
+    }
+
+    // Activate user action
+    if (canActivate) {
+      actions.push({
+        label: t('users:admin.activate.action'),
+        icon: <UserCheck className="h-4 w-4" />,
+        onClick: handleActivate,
+        hidden: (user) => user.isActive || user.isAnonymized,
+      })
+    }
+
+    // Anonymize user action (separator before destructive action)
+    if (canAnonymize) {
+      actions.push({
+        label: t('users:admin.anonymize.action'),
+        icon: <UserMinus className="h-4 w-4" />,
+        onClick: handleAnonymize,
+        hidden: (user) => user.isAnonymized || user.id === currentUser?.id,
+        variant: 'destructive',
+        separator: true,
+      })
+    }
+
+    return actions
+  }, [
+    t,
+    onEdit,
+    onPermissions,
+    currentUser?.id,
+    canResetMfa,
+    canUnlock,
+    canDeactivate,
+    canActivate,
+    canAnonymize,
+    handleResetMfa,
+    handleUnlock,
+    handleDeactivate,
+    handleActivate,
+    handleAnonymize,
+  ])
+
+  // Columns with admin actions for desktop table
   const columns = useUsersColumns({
     onEdit,
     onPermissions,
-    onDelete,
     currentUserId: currentUser?.id,
+    rowActions: adminActions,
   })
 
+  // Full row actions for mobile card (includes edit/permissions + admin)
   const rowActions: RowAction<SystemUserDto>[] = useMemo(() => {
     const actions: RowAction<SystemUserDto>[] = []
 
@@ -86,6 +290,7 @@ export function UsersTable({ onEdit, onPermissions, onDelete, onRowClick }: User
         label: t('common:actions.edit'),
         icon: <Edit className="h-4 w-4" />,
         onClick: onEdit,
+        hidden: (user) => user.isAnonymized,
       })
     }
 
@@ -94,22 +299,15 @@ export function UsersTable({ onEdit, onPermissions, onDelete, onRowClick }: User
         label: t('users:actions.permissions'),
         icon: <Shield className="h-4 w-4" />,
         onClick: onPermissions,
+        hidden: (user) => user.isAnonymized,
       })
     }
 
-    if (onDelete) {
-      actions.push({
-        label: t('common:actions.delete'),
-        icon: <Trash2 className="h-4 w-4" />,
-        onClick: onDelete,
-        variant: 'destructive',
-        separator: actions.length > 0,
-        disabled: (user) => user.id === currentUser?.id,
-      })
-    }
+    // Add admin actions
+    actions.push(...adminActions)
 
     return actions
-  }, [t, onEdit, onPermissions, onDelete, currentUser?.id])
+  }, [t, onEdit, onPermissions, adminActions])
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetching) {
@@ -140,50 +338,111 @@ export function UsersTable({ onEdit, onPermissions, onDelete, onRowClick }: User
   ) : null
 
   return (
-    <DataTable
-      columns={columns}
-      data={users}
-      isLoading={isLoading}
-      isFetching={isFetching}
-      hasMore={hasNextPage}
-      onLoadMore={handleLoadMore}
-      searchPlaceholder={t('users:search.placeholder', 'Search users...')}
-      searchValue={search}
-      onSearch={setSearch}
-      initialSorting={sorting}
-      onSortingChange={setSorting}
-      toolbarContent={filterContent}
-      emptyState={{
-        title: t('users:empty.title'),
-        description: t('users:empty.message'),
-      }}
-      rowActions={rowActions}
-      onRowClick={onRowClick}
-      mobileCard={{
-        primaryField: 'fullName',
-        secondaryField: 'email',
-        avatar: (row) => ({
-          name: row.fullName,
-          email: row.email,
-        }),
-        tertiaryFields: [
-          {
-            key: 'isActive',
-            render: (value): ReactNode => (
-              <StatusBadge
-                status={value ? 'success' : 'error'}
-                label={value ? t('users:status.active') : t('users:status.inactive')}
-              />
-            ),
-          },
-          {
-            key: 'lastLoginAt',
-            label: t('users:fields.lastLogin'),
-            render: (value): ReactNode =>
-              value ? <RelativeTime date={value as string} /> : '-',
-          },
-        ],
-      }}
-    />
+    <>
+      <DataTable
+        columns={columns}
+        data={users}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        hasMore={hasNextPage}
+        onLoadMore={handleLoadMore}
+        searchPlaceholder={t('users:search.placeholder', 'Search users...')}
+        searchValue={search}
+        onSearch={setSearch}
+        initialSorting={sorting}
+        onSortingChange={setSorting}
+        toolbarContent={filterContent}
+        emptyState={{
+          title: t('users:empty.title'),
+          description: t('users:empty.message'),
+        }}
+        rowActions={rowActions}
+        onRowClick={onRowClick}
+        mobileCard={{
+          primaryField: 'fullName',
+          secondaryField: 'email',
+          avatar: (row) => ({
+            name: row.fullName,
+            email: row.email,
+          }),
+          tertiaryFields: [
+            {
+              key: 'isActive',
+              render: (value): ReactNode => (
+                <StatusBadge
+                  status={value ? 'success' : 'error'}
+                  label={value ? t('users:status.active') : t('users:status.inactive')}
+                />
+              ),
+            },
+            {
+              key: 'lastLoginAt',
+              label: t('users:fields.lastLogin'),
+              render: (value): ReactNode =>
+                value ? <RelativeTime date={value as string} /> : '-',
+            },
+          ],
+        }}
+      />
+
+      {/* Reset MFA Confirmation Dialog */}
+      <ConfirmDialog
+        open={resetMfaDialogOpen}
+        onOpenChange={setResetMfaDialogOpen}
+        title={t('users:admin.mfa.confirmTitle')}
+        description={t('users:admin.mfa.confirmDescription', { name: selectedUser?.fullName })}
+        confirmLabel={t('users:admin.mfa.reset')}
+        variant="destructive"
+        onConfirm={confirmResetMfa}
+        isLoading={isResettingMfa}
+      />
+
+      {/* Unlock User Confirmation Dialog */}
+      <ConfirmDialog
+        open={unlockDialogOpen}
+        onOpenChange={setUnlockDialogOpen}
+        title={t('users:admin.unlock.confirmTitle')}
+        description={t('users:admin.unlock.confirmDescription', { name: selectedUser?.fullName })}
+        confirmLabel={t('users:admin.unlock.action')}
+        onConfirm={confirmUnlock}
+        isLoading={isUnlocking}
+      />
+
+      {/* Deactivate User Confirmation Dialog */}
+      <ConfirmDialog
+        open={deactivateDialogOpen}
+        onOpenChange={setDeactivateDialogOpen}
+        title={t('users:admin.deactivate.confirmTitle')}
+        description={t('users:admin.deactivate.confirmDescription', { name: selectedUser?.fullName })}
+        confirmLabel={t('users:admin.deactivate.action')}
+        variant="destructive"
+        onConfirm={confirmDeactivate}
+        isLoading={isDeactivating}
+      />
+
+      {/* Activate User Confirmation Dialog */}
+      <ConfirmDialog
+        open={activateDialogOpen}
+        onOpenChange={setActivateDialogOpen}
+        title={t('users:admin.activate.confirmTitle')}
+        description={t('users:admin.activate.confirmDescription', { name: selectedUser?.fullName })}
+        confirmLabel={t('users:admin.activate.action')}
+        onConfirm={confirmActivate}
+        isLoading={isActivating}
+      />
+
+      {/* Anonymize User Type Confirmation Dialog */}
+      <TypeConfirmDialog
+        open={anonymizeDialogOpen}
+        onOpenChange={setAnonymizeDialogOpen}
+        title={t('users:admin.anonymize.confirmTitle')}
+        description={t('users:admin.anonymize.confirmDescription', { name: selectedUser?.fullName })}
+        confirmLabel={t('users:admin.anonymize.action')}
+        confirmText={selectedUser?.email ?? ''}
+        placeholder={t('users:admin.anonymize.placeholder')}
+        onConfirm={confirmAnonymize}
+        isLoading={isAnonymizing}
+      />
+    </>
   )
 }

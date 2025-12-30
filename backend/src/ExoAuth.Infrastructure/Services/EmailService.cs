@@ -90,7 +90,7 @@ public sealed class EmailService : IEmailService
         string language = "en-US",
         CancellationToken cancellationToken = default)
     {
-        var resetUrl = $"{_baseUrl}/auth/reset-password?token={resetToken}";
+        var resetUrl = $"{_baseUrl}/reset-password?token={resetToken}";
 
         var variables = new Dictionary<string, string>
         {

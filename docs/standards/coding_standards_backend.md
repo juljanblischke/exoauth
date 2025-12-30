@@ -364,10 +364,46 @@ Verwende die vordefinierten Error Codes aus `ErrorCodes.cs`:
 | `AUTH_FORCE_REAUTH` | 401 | User muss sich neu anmelden (Permission-Änderung) |
 | `AUTH_INVITE_EXPIRED` | 400 | Einladung abgelaufen (24h) |
 | `AUTH_INVITE_INVALID` | 400 | Einladungs-Token ungültig |
+| `AUTH_INVITE_REVOKED` | 400 | Einladung wurde widerrufen |
 | `AUTH_REGISTRATION_CLOSED` | 400 | Registration nur für ersten User |
 | `AUTH_EMAIL_EXISTS` | 409 | E-Mail bereits vergeben |
 | `AUTH_PASSWORD_TOO_WEAK` | 400 | Passwort erfüllt Anforderungen nicht |
 | `AUTH_TOO_MANY_ATTEMPTS` | 429 | Zu viele fehlgeschlagene Login-Versuche |
+
+### Password Reset Errors (400)
+
+| Code | HTTP Status | Verwendung |
+|------|-------------|------------|
+| `PASSWORD_RESET_TOKEN_INVALID` | 400 | Token/Code ungültig oder abgelaufen |
+| `PASSWORD_RESET_TOKEN_EXPIRED` | 400 | Token/Code abgelaufen |
+| `PASSWORD_RESET_TOKEN_USED` | 400 | Token/Code bereits verwendet |
+
+### MFA Errors (400/401/403)
+
+| Code | HTTP Status | Verwendung |
+|------|-------------|------------|
+| `MFA_REQUIRED` | 403 | MFA Verifizierung erforderlich |
+| `MFA_SETUP_REQUIRED` | 403 | MFA muss zuerst eingerichtet werden |
+| `MFA_CODE_INVALID` | 400 | TOTP Code ungültig |
+| `MFA_ALREADY_ENABLED` | 400 | MFA bereits aktiviert |
+| `MFA_NOT_ENABLED` | 400 | MFA nicht aktiviert |
+| `MFA_BACKUP_CODE_INVALID` | 400 | Backup Code ungültig |
+| `MFA_TOKEN_INVALID` | 401 | MFA Token ungültig oder abgelaufen |
+
+### Session Errors (400/401/404)
+
+| Code | HTTP Status | Verwendung |
+|------|-------------|------------|
+| `SESSION_NOT_FOUND` | 404 | Session nicht gefunden |
+| `SESSION_CANNOT_REVOKE_CURRENT` | 400 | Aktuelle Session kann nicht revoked werden |
+| `SESSION_REVOKED` | 401 | Session wurde widerrufen |
+
+### Account Errors (400/423)
+
+| Code | HTTP Status | Verwendung |
+|------|-------------|------------|
+| `ACCOUNT_LOCKED` | 423 | Account temporär gesperrt |
+| `ACCOUNT_LOCKED_PERMANENT` | 423 | Account dauerhaft gesperrt |
 
 ### System Errors (400/403/404)
 
@@ -378,6 +414,9 @@ Verwende die vordefinierten Error Codes aus `ErrorCodes.cs`:
 | `SYSTEM_LAST_PERMISSION_HOLDER` | 400 | Kann nicht entfernen - letzter User mit dieser Permission |
 | `SYSTEM_CANNOT_DELETE_SELF` | 400 | Kann sich selbst nicht löschen |
 | `SYSTEM_FORBIDDEN` | 403 | Keine Berechtigung für System-Aktion |
+| `SYSTEM_USER_ALREADY_DEACTIVATED` | 400 | User ist bereits deaktiviert |
+| `SYSTEM_USER_ALREADY_ACTIVATED` | 400 | User ist bereits aktiv |
+| `SYSTEM_USER_ANONYMIZED` | 400 | User ist anonymisiert und kann nicht modifiziert werden |
 
 ### Invite Errors (400/404/429)
 
@@ -580,6 +619,11 @@ public class MyCustomHealthCheck : IHealthCheck
 
 ## Letzte Änderung
 
-- **Datum:** 2025-12-28
-- **Added:** Invite Error Codes Section (Task 005), AUTH_FORCE_REAUTH Error Code
-- **Task 005:** Backend Improvements - Neue Error Codes für Invitation Management hinzugefügt
+- **Datum:** 2025-12-30
+- **Task 007:** Auth Security & Device Management - Neue Error Codes hinzugefügt:
+  - Password Reset Errors (PASSWORD_RESET_TOKEN_INVALID/EXPIRED/USED)
+  - MFA Errors (MFA_REQUIRED, MFA_SETUP_REQUIRED, MFA_CODE_INVALID, MFA_ALREADY_ENABLED, MFA_NOT_ENABLED, MFA_BACKUP_CODE_INVALID, MFA_TOKEN_INVALID)
+  - Session Errors (SESSION_NOT_FOUND, SESSION_CANNOT_REVOKE_CURRENT, SESSION_REVOKED)
+  - Account Errors (ACCOUNT_LOCKED, ACCOUNT_LOCKED_PERMANENT)
+  - System Errors erweitert (SYSTEM_USER_ALREADY_DEACTIVATED/ACTIVATED, SYSTEM_USER_ANONYMIZED)
+  - AUTH_INVITE_REVOKED hinzugefügt

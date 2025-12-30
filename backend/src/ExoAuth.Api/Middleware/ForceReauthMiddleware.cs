@@ -32,13 +32,18 @@ public sealed class ForceReauthMiddleware
             return;
         }
 
-        // Skip for login/refresh endpoints (allow re-authentication)
+        // Skip for auth endpoints that need to work during force-reauth
         var path = context.Request.Path.Value?.ToLowerInvariant() ?? "";
         if (path.Contains("/api/auth/login") ||
-            path.Contains("/api/auth/refresh") ||
             path.Contains("/api/auth/register") ||
             path.Contains("/api/auth/accept-invite") ||
-            path.Contains("/api/auth/invite"))
+            path.Contains("/api/auth/invite") ||
+            path.Contains("/api/auth/logout") ||
+            path.Contains("/api/auth/mfa/verify") ||
+            path.Contains("/api/auth/mfa/setup") ||
+            path.Contains("/api/auth/mfa/confirm") ||
+            path.Contains("/api/auth/forgot-password") ||
+            path.Contains("/api/auth/reset-password"))
         {
             await _next(context);
             return;

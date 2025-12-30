@@ -446,27 +446,27 @@ Alle benötigten bereits installiert (Dialog, Tabs, Switch, Badge, etc.)
 37. [x] **Login**: Handle mfaSetupRequired state
 38. [x] **Context**: Update auth flow for MFA
 
-### Phase 8: Password Reset
-39. [ ] **API**: Create password reset API
-40. [ ] **Hooks**: Create forgot/reset hooks
-41. [ ] **Component**: Create forgot password modal
-42. [ ] **Route**: Create reset password page
-43. [ ] **Login**: Add forgot password link + modal
+### Phase 8: Password Reset ✅
+39. [x] **API**: Create password reset API
+40. [x] **Hooks**: Create forgot/reset hooks
+41. [x] **Component**: Create forgot password modal (multi-step: email → code → password)
+42. [x] **Route**: Create reset password page (for link clicks with token)
+43. [x] **Login**: Add forgot password link + modal
 
-### Phase 9: Users Page - Display Updates
-44. [ ] **Types**: Verify user types updated
-45. [ ] **Component**: Create status badges (MFA, Locked, Anonymized)
-46. [ ] **Columns**: Update users table columns
-47. [ ] **Sheet**: Update user details display
+### Phase 9: Users Page - Display Updates ✅
+44. [x] **Types**: Verify user types updated
+45. [x] **Component**: Create status badges (MFA, Locked, Anonymized)
+46. [x] **Columns**: Update users table columns
+47. [x] **Sheet**: Update user details display
 
-### Phase 10: Users Page - Admin Actions
-48. [ ] **API**: Create user admin API
-49. [ ] **Hooks**: Create admin hooks (all 7)
-50. [ ] **Component**: Create user sessions section
-51. [ ] **Component**: Create admin actions component
-52. [ ] **Sheet**: Add admin sections to user details
-53. [ ] **i18n**: Add admin action translations
-54. [ ] **Remove**: Delete user action entfernen
+### Phase 10: Users Page - Admin Actions ✅
+48. [x] **API**: Create user admin API
+49. [x] **Hooks**: Create admin hooks (all 7 + useRevokeUserSession for individual revoke)
+50. [x] **Component**: Create user sessions section (with individual + bulk revoke)
+51. [x] **Table**: Add admin actions to row actions dropdown (not in sheet)
+52. [x] **Sheet**: Add sessions section to user details (with permissions)
+53. [x] **i18n**: Add admin action translations (EN + DE)
+54. [x] **Remove**: Delete user action removed, replaced with deactivate/anonymize
 
 ### Phase 11: Finalization
 55. [ ] **Tests**: Component tests
@@ -690,6 +690,58 @@ The header `LanguageSwitcher` component now uses `useUpdatePreferences` hook (sa
 - User cache is updated with `preferredLanguage`
 - Both header and settings page are synchronized
 
+### Sessions Management (2025-12-29)
+
+Implemented device session management in the settings security tab:
+
+**Files created:**
+- `src/features/auth/api/sessions-api.ts` - API calls for sessions (get, revoke, revokeAll, update, trust)
+- `src/features/auth/hooks/use-sessions.ts` - Query hook for sessions list
+- `src/features/auth/hooks/use-revoke-session.ts` - Mutation to revoke single session
+- `src/features/auth/hooks/use-revoke-all-sessions.ts` - Mutation to revoke all other sessions
+- `src/features/auth/hooks/use-update-session.ts` - Mutation to rename session
+- `src/features/auth/hooks/use-trust-session.ts` - Mutation to mark session as trusted
+- `src/features/auth/components/session-card.tsx` - Individual session display with actions
+- `src/features/auth/components/sessions-list.tsx` - Sessions list with revoke all button
+- `src/features/settings/components/sessions-section.tsx` - Wrapper for settings page
+- `src/i18n/locales/en/sessions.json` - English translations
+- `src/i18n/locales/de/sessions.json` - German translations
+
+**Features:**
+- View all active sessions with device info (browser, OS, location)
+- Current session indicator
+- Trusted session badge
+- Rename any session (including current)
+- Trust non-current sessions
+- Revoke individual sessions
+- Revoke all other sessions at once
+- Relative time display for last activity
+
+### Multi-Step Password Reset Modal (2025-12-30)
+
+Updated `ForgotPasswordModal` to support both link-click and code-entry flows:
+
+**Multi-Step Flow (in modal):**
+1. **Step 1 (Email):** User enters email → sends forgot password request
+2. **Step 2 (Code):** User enters code from email (e.g., `FBJD-PAEH`)
+3. **Step 3 (Password):** User enters new password with validation (PasswordRequirements)
+4. **Step 4 (Success):** Confirmation, user can sign in
+
+**Two flows now supported:**
+- **Link click:** Email link → `/reset-password?token=xxx` → enter password (existing page)
+- **Code entry:** Login page → Forgot Password modal → enter code → enter password (new flow)
+
+**API call format:**
+- Token flow: `{ token, newPassword }`
+- Code flow: `{ email, code, newPassword }`
+
+**Files changed:**
+- `src/features/auth/components/forgot-password-modal.tsx` - Multi-step modal
+- `src/i18n/locales/en/auth.json` - New keys for code entry
+- `src/i18n/locales/de/auth.json` - German translations
+
+---
+
 ### Language Locale Format (2025-12-29)
 
 Updated all language codes from short format (`en`, `de`) to full locale format (`en-US`, `de-DE`):
@@ -707,6 +759,169 @@ Updated all language codes from short format (`en`, `de`) to full locale format 
 
 ## 16. Letzte Änderung
 
-- **Datum:** 2025-12-29
-- **Status:** In Progress (Phase 1, 2, 3, 4, 5, 6 & 7 Complete)
+- **Datum:** 2025-12-30
+- **Status:** In Progress (Phase 1-10 Complete)
 - **Backend Dependency:** Task 007 ✅ Complete (232 tests)
+- **Latest:** Anonymized user protection + error codes
+
+### User Status Badges (2025-12-30)
+
+Added `user-status-badges.tsx` component with security status indicators:
+
+**Files created:**
+- `src/features/users/components/user-status-badges.tsx` - MfaBadge, LockedBadge, AnonymizedBadge components
+
+**Files updated:**
+- `src/features/users/components/users-table-columns.tsx` - Added Security column with UserStatusBadges
+- `src/features/users/components/user-details-sheet.tsx` - Added security badges and failed login attempts display
+- `src/features/users/components/index.ts` - Export new components
+- `src/i18n/locales/en/users.json` - Added security translations
+- `src/i18n/locales/de/users.json` - Added German translations
+
+**Features:**
+- MFA badge showing enabled/disabled state with green/gray styling
+- Locked badge with tooltip showing lockedUntil time
+- Anonymized badge for GDPR-anonymized users
+- Failed login attempts counter in user details sheet
+- All badges have tooltips with descriptive text
+
+### Admin Actions Implementation (2025-12-30)
+
+Implemented admin actions for user management with permission-based visibility:
+
+**Files created:**
+- `src/features/users/api/user-admin-api.ts` - Admin API endpoints (resetMfa, unlock, getSessions, revokeSessions, deactivate, activate, anonymize)
+- `src/features/users/hooks/use-reset-user-mfa.ts` - Reset MFA mutation
+- `src/features/users/hooks/use-unlock-user.ts` - Unlock account mutation
+- `src/features/users/hooks/use-user-sessions.ts` - User sessions query
+- `src/features/users/hooks/use-revoke-user-session.ts` - Revoke single session mutation
+- `src/features/users/hooks/use-revoke-user-sessions.ts` - Revoke all sessions mutation
+- `src/features/users/hooks/use-deactivate-user.ts` - Deactivate user mutation
+- `src/features/users/hooks/use-activate-user.ts` - Activate user mutation
+- `src/features/users/hooks/use-anonymize-user.ts` - Anonymize user mutation
+- `src/features/users/components/user-sessions-section.tsx` - Sessions display with individual + bulk revoke
+
+**Files updated:**
+- `src/features/users/hooks/index.ts` - Export all admin hooks, removed useDeleteUser
+- `src/features/users/components/users-table.tsx` - Admin actions in row dropdown with confirmation dialogs
+- `src/features/users/components/users-table-columns.tsx` - Accept rowActions prop for admin actions
+- `src/features/users/components/user-details-sheet.tsx` - Sessions section with permission check
+- `src/features/users/components/index.ts` - Export UserSessionsSection, removed UserAdminActions
+- `src/features/users/api/users-api.ts` - Removed delete endpoint
+- `src/i18n/locales/en/users.json` - Admin action translations
+- `src/i18n/locales/de/users.json` - German translations
+
+**Files deleted:**
+- `src/features/users/hooks/use-delete-user.ts` - Replaced by deactivate/anonymize
+- `src/features/users/components/user-admin-actions.tsx` - Actions moved to row dropdown
+
+**Features:**
+- Admin actions in table row "..." dropdown (not in sheet)
+- Conditional visibility based on user state (mfaEnabled, isLocked, isActive, isAnonymized)
+- Permission checks for each action (system:users:mfa:reset, system:users:unlock, etc.)
+- Cannot perform destructive actions on yourself
+- Sessions section in user details sheet with individual session revoke (X button)
+- Bulk "Revoke All" sessions with confirmation dialog
+- TypeConfirmDialog for anonymize action (requires typing email)
+- ConfirmDialog for other admin actions
+- Delete user action removed (GDPR: use deactivate/anonymize instead)
+
+### TypeConfirmDialog Translation Fix (2025-12-30)
+
+Updated `TypeConfirmDialog` component to use i18n translations instead of hardcoded text:
+
+**Files updated:**
+- `src/components/shared/feedback/type-confirm-dialog.tsx` - Added useTranslation, Trans component
+- `src/i18n/locales/en/common.json` - Updated typeToConfirm format, added states section
+- `src/i18n/locales/de/common.json` - German translations
+
+**Changes:**
+- "Type X to confirm" label now uses `<Trans>` component with `<highlight>` interpolation
+- Default button labels use translations: `t('common:actions.delete')`, `t('common:actions.cancel')`
+- Loading state uses `t('common:states.deleting')`
+- Added `loadingLabel` prop for custom loading text
+- New `states` section in common.json: deleting, saving, processing
+
+**Translation format:**
+```json
+"typeToConfirm": "Type <highlight>{{text}}</highlight> to confirm"
+```
+
+### Column Visibility Fix (2025-12-30)
+
+Fixed Security column not appearing in column visibility dropdown ("Spalten" button):
+
+**Files updated:**
+- `src/features/users/components/users-table-columns.tsx` - Added accessorFn to security column
+
+**Issue:** The `DataTableColumnToggle` component only shows columns with `accessorFn` or `accessorKey`. The security column only had an `id`.
+
+**Fix:** Added `accessorFn: (row) => row.mfaEnabled` to the security column definition. The accessor value doesn't affect rendering (custom cell is used), but allows the column to appear in visibility toggle.
+
+### Anonymized User Protection (2025-12-30)
+
+Anonymized users cannot be edited or have permissions changed. Hidden edit/permissions actions:
+
+**Files updated:**
+- `src/features/users/components/users-table.tsx` - Added `hidden: (user) => user.isAnonymized` to edit/permissions row actions
+- `src/features/users/components/users-table-columns.tsx` - Added `hidden: (u) => u.isAnonymized` to edit/permissions column actions
+- `src/features/users/components/user-details-sheet.tsx` - Wrapped action buttons in `!displayUser.isAnonymized` check, added email truncation with Tooltip
+
+**UX improvements in user details sheet:**
+- Email now truncates with `...` for long addresses
+- Hover shows full email in styled Tooltip component
+- Added `min-w-0` to parent for proper flex truncation
+
+### Error Codes Added (2025-12-30)
+
+Added missing backend error codes to frontend translations:
+
+**Files updated:**
+- `src/i18n/locales/en/errors.json`
+- `src/i18n/locales/de/errors.json`
+
+**New error codes:**
+| Code | EN | DE |
+|------|----|----|
+| `SYSTEM_USER_ANONYMIZED` | This user has been anonymized and cannot be modified | Dieser Benutzer wurde anonymisiert und kann nicht bearbeitet werden |
+| `INTERNAL_ERROR` | An internal error occurred. Please try again later. | Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es später erneut. |
+
+### Accept Invite MFA Flow Fix (2025-12-30)
+
+Added MFA setup support to accept-invite flow (was missing):
+
+**Files updated:**
+- `src/features/auth/hooks/use-accept-invite.ts` - Added `UseAcceptInviteOptions` with `onMfaSetupRequired` callback
+- `src/features/auth/components/accept-invite-form.tsx` - Added MFA state, modals, and handlers (same as register-form)
+- `src/features/auth/hooks/use-mfa-confirm.ts` - Added `skipCache` option to prevent early auth trigger
+- `src/features/auth/components/mfa-setup-modal.tsx` - Uses `skipCache: true` when `setupToken` is present
+- `src/features/auth/components/login-form.tsx` - Set user in cache in `handleMfaConfirmContinue`
+- `src/features/auth/components/register-form.tsx` - Set user in cache in `handleMfaConfirmContinue`
+
+**Problem solved:** Invite page auto-logs out authenticated users. When MFA confirm succeeded, it immediately set the user in cache, making `isAuthenticated = true`. The invite page's `useEffect` saw this and called `logout()` before the backup codes modal could be shown.
+
+**Solution:**
+1. Added `skipCache` option to `useMfaConfirm` hook
+2. MfaSetupModal passes `skipCache: true` when using setupToken
+3. Forms manually set user in cache in `handleMfaConfirmContinue` (after backup codes are shown)
+4. User is only authenticated AFTER they click "Continue" on backup codes modal
+
+### Admin Actions Fix (2025-12-30)
+
+**Files updated:**
+- `src/features/users/components/users-table.tsx`
+
+**Fixes:**
+1. Fixed `resetMfa()` and `unlockUser()` calls - were passing `userId` directly instead of `{ userId }` object
+2. Added toast notifications for all admin actions (success messages)
+
+### AUTH_FORCE_REAUTH Error Handling (2025-12-30)
+
+Added handling for `AUTH_FORCE_REAUTH` error code from refresh token endpoint.
+
+**Files updated:**
+- `src/lib/axios.ts` - Check for `AUTH_FORCE_REAUTH` error code in refresh catch block
+- `src/i18n/locales/en/errors.json` - Added translation
+- `src/i18n/locales/de/errors.json` - Added translation
+
+**Behavior:** When refresh token returns `AUTH_FORCE_REAUTH`, the user is immediately logged out with the `auth:force-reauth` event (shows toast notification explaining session was invalidated).

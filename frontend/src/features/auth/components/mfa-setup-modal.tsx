@@ -41,7 +41,8 @@ export function MfaSetupModal({
   const [setupData, setSetupData] = useState<MfaSetupResponse | null>(null)
 
   const mfaSetup = useMfaSetup()
-  const mfaConfirm = useMfaConfirm()
+  // Skip cache when using setupToken - form handles auth after backup codes shown
+  const mfaConfirm = useMfaConfirm({ skipCache: !!setupToken })
 
   // Start setup when modal opens
   useEffect(() => {

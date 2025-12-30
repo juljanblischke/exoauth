@@ -18,6 +18,7 @@ public sealed class RefreshTokenHandlerTests
     private readonly Mock<ITokenBlacklistService> _mockTokenBlacklist;
     private readonly Mock<IPermissionCacheService> _mockPermissionCache;
     private readonly Mock<IDeviceSessionService> _mockDeviceSessionService;
+    private readonly Mock<IForceReauthService> _mockForceReauthService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly RefreshTokenHandler _handler;
 
@@ -29,10 +30,15 @@ public sealed class RefreshTokenHandlerTests
         _mockTokenBlacklist = new Mock<ITokenBlacklistService>();
         _mockPermissionCache = new Mock<IPermissionCacheService>();
         _mockDeviceSessionService = new Mock<IDeviceSessionService>();
+        _mockForceReauthService = new Mock<IForceReauthService>();
         _mockAuditService = new Mock<IAuditService>();
 
         // Default token service setup
         _mockTokenService.Setup(x => x.RefreshTokenExpiration).Returns(TimeSpan.FromDays(30));
+
+        // Default force reauth setup - no flag set
+        _mockForceReauthService.Setup(x => x.HasFlagAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
 
         _handler = new RefreshTokenHandler(
             _mockContext.Object,
@@ -41,6 +47,7 @@ public sealed class RefreshTokenHandlerTests
             _mockTokenBlacklist.Object,
             _mockPermissionCache.Object,
             _mockDeviceSessionService.Object,
+            _mockForceReauthService.Object,
             _mockAuditService.Object);
     }
 

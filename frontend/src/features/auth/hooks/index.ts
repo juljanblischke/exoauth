@@ -19,3 +19,7 @@ export { useRevokeSession } from './use-revoke-session'
 export { useRevokeAllSessions } from './use-revoke-all-sessions'
 export { useUpdateSession } from './use-update-session'
 export { useTrustSession } from './use-trust-session'
+
+// Password reset hooks
+export { useForgotPassword } from './use-forgot-password'
+export { useResetPassword } from './use-reset-password'

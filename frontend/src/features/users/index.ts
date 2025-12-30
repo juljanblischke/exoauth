@@ -17,15 +17,23 @@ export {
   useSystemUser,
   useInviteUser,
   useUpdateUser,
-  useDeleteUser,
   useUpdatePermissions,
   useSystemInvites,
   useSystemInvite,
   useRevokeInvite,
   useResendInvite,
+  // Admin hooks
+  useResetUserMfa,
+  useUnlockUser,
+  useUserSessions,
+  useRevokeUserSessions,
+  useDeactivateUser,
+  useActivateUser,
+  useAnonymizeUser,
   SYSTEM_USERS_KEY,
   SYSTEM_USER_KEY,
   SYSTEM_INVITES_KEY,
+  USER_SESSIONS_KEY,
 } from './hooks'
 
 // Types

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +23,8 @@ interface TypeConfirmDialogProps {
   confirmText: string
   confirmLabel?: string
   cancelLabel?: string
+  placeholder?: string
+  loadingLabel?: string
   onConfirm: () => void
   onCancel?: () => void
   isLoading?: boolean
@@ -33,13 +36,20 @@ export function TypeConfirmDialog({
   title,
   description,
   confirmText,
-  confirmLabel = 'Delete',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
+  loadingLabel,
   onConfirm,
   onCancel,
   isLoading = false,
 }: TypeConfirmDialogProps) {
+  const { t } = useTranslation()
   const [inputValue, setInputValue] = useState('')
+
+  // Use translations for defaults
+  const resolvedConfirmLabel = confirmLabel ?? t('common:actions.delete')
+  const resolvedCancelLabel = cancelLabel ?? t('common:actions.cancel')
+  const resolvedLoadingLabel = loadingLabel ?? t('common:states.deleting')
 
   const isConfirmEnabled = inputValue === confirmText
 
@@ -72,7 +82,11 @@ export function TypeConfirmDialog({
         </AlertDialogHeader>
         <div className="py-4">
           <Label htmlFor="confirm-input" className="text-sm text-muted-foreground">
-            Type <span className="font-mono font-semibold text-foreground">{confirmText}</span> to confirm
+            <Trans
+              i18nKey="common:confirm.typeToConfirm"
+              values={{ text: confirmText }}
+              components={{ highlight: <span className="font-mono font-semibold text-foreground" /> }}
+            />
           </Label>
           <Input
             id="confirm-input"
@@ -86,14 +100,14 @@ export function TypeConfirmDialog({
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={handleCancel} disabled={isLoading}>
-            {cancelLabel}
+            {resolvedCancelLabel}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={!isConfirmEnabled || isLoading}
             className={cn(buttonVariants({ variant: 'destructive' }))}
           >
-            {isLoading ? 'Deleting...' : confirmLabel}
+            {isLoading ? resolvedLoadingLabel : resolvedConfirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -35,6 +35,9 @@ public sealed class GetSystemUsersHandler : IQueryHandler<GetSystemUsersQuery, C
             FullName: u.FullName,
             IsActive: u.IsActive,
             EmailVerified: u.EmailVerified,
+            MfaEnabled: u.MfaEnabled,
+            IsLocked: u.IsLocked,
+            IsAnonymized: u.IsAnonymized,
             LastLoginAt: u.LastLoginAt,
             CreatedAt: u.CreatedAt,
             UpdatedAt: u.UpdatedAt

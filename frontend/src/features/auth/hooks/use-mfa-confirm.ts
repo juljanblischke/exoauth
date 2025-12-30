@@ -9,13 +9,27 @@ interface MfaConfirmVariables extends MfaConfirmRequest {
   setupToken?: string
 }
 
-export function useMfaConfirm() {
+export interface UseMfaConfirmOptions {
+  /**
+   * When true, don't set user in cache on success.
+   * Used by setupToken flows (login/register/invite) where the form
+   * handles auth after showing backup codes.
+   */
+  skipCache?: boolean
+}
+
+export function useMfaConfirm(options?: UseMfaConfirmOptions) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: ({ setupToken, ...request }: MfaConfirmVariables) =>
       mfaApi.confirm(request, setupToken),
     onSuccess: (data) => {
+      // Skip caching for setupToken flows - form handles auth after backup codes
+      if (options?.skipCache) {
+        return
+      }
+
       // If we got user data back (setupToken flow), set it in cache
       if (data.user) {
         queryClient.setQueryData<User>(AUTH_QUERY_KEY, data.user)

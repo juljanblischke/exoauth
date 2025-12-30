@@ -152,6 +152,9 @@ public sealed class UpdateSystemUserHandler : ICommandHandler<UpdateSystemUserCo
             FullName: user.FullName,
             IsActive: user.IsActive,
             EmailVerified: user.EmailVerified,
+            MfaEnabled: user.MfaEnabled,
+            IsLocked: user.IsLocked,
+            IsAnonymized: user.IsAnonymized,
             LastLoginAt: user.LastLoginAt,
             CreatedAt: user.CreatedAt,
             UpdatedAt: user.UpdatedAt

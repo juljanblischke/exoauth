@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -20,10 +21,12 @@ import { MfaSetupModal } from './mfa-setup-modal'
 import { MfaConfirmModal } from './mfa-confirm-modal'
 
 const AUTH_SESSION_KEY = 'exoauth_has_session'
+const AUTH_QUERY_KEY = ['auth', 'me'] as const
 
 export function RegisterForm() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [password, setPassword] = useState('')
 
   // MFA state (for first user registration)
@@ -70,7 +73,9 @@ export function RegisterForm() {
 
   const handleMfaConfirmContinue = () => {
     // If we have auth data from setupToken flow, complete the registration
-    if (pendingAuthResponse?.accessToken) {
+    if (pendingAuthResponse?.accessToken && pendingAuthResponse.user) {
+      // Set user in cache BEFORE navigating (triggers isAuthenticated)
+      queryClient.setQueryData(AUTH_QUERY_KEY, pendingAuthResponse.user)
       localStorage.setItem(AUTH_SESSION_KEY, 'true')
       navigate({ to: '/dashboard' })
     }

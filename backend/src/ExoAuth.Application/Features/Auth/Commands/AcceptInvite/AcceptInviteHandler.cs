@@ -16,6 +16,7 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
     private readonly IDeviceSessionService _deviceSessionService;
     private readonly IAuditService _auditService;
     private readonly ISystemInviteService _inviteService;
+    private readonly IMfaService _mfaService;
 
     public AcceptInviteHandler(
         IAppDbContext context,
@@ -24,7 +25,8 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
         ITokenService tokenService,
         IDeviceSessionService deviceSessionService,
         IAuditService auditService,
-        ISystemInviteService inviteService)
+        ISystemInviteService inviteService,
+        IMfaService mfaService)
     {
         _context = context;
         _userRepository = userRepository;
@@ -33,6 +35,7 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
         _deviceSessionService = deviceSessionService;
         _auditService = auditService;
         _inviteService = inviteService;
+        _mfaService = mfaService;
     }
 
     public async ValueTask<AuthResponse> Handle(AcceptInviteCommand command, CancellationToken ct)
@@ -101,6 +104,26 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
 
         // Get permission names
         var permissions = await _userRepository.GetUserPermissionNamesAsync(user.Id, ct);
+
+        // Check if user has system permissions - they MUST set up MFA first
+        var hasSystemPermissions = permissions.Any(p => p.StartsWith("system:"));
+        if (hasSystemPermissions)
+        {
+            // Generate setup token for MFA setup
+            var setupToken = _mfaService.GenerateMfaToken(user.Id, null);
+
+            await _auditService.LogWithContextAsync(
+                AuditActions.MfaSetupRequiredSent,
+                user.Id,
+                null,
+                "SystemUser",
+                user.Id,
+                new { InviteId = invite.Id, Step = "awaiting_mfa_setup" },
+                ct
+            );
+
+            return AuthResponse.RequiresMfaSetup(setupToken);
+        }
 
         // Create device session for the accept-invite device
         var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();

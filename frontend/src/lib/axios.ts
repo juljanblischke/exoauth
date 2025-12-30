@@ -96,8 +96,15 @@ apiClient.interceptors.response.use(
         // Clear session flag so auth context knows we're logged out
         localStorage.removeItem('exoauth_has_session')
 
-        // Dispatch custom event so auth context can react
-        window.dispatchEvent(new CustomEvent('auth:session-expired'))
+        // Check if it's a force re-auth error (e.g., password changed, account locked)
+        const axiosRefreshError = refreshError as AxiosError<ApiResponse<unknown>>
+        const errorCode = axiosRefreshError.response?.data?.errors?.[0]?.code
+        const isForceReauth = errorCode === 'AUTH_FORCE_REAUTH'
+
+        // Dispatch appropriate event so auth context can react
+        window.dispatchEvent(
+          new CustomEvent(isForceReauth ? 'auth:force-reauth' : 'auth:session-expired')
+        )
 
         return Promise.reject(transformError(error))
       } finally {

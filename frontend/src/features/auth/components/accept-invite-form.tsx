@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -9,19 +11,41 @@ import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/shared/form'
 
 import { useAcceptInvite } from '../hooks/use-accept-invite'
-import { createAcceptInviteSchema, type AcceptInviteFormData } from '../types'
+import { createAcceptInviteSchema, type AcceptInviteFormData, type MfaConfirmResponse } from '../types'
+import type { AuthResponse } from '@/types/auth'
 import { PasswordRequirements } from './password-requirements'
 import { getErrorMessage } from '@/lib/error-utils'
 import { getDeviceInfo } from '@/lib/device'
+import { MfaSetupModal } from './mfa-setup-modal'
+import { MfaConfirmModal } from './mfa-confirm-modal'
+
+const AUTH_SESSION_KEY = 'exoauth_has_session'
 
 interface AcceptInviteFormProps {
   token: string
 }
 
+const AUTH_QUERY_KEY = ['auth', 'me'] as const
+
 export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
   const { t, i18n } = useTranslation()
-  const { mutate: acceptInvite, isPending, error } = useAcceptInvite()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [password, setPassword] = useState('')
+
+  // MFA state (for invited users with system permissions)
+  const [mfaSetupOpen, setMfaSetupOpen] = useState(false)
+  const [mfaConfirmOpen, setMfaConfirmOpen] = useState(false)
+  const [setupToken, setSetupToken] = useState<string | null>(null)
+  const [backupCodes, setBackupCodes] = useState<string[]>([])
+  const [pendingAuthResponse, setPendingAuthResponse] = useState<MfaConfirmResponse | null>(null)
+
+  const { mutate: acceptInvite, isPending, error } = useAcceptInvite({
+    onMfaSetupRequired: (response: AuthResponse) => {
+      setSetupToken(response.setupToken)
+      setMfaSetupOpen(true)
+    },
+  })
 
   const acceptInviteSchema = useMemo(() => createAcceptInviteSchema(t), [t])
 
@@ -42,6 +66,24 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
       language: i18n.language,
       ...deviceInfo,
     })
+  }
+
+  const handleMfaSetupSuccess = (response: MfaConfirmResponse) => {
+    setBackupCodes(response.backupCodes)
+    setPendingAuthResponse(response)
+    setMfaSetupOpen(false)
+    setMfaConfirmOpen(true)
+  }
+
+  const handleMfaConfirmContinue = () => {
+    // If we have auth data from setupToken flow, complete the accept invite
+    if (pendingAuthResponse?.accessToken && pendingAuthResponse.user) {
+      // Set user in cache BEFORE navigating (triggers isAuthenticated)
+      queryClient.setQueryData(AUTH_QUERY_KEY, pendingAuthResponse.user)
+      localStorage.setItem(AUTH_SESSION_KEY, 'true')
+      navigate({ to: '/dashboard' })
+    }
+    setMfaConfirmOpen(false)
   }
 
   return (
@@ -94,6 +136,23 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
           t('auth:invite.accept')
         )}
       </Button>
+
+      {/* MFA Setup Modal - shown when MFA is required for invited user with system permissions */}
+      <MfaSetupModal
+        open={mfaSetupOpen}
+        onOpenChange={setMfaSetupOpen}
+        onSuccess={handleMfaSetupSuccess}
+        setupToken={setupToken || undefined}
+        required
+      />
+
+      {/* MFA Confirm Modal - shows backup codes after setup */}
+      <MfaConfirmModal
+        open={mfaConfirmOpen}
+        onOpenChange={setMfaConfirmOpen}
+        backupCodes={backupCodes}
+        onContinue={handleMfaConfirmContinue}
+      />
     </form>
   )
 }

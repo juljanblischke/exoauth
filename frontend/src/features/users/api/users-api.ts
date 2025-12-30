@@ -75,9 +75,4 @@ export const usersApi = {
     )
     return data.data
   },
-
-  // Delete user
-  delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/system/users/${id}`)
-  },
 }

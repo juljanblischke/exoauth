@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { type ColumnDef, type Column } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
-import { ArrowUp, ArrowDown, ChevronsUpDown, Edit, Shield, Trash2 } from 'lucide-react'
+import { ArrowUp, ArrowDown, ChevronsUpDown, Edit, Shield } from 'lucide-react'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { RelativeTime } from '@/components/shared/relative-time'
@@ -9,6 +9,7 @@ import { DataTableRowActions } from '@/components/shared/data-table/data-table-r
 import { cn } from '@/lib/utils'
 import type { SystemUserDto } from '../types'
 import type { RowAction } from '@/types/table'
+import { UserStatusBadges } from './user-status-badges'
 
 // Sortable column header with multi-sort support
 // - Click: single sort (replaces other sorts)
@@ -72,20 +73,23 @@ function SortableHeader<T>({ column, label }: { column: Column<T>; label: string
 interface UseUsersColumnsOptions {
   onEdit?: (user: SystemUserDto) => void
   onPermissions?: (user: SystemUserDto) => void
-  onDelete?: (user: SystemUserDto) => void
   currentUserId?: string
+  rowActions?: RowAction<SystemUserDto>[]
 }
 
 export function useUsersColumns({
   onEdit,
   onPermissions,
-  onDelete,
   currentUserId,
+  rowActions = [],
 }: UseUsersColumnsOptions): ColumnDef<SystemUserDto>[] {
   const { t } = useTranslation()
+  // Silence unused variable warning - currentUserId reserved for future use
+  void currentUserId
 
   const nameLabel = t('users:fields.name')
   const statusLabel = t('users:fields.status')
+  const securityLabel = t('users:fields.security')
   const emailVerifiedLabel = t('users:fields.emailVerified')
   const lastLoginLabel = t('users:fields.lastLogin')
   const createdAtLabel = t('users:fields.createdAt')
@@ -136,6 +140,24 @@ export function useUsersColumns({
       },
     },
     {
+      id: 'security',
+      accessorFn: (row) => row.mfaEnabled, // Accessor needed for column toggle visibility
+      header: securityLabel,
+      meta: { label: securityLabel },
+      enableSorting: false,
+      cell: ({ row }) => {
+        const user = row.original
+        return (
+          <UserStatusBadges
+            user={user}
+            showMfa
+            showLocked
+            showAnonymized
+          />
+        )
+      },
+    },
+    {
       id: 'emailVerified',
       accessorKey: 'emailVerified',
       header: emailVerifiedLabel,
@@ -181,7 +203,7 @@ export function useUsersColumns({
   ]
 
   // Only add actions column if at least one action is available
-  const hasAnyAction = onEdit || onPermissions || onDelete
+  const hasAnyAction = onEdit || onPermissions || rowActions.length > 0
   if (hasAnyAction) {
     columns.push({
       id: 'actions',
@@ -190,8 +212,8 @@ export function useUsersColumns({
       header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => {
         const user = row.original
-        const isCurrentUser = user.id === currentUserId
 
+        // Build base actions from props
         const actions: RowAction<SystemUserDto>[] = []
 
         if (onEdit) {
@@ -199,6 +221,7 @@ export function useUsersColumns({
             label: t('common:actions.edit'),
             icon: <Edit className="h-4 w-4" />,
             onClick: onEdit,
+            hidden: (u) => u.isAnonymized,
           })
         }
 
@@ -207,19 +230,12 @@ export function useUsersColumns({
             label: t('users:actions.permissions'),
             icon: <Shield className="h-4 w-4" />,
             onClick: onPermissions,
+            hidden: (u) => u.isAnonymized,
           })
         }
 
-        if (onDelete) {
-          actions.push({
-            label: t('common:actions.delete'),
-            icon: <Trash2 className="h-4 w-4" />,
-            onClick: onDelete,
-            variant: 'destructive',
-            separator: actions.length > 0,
-            disabled: isCurrentUser,
-          })
-        }
+        // Add additional row actions (admin actions, etc.)
+        actions.push(...rowActions)
 
         if (actions.length === 0) return null
 

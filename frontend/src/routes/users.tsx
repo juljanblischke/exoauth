@@ -15,7 +15,6 @@ import {
   UserPermissionsModal,
   InvitationsTable,
   InviteDetailsSheet,
-  useDeleteUser,
   useRevokeInvite,
   useResendInvite,
   type SystemUserDto,
@@ -26,20 +25,17 @@ import { getErrorMessage } from '@/lib/error-utils'
 export function UsersPage() {
   const { t } = useTranslation()
   const { hasPermission } = usePermissions()
-  const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser()
   const { mutate: revokeInvite, isPending: isRevoking } = useRevokeInvite()
   const { mutate: resendInvite } = useResendInvite()
 
   const canCreate = hasPermission('system:users:create')
   const canUpdate = hasPermission('system:users:update')
-  const canDelete = hasPermission('system:users:delete')
 
   // User modals/sheets state
   const [inviteOpen, setInviteOpen] = useState(false)
   const [editUser, setEditUser] = useState<SystemUserDto | null>(null)
   const [detailsUser, setDetailsUser] = useState<SystemUserDto | null>(null)
   const [permissionsUser, setPermissionsUser] = useState<SystemUserDto | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<SystemUserDto | null>(null)
 
   // Invite sheets/dialogs state
   const [detailsInvite, setDetailsInvite] = useState<SystemInviteListDto | null>(null)
@@ -49,20 +45,6 @@ export function UsersPage() {
   const handleRowClick = (user: SystemUserDto) => setDetailsUser(user)
   const handleEdit = (user: SystemUserDto) => setEditUser(user)
   const handlePermissions = (user: SystemUserDto) => setPermissionsUser(user)
-  const handleDelete = (user: SystemUserDto) => setDeleteTarget(user)
-
-  const confirmDelete = () => {
-    if (!deleteTarget) return
-    deleteUser(deleteTarget.id, {
-      onSuccess: () => {
-        toast.success(t('users:messages.deleteSuccess'))
-        setDeleteTarget(null)
-      },
-      onError: (error) => {
-        toast.error(getErrorMessage(error, t))
-      },
-    })
-  }
 
   // Invite handlers
   const handleInviteRowClick = (invite: SystemInviteListDto) => setDetailsInvite(invite)
@@ -125,7 +107,6 @@ export function UsersPage() {
           <UsersTable
             onEdit={canUpdate ? handleEdit : undefined}
             onPermissions={canUpdate ? handlePermissions : undefined}
-            onDelete={canDelete ? handleDelete : undefined}
             onRowClick={handleRowClick}
           />
         </TabsContent>
@@ -161,17 +142,6 @@ export function UsersPage() {
         open={!!permissionsUser}
         onOpenChange={(open) => !open && setPermissionsUser(null)}
         user={permissionsUser}
-      />
-
-      <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title={t('users:confirmDelete.title')}
-        description={t('users:confirmDelete.message', { name: deleteTarget?.fullName })}
-        confirmLabel={t('common:actions.delete')}
-        onConfirm={confirmDelete}
-        isLoading={isDeleting}
-        variant="destructive"
       />
 
       {/* Invite sheets/dialogs */}

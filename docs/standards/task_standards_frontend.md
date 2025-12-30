@@ -243,9 +243,13 @@ frontend/
 │   │   └── index.ts               ✅ Barrel Export
 │   │
 │   ├── features/
-│   │   ├── auth/                  [AUTH FEATURE - Task 004/006]
+│   │   ├── auth/                  [AUTH FEATURE - Task 004/006/008]
 │   │   │   ├── api/
-│   │   │   │   └── auth-api.ts          ✅ Login, Register, Logout, Invite APIs
+│   │   │   │   ├── auth-api.ts          ✅ Login, Register, Logout, Invite APIs
+│   │   │   │   ├── mfa-api.ts           ✅ MFA Setup, Confirm, Verify, Disable (Task 008)
+│   │   │   │   ├── password-reset-api.ts ✅ Forgot/Reset Password (Task 008)
+│   │   │   │   ├── sessions-api.ts      ✅ Sessions CRUD (Task 008)
+│   │   │   │   └── preferences-api.ts   ✅ User Preferences (Task 008)
 │   │   │   ├── hooks/
 │   │   │   │   ├── use-login.ts         ✅ Login mutation
 │   │   │   │   ├── use-logout.ts        ✅ Logout mutation
@@ -253,29 +257,53 @@ frontend/
 │   │   │   │   ├── use-current-user.ts  ✅ Current user query
 │   │   │   │   ├── use-accept-invite.ts ✅ Accept invite mutation
 │   │   │   │   ├── use-validate-invite.ts ✅ Validate invite query (Task 006)
+│   │   │   │   ├── use-mfa-setup.ts     ✅ MFA setup mutation (Task 008)
+│   │   │   │   ├── use-mfa-confirm.ts   ✅ MFA confirm mutation (Task 008)
+│   │   │   │   ├── use-mfa-verify.ts    ✅ MFA verify mutation (Task 008)
+│   │   │   │   ├── use-mfa-disable.ts   ✅ MFA disable mutation (Task 008)
+│   │   │   │   ├── use-regenerate-backup-codes.ts ✅ Backup codes (Task 008)
+│   │   │   │   ├── use-forgot-password.ts ✅ Forgot password mutation (Task 008)
+│   │   │   │   ├── use-reset-password.ts ✅ Reset password mutation (Task 008)
+│   │   │   │   ├── use-sessions.ts      ✅ Sessions query (Task 008)
+│   │   │   │   ├── use-revoke-session.ts ✅ Revoke session mutation (Task 008)
+│   │   │   │   ├── use-revoke-all-sessions.ts ✅ Revoke all mutation (Task 008)
+│   │   │   │   ├── use-update-session.ts ✅ Update session mutation (Task 008)
+│   │   │   │   ├── use-trust-session.ts ✅ Trust session mutation (Task 008)
+│   │   │   │   ├── use-update-preferences.ts ✅ Preferences mutation (Task 008)
 │   │   │   │   └── index.ts             ✅ Barrel Export
 │   │   │   ├── components/
-│   │   │   │   ├── login-form.tsx           ✅ Login Form
-│   │   │   │   ├── register-form.tsx        ✅ Register Form
-│   │   │   │   ├── accept-invite-form.tsx   ✅ Accept Invite Form
+│   │   │   │   ├── login-form.tsx           ✅ Login Form (+ MFA handling Task 008)
+│   │   │   │   ├── register-form.tsx        ✅ Register Form (+ MFA handling Task 008)
+│   │   │   │   ├── accept-invite-form.tsx   ✅ Accept Invite Form (+ MFA Task 008)
 │   │   │   │   ├── password-requirements.tsx ✅ Password Requirements Display
+│   │   │   │   ├── mfa-setup-modal.tsx      ✅ MFA QR Code Setup (Task 008)
+│   │   │   │   ├── mfa-confirm-modal.tsx    ✅ MFA Confirm + Backup Codes (Task 008)
+│   │   │   │   ├── mfa-verify-modal.tsx     ✅ MFA Login Verification (Task 008)
+│   │   │   │   ├── mfa-disable-modal.tsx    ✅ MFA Disable Confirm (Task 008)
+│   │   │   │   ├── backup-codes-display.tsx ✅ Backup Codes Display (Task 008)
+│   │   │   │   ├── forgot-password-modal.tsx ✅ Multi-step Reset (Task 008)
+│   │   │   │   ├── session-card.tsx         ✅ Single Session Display (Task 008)
+│   │   │   │   ├── sessions-list.tsx        ✅ Sessions List (Task 008)
 │   │   │   │   └── index.ts                 ✅ Barrel Export
 │   │   │   ├── types/
-│   │   │   │   └── index.ts             ✅ Auth Types
+│   │   │   │   ├── index.ts             ✅ Auth Types (+ Device, MFA response)
+│   │   │   │   ├── mfa.ts               ✅ MFA Types (Task 008)
+│   │   │   │   ├── password-reset.ts    ✅ Password Reset Types (Task 008)
+│   │   │   │   └── sessions.ts          ✅ Session Types (Task 008)
 │   │   │   ├── __tests__/
 │   │   │   │   ├── login-form.test.tsx      ✅
 │   │   │   │   ├── register-form.test.tsx   ✅
 │   │   │   │   └── use-login.test.ts        ✅
 │   │   │   └── index.ts                 ✅ Barrel Export
 │   │   │
-│   │   ├── users/                 [USERS FEATURE - Task 004/006]
+│   │   ├── users/                 [USERS FEATURE - Task 004/006/008]
 │   │   │   ├── api/
-│   │   │   │   ├── users-api.ts         ✅ Users CRUD APIs
-│   │   │   │   └── invites-api.ts       ✅ Invites APIs (Task 006)
+│   │   │   │   ├── users-api.ts         ✅ Users CRUD APIs (- delete Task 008)
+│   │   │   │   ├── invites-api.ts       ✅ Invites APIs (Task 006)
+│   │   │   │   └── user-admin-api.ts    ✅ Admin Actions API (Task 008)
 │   │   │   ├── hooks/
 │   │   │   │   ├── use-system-users.ts      ✅ Users list query
 │   │   │   │   ├── use-system-user.ts       ✅ Single user query
-│   │   │   │   ├── use-delete-user.ts       ✅ Delete mutation
 │   │   │   │   ├── use-invite-user.ts       ✅ Invite mutation
 │   │   │   │   ├── use-update-user.ts       ✅ Update mutation
 │   │   │   │   ├── use-update-permissions.ts ✅ Permissions mutation
@@ -283,20 +311,30 @@ frontend/
 │   │   │   │   ├── use-system-invite.ts     ✅ Single invite query (Task 006)
 │   │   │   │   ├── use-revoke-invite.ts     ✅ Revoke mutation (Task 006)
 │   │   │   │   ├── use-resend-invite.ts     ✅ Resend mutation (Task 006)
+│   │   │   │   ├── use-reset-user-mfa.ts    ✅ Reset MFA mutation (Task 008)
+│   │   │   │   ├── use-unlock-user.ts       ✅ Unlock user mutation (Task 008)
+│   │   │   │   ├── use-user-sessions.ts     ✅ User sessions query (Task 008)
+│   │   │   │   ├── use-revoke-user-session.ts ✅ Revoke single session (Task 008)
+│   │   │   │   ├── use-revoke-user-sessions.ts ✅ Revoke all sessions (Task 008)
+│   │   │   │   ├── use-deactivate-user.ts   ✅ Deactivate mutation (Task 008)
+│   │   │   │   ├── use-activate-user.ts     ✅ Activate mutation (Task 008)
+│   │   │   │   ├── use-anonymize-user.ts    ✅ Anonymize mutation (Task 008)
 │   │   │   │   └── index.ts                 ✅ Barrel Export
 │   │   │   ├── components/
-│   │   │   │   ├── users-table.tsx              ✅ Users DataTable
-│   │   │   │   ├── users-table-columns.tsx      ✅ Column Definitions
-│   │   │   │   ├── user-details-sheet.tsx       ✅ User Details Sheet
+│   │   │   │   ├── users-table.tsx              ✅ Users DataTable (+ admin actions Task 008)
+│   │   │   │   ├── users-table-columns.tsx      ✅ Column Definitions (+ security Task 008)
+│   │   │   │   ├── user-details-sheet.tsx       ✅ User Details Sheet (+ sessions Task 008)
 │   │   │   │   ├── user-edit-modal.tsx          ✅ Edit User Modal
 │   │   │   │   ├── user-invite-modal.tsx        ✅ Invite User Modal
 │   │   │   │   ├── user-permissions-modal.tsx   ✅ Permissions Modal
 │   │   │   │   ├── invitations-table.tsx        ✅ Invitations DataTable (Task 006)
 │   │   │   │   ├── invitations-table-columns.tsx ✅ Column Definitions (Task 006)
 │   │   │   │   ├── invite-details-sheet.tsx     ✅ Invite Details Sheet (Task 006)
+│   │   │   │   ├── user-sessions-section.tsx    ✅ Admin Sessions View (Task 008)
+│   │   │   │   ├── user-status-badges.tsx       ✅ MFA/Locked/Anon Badges (Task 008)
 │   │   │   │   └── index.ts                     ✅ Barrel Export
 │   │   │   ├── types/
-│   │   │   │   ├── index.ts             ✅ User Types
+│   │   │   │   ├── index.ts             ✅ User Types (+ security fields Task 008)
 │   │   │   │   └── invites.ts           ✅ Invite Types (Task 006)
 │   │   │   ├── __tests__/
 │   │   │   │   ├── users-table.test.tsx         ✅
@@ -306,6 +344,15 @@ frontend/
 │   │   │   │   ├── use-system-users.test.ts     ✅
 │   │   │   │   ├── use-revoke-invite.test.ts    ✅ (Task 006)
 │   │   │   │   └── use-resend-invite.test.ts    ✅ (Task 006)
+│   │   │   └── index.ts                 ✅ Barrel Export
+│   │   │
+│   │   ├── settings/              [SETTINGS FEATURE - Task 008]
+│   │   │   ├── components/
+│   │   │   │   ├── security-settings.tsx    ✅ MFA + Sessions Settings
+│   │   │   │   ├── language-settings.tsx    ✅ Language Selector
+│   │   │   │   ├── mfa-section.tsx          ✅ MFA Enable/Disable UI
+│   │   │   │   ├── sessions-section.tsx     ✅ Sessions Management
+│   │   │   │   └── index.ts                 ✅ Barrel Export
 │   │   │   └── index.ts                 ✅ Barrel Export
 │   │   │
 │   │   ├── permissions/           [PERMISSIONS FEATURE - Task 004]
@@ -350,28 +397,35 @@ frontend/
 │   │   └── index.ts               ✅ Barrel Export
 │   │
 │   ├── i18n/                      [INTERNATIONALIZATION]
-│   │   ├── index.ts               ✅ i18next Config
+│   │   ├── index.ts               ✅ i18next Config (+ settings, mfa, sessions namespaces)
 │   │   └── locales/
 │   │       ├── en/
-│   │       │   ├── common.json    ✅
-│   │       │   ├── auth.json      ✅
+│   │       │   ├── common.json    ✅ (+ typeToConfirm, states Task 008)
+│   │       │   ├── auth.json      ✅ (+ forgot password, MFA texts Task 008)
 │   │       │   ├── navigation.json ✅
-│   │       │   ├── users.json     ✅
+│   │       │   ├── users.json     ✅ (+ admin actions, security Task 008)
 │   │       │   ├── auditLogs.json ✅ (Task 006)
-│   │       │   ├── errors.json    ✅
-│   │       │   └── validation.json ✅
+│   │       │   ├── errors.json    ✅ (+ MFA, session, user errors Task 008)
+│   │       │   ├── validation.json ✅
+│   │       │   ├── settings.json  ✅ Settings translations (Task 008)
+│   │       │   ├── mfa.json       ✅ MFA translations (Task 008)
+│   │       │   └── sessions.json  ✅ Sessions translations (Task 008)
 │   │       └── de/
-│   │           ├── common.json    ✅
-│   │           ├── auth.json      ✅
+│   │           ├── common.json    ✅ (+ typeToConfirm, states Task 008)
+│   │           ├── auth.json      ✅ (+ forgot password, MFA texts Task 008)
 │   │           ├── navigation.json ✅
-│   │           ├── users.json     ✅
+│   │           ├── users.json     ✅ (+ admin actions, security Task 008)
 │   │           ├── auditLogs.json ✅ (Task 006)
-│   │           ├── errors.json    ✅
-│   │           └── validation.json ✅
+│   │           ├── errors.json    ✅ (+ MFA, session, user errors Task 008)
+│   │           ├── validation.json ✅
+│   │           ├── settings.json  ✅ Settings translations (Task 008)
+│   │           ├── mfa.json       ✅ MFA translations (Task 008)
+│   │           └── sessions.json  ✅ Sessions translations (Task 008)
 │   │
 │   ├── lib/
 │   │   ├── utils.ts               ✅ (cn helper)
-│   │   └── axios.ts               ✅ API Client mit Interceptors + Force-Reauth
+│   │   ├── axios.ts               ✅ API Client mit Interceptors + Force-Reauth
+│   │   └── device.ts              ✅ Device ID, Fingerprint Utils (Task 008)
 │   │
 │   ├── routes/
 │   │   ├── __root.tsx             ✅ Root Route mit Layout
@@ -383,6 +437,8 @@ frontend/
 │   │   ├── invite.tsx             ✅ Accept Invite Page (Task 006)
 │   │   ├── users.tsx              ✅ Users Management Page
 │   │   ├── audit-logs.tsx         ✅ Audit Logs Page
+│   │   ├── settings.tsx           ✅ Settings Page (Task 008)
+│   │   ├── reset-password.tsx     ✅ Password Reset Page (Task 008)
 │   │   ├── legal.tsx              ✅ Imprint/Privacy/Terms Pages (Task 006)
 │   │   ├── not-found.tsx          ✅ 404 Page
 │   │   ├── forbidden.tsx          ✅ 403 Page
@@ -445,6 +501,7 @@ frontend/
 | @radix-ui/react-separator | ^1.1.8 |
 | @radix-ui/react-slot | ^1.2.4 |
 | @radix-ui/react-tooltip | ^1.2.8 |
+| qrcode.react | ^4.2.0 | (Task 008 - MFA QR Code)
 
 ### DevDependencies
 | Package | Version |
@@ -601,12 +658,16 @@ Siehe `docs/standards/i18n-translations.md` für alle Translation Keys.
 
 | Namespace | Datei | Beschreibung |
 |-----------|-------|--------------|
-| common | `common.json` | Buttons, Labels, Status, Time |
-| auth | `auth.json` | Login, Register, Session |
+| common | `common.json` | Buttons, Labels, Status, Time, TypeConfirm |
+| auth | `auth.json` | Login, Register, Session, Forgot Password |
 | navigation | `navigation.json` | Sidebar, Breadcrumbs, Menus |
-| users | `users.json` | User Management |
-| errors | `errors.json` | Error Messages |
+| users | `users.json` | User Management, Admin Actions, Security Status |
+| errors | `errors.json` | Error Messages (incl. MFA, Sessions, Users) |
 | validation | `validation.json` | Form Validation |
+| settings | `settings.json` | Settings Page (Task 008) |
+| mfa | `mfa.json` | MFA Setup, Verify, Disable, Backup Codes (Task 008) |
+| sessions | `sessions.json` | Device Sessions Management (Task 008) |
+| auditLogs | `auditLogs.json` | Audit Logs (Task 006) |
 
 ---
 
@@ -767,10 +828,11 @@ In der Task-Datei (`docs/tasks/XXX_*.md`):
 
 ## Letzte Änderung
 
-- **Datum:** 2025-12-28
-- **Status:** Auth, Users, Permissions, Audit-Logs Features Complete (Task 004/006)
+- **Datum:** 2025-12-30
+- **Status:** Security & Settings Features Complete (Task 008)
 - **Completed Tasks:**
   - Task 003: Foundation Complete
   - Task 004: Auth, Users, Permissions, Audit-Logs Features
   - Task 006: Frontend Improvements (Bugs, Invitations, Legal Pages, Security)
-- **Nächster Task:** Roles Feature, Device Management (Task 007)
+  - Task 008: Frontend Security & Settings (MFA, Sessions, Password Reset, Admin Actions)
+- **Nächster Task:** Roles Feature, Tests for Task 008

@@ -63,6 +63,7 @@
     "email": "Email",
     "role": "Role",
     "status": "Status",
+    "security": "Security",
     "emailVerified": "Email Verified",
     "createdAt": "Created",
     "updatedAt": "Last Updated",
@@ -70,6 +71,16 @@
     "mfaEnabled": "2FA Enabled",
     "password": "Password",
     "confirmPassword": "Confirm Password"
+  },
+  "security": {
+    "mfaEnabled": "Two-factor authentication is enabled",
+    "mfaDisabled": "Two-factor authentication is not enabled",
+    "locked": "Locked",
+    "accountLocked": "Account is temporarily locked due to failed login attempts",
+    "lockedUntil": "Locked until",
+    "anonymized": "Anonymized",
+    "userAnonymized": "User data has been anonymized (GDPR)",
+    "failedAttempts": "Failed Login Attempts"
   },
   "roles": {
     "admin": "Administrator",
@@ -113,6 +124,61 @@
     "deactivateSuccess": "User deactivated successfully",
     "suspendSuccess": "User suspended successfully",
     "resetPasswordSuccess": "Password reset email sent"
+  },
+  "admin": {
+    "actions": {
+      "title": "Admin Actions"
+    },
+    "sessions": {
+      "sectionTitle": "Active Sessions",
+      "title": "Sessions",
+      "empty": "No active sessions",
+      "revokeAll": "Revoke All",
+      "revokeSingle": "Revoke session",
+      "revokeAllConfirm": {
+        "title": "Revoke all sessions?",
+        "description": "This will log the user out of all devices. They will need to log in again."
+      }
+    },
+    "mfa": {
+      "reset": "Reset MFA",
+      "confirmTitle": "Reset MFA?",
+      "confirmDescription": "This will disable two-factor authentication for {{name}}. They will need to set it up again.",
+      "resetSuccess": "MFA has been reset successfully",
+      "resetError": "Failed to reset MFA"
+    },
+    "unlock": {
+      "action": "Unlock Account",
+      "button": "Unlock Account",
+      "confirmTitle": "Unlock account?",
+      "confirmDescription": "This will unlock {{name}}'s account and reset the failed login attempt counter.",
+      "success": "Account has been unlocked",
+      "error": "Failed to unlock account"
+    },
+    "deactivate": {
+      "action": "Deactivate",
+      "confirmTitle": "Deactivate user?",
+      "confirmDescription": "{{name}} will no longer be able to access the system. You can reactivate them later.",
+      "success": "User has been deactivated",
+      "error": "Failed to deactivate user"
+    },
+    "activate": {
+      "action": "Activate",
+      "confirmTitle": "Activate user?",
+      "confirmDescription": "{{name}} will be able to access the system again.",
+      "success": "User has been activated",
+      "error": "Failed to activate user"
+    },
+    "anonymize": {
+      "action": "Anonymize (GDPR)",
+      "button": "Anonymize (GDPR)",
+      "confirmTitle": "Anonymize user?",
+      "confirmDescription": "This will permanently remove all personal data for {{name}} in compliance with GDPR. This action cannot be undone. Type the user's email to confirm.",
+      "placeholder": "Type email to confirm",
+      "success": "User data has been anonymized",
+      "error": "Failed to anonymize user"
+    },
+    "anonymizedNoActions": "No actions available for anonymized users"
   },
   "confirmDelete": {
     "title": "Delete User",

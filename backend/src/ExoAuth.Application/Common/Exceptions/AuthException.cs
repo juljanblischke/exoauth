@@ -301,3 +301,14 @@ public sealed class CannotAnonymizeSelfException : AuthException
     {
     }
 }
+
+/// <summary>
+/// Exception when user must re-authenticate (force re-auth flag is set).
+/// </summary>
+public sealed class ForceReauthException : AuthException
+{
+    public ForceReauthException()
+        : base("AUTH_FORCE_REAUTH", "Re-authentication required. Please login again.", 401)
+    {
+    }
+}

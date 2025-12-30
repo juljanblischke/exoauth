@@ -161,16 +161,19 @@ backend/
 │   │   ├── ExoAuth.Domain.csproj
 │   │   ├── Entities/
 │   │   │   ├── BaseEntity.cs                    ✅
-│   │   │   ├── SystemUser.cs                    ✅
+│   │   │   ├── SystemUser.cs                    ✅ (Task 007: MFA, Preferences, Lockout, Anonymization)
 │   │   │   ├── SystemPermission.cs              ✅
 │   │   │   ├── SystemUserPermission.cs          ✅
 │   │   │   ├── SystemAuditLog.cs                ✅
 │   │   │   ├── SystemInvite.cs                  ✅
-│   │   │   └── RefreshToken.cs                  ✅
+│   │   │   ├── RefreshToken.cs                  ✅ (Task 007: DeviceSessionId, RememberMe)
+│   │   │   ├── PasswordResetToken.cs            ✅ (Task 007)
+│   │   │   ├── DeviceSession.cs                 ✅ (Task 007)
+│   │   │   └── MfaBackupCode.cs                 ✅ (Task 007)
 │   │   ├── Enums/
 │   │   │   └── UserType.cs                      ✅
 │   │   ├── Constants/
-│   │   │   └── SystemPermissions.cs             ✅
+│   │   │   └── SystemPermissions.cs             ✅ (Task 007: MFA, Unlock, Sessions, Deactivate, Activate, Anonymize)
 │   │   ├── ValueObjects/                        [LEER]
 │   │   ├── Exceptions/                          [LEER]
 │   │   └── Events/                              [LEER]
@@ -182,19 +185,28 @@ backend/
 │   │   │   ├── Interfaces/
 │   │   │   │   ├── ICacheService.cs             ✅
 │   │   │   │   ├── IMessageBus.cs               ✅
-│   │   │   │   ├── ICurrentUserService.cs       ✅
+│   │   │   │   ├── ICurrentUserService.cs       ✅ (Task 007: SessionId)
 │   │   │   │   ├── IDateTimeProvider.cs         ✅
-│   │   │   │   ├── IAppDbContext.cs             ✅
+│   │   │   │   ├── IAppDbContext.cs             ✅ (Task 007: DeviceSessions, MfaBackupCodes DbSets)
 │   │   │   │   ├── IPasswordHasher.cs           ✅
-│   │   │   │   ├── ITokenService.cs             ✅
-│   │   │   │   ├── IAuditService.cs             ✅
+│   │   │   │   ├── ITokenService.cs             ✅ (Task 007: sessionId in GenerateAccessToken)
+│   │   │   │   ├── IAuditService.cs             ✅ (Task 007: MFA, Session audit actions)
 │   │   │   │   ├── IEmailService.cs             ✅
 │   │   │   │   ├── ISystemUserRepository.cs     ✅
 │   │   │   │   ├── IPermissionCacheService.cs   ✅
-│   │   │   │   ├── IBruteForceProtectionService.cs ✅
+│   │   │   │   ├── IBruteForceProtectionService.cs ✅ (Task 007: Progressive Lockout)
 │   │   │   │   ├── ITokenBlacklistService.cs    ✅
 │   │   │   │   ├── IEmailTemplateService.cs     ✅
-│   │   │   │   └── IForceReauthService.cs       ✅
+│   │   │   │   ├── IForceReauthService.cs       ✅
+│   │   │   │   ├── IPasswordResetService.cs     ✅ (Task 007)
+│   │   │   │   ├── ISystemInviteService.cs      ✅ (Task 007)
+│   │   │   │   ├── IDeviceSessionService.cs     ✅ (Task 007)
+│   │   │   │   ├── IDeviceDetectionService.cs   ✅ (Task 007)
+│   │   │   │   ├── IGeoIpService.cs             ✅ (Task 007)
+│   │   │   │   ├── IRevokedSessionService.cs    ✅ (Task 007)
+│   │   │   │   ├── IMfaService.cs               ✅ (Task 007)
+│   │   │   │   ├── IEncryptionService.cs        ✅ (Task 007)
+│   │   │   │   └── IBackupCodeService.cs        ✅ (Task 007)
 │   │   │   ├── Behaviors/
 │   │   │   │   └── ValidationBehavior.cs        ✅
 │   │   │   ├── Messages/
@@ -203,59 +215,127 @@ backend/
 │   │   │   └── Models/
 │   │   │       ├── ApiResponse.cs               ✅
 │   │   │       ├── ApiError.cs                  ✅
-│   │   │       ├── ErrorCodes.cs                ✅
+│   │   │       ├── ErrorCodes.cs                ✅ (Task 007: MFA, Session, Account error codes)
 │   │   │       ├── PaginationMeta.cs            ✅
-│   │   │       └── CursorPagedList.cs           ✅
+│   │   │       ├── CursorPagedList.cs           ✅
+│   │   │       ├── GeoLocation.cs               ✅ (Task 007)
+│   │   │       └── DeviceInfo.cs                ✅ (Task 007)
 │   │   └── Features/
 │   │       ├── Auth/
 │   │       │   ├── Commands/
 │   │       │   │   ├── Register/
-│   │       │   │   │   ├── RegisterCommand.cs       ✅
-│   │       │   │   │   ├── RegisterHandler.cs       ✅
-│   │       │   │   │   └── RegisterValidator.cs     ✅
+│   │       │   │   │   ├── RegisterCommand.cs       ✅ (Task 007: Device fields)
+│   │       │   │   │   ├── RegisterHandler.cs       ✅ (Task 007: Device sessions, MFA flow)
+│   │       │   │   │   └── RegisterValidator.cs     ✅ (Task 007: @deleted.local blocked)
 │   │       │   │   ├── Login/
-│   │       │   │   │   ├── LoginCommand.cs          ✅
-│   │       │   │   │   ├── LoginHandler.cs          ✅
+│   │       │   │   │   ├── LoginCommand.cs          ✅ (Task 007: Device fields, RememberMe)
+│   │       │   │   │   ├── LoginHandler.cs          ✅ (Task 007: MFA, Device sessions, Lockout)
 │   │       │   │   │   └── LoginValidator.cs        ✅
 │   │       │   │   ├── RefreshToken/
-│   │       │   │   │   ├── RefreshTokenCommand.cs   ✅
-│   │       │   │   │   └── RefreshTokenHandler.cs   ✅
+│   │       │   │   │   ├── RefreshTokenCommand.cs   ✅ (Task 007: IpAddress)
+│   │       │   │   │   └── RefreshTokenHandler.cs   ✅ (Task 007: Session activity, IsLocked check)
 │   │       │   │   ├── Logout/
 │   │       │   │   │   ├── LogoutCommand.cs         ✅
-│   │       │   │   │   └── LogoutHandler.cs         ✅
-│   │       │   │   └── AcceptInvite/
-│   │       │   │       ├── AcceptInviteCommand.cs   ✅
-│   │       │   │       ├── AcceptInviteHandler.cs   ✅
-│   │       │   │       └── AcceptInviteValidator.cs ✅
+│   │       │   │   │   └── LogoutHandler.cs         ✅ (Task 007: Session revocation)
+│   │       │   │   ├── AcceptInvite/
+│   │       │   │   │   ├── AcceptInviteCommand.cs   ✅ (Task 007: Device fields, Language)
+│   │       │   │   │   ├── AcceptInviteHandler.cs   ✅ (Task 007: Device sessions, IsRevoked check)
+│   │       │   │   │   └── AcceptInviteValidator.cs ✅
+│   │       │   │   ├── ForgotPassword/              ✅ (Task 007)
+│   │       │   │   │   ├── ForgotPasswordCommand.cs     ✅
+│   │       │   │   │   ├── ForgotPasswordHandler.cs     ✅
+│   │       │   │   │   └── ForgotPasswordValidator.cs   ✅
+│   │       │   │   ├── ResetPassword/               ✅ (Task 007)
+│   │       │   │   │   ├── ResetPasswordCommand.cs      ✅
+│   │       │   │   │   ├── ResetPasswordHandler.cs      ✅
+│   │       │   │   │   └── ResetPasswordValidator.cs    ✅
+│   │       │   │   ├── RevokeSession/               ✅ (Task 007)
+│   │       │   │   │   ├── RevokeSessionCommand.cs      ✅
+│   │       │   │   │   └── RevokeSessionHandler.cs      ✅
+│   │       │   │   ├── RevokeAllSessions/           ✅ (Task 007)
+│   │       │   │   │   ├── RevokeAllSessionsCommand.cs  ✅
+│   │       │   │   │   └── RevokeAllSessionsHandler.cs  ✅
+│   │       │   │   ├── UpdateSession/               ✅ (Task 007)
+│   │       │   │   │   ├── UpdateSessionCommand.cs      ✅
+│   │       │   │   │   └── UpdateSessionHandler.cs      ✅
+│   │       │   │   ├── MfaSetup/                    ✅ (Task 007)
+│   │       │   │   │   ├── MfaSetupCommand.cs           ✅
+│   │       │   │   │   └── MfaSetupHandler.cs           ✅
+│   │       │   │   ├── MfaConfirm/                  ✅ (Task 007)
+│   │       │   │   │   ├── MfaConfirmCommand.cs         ✅
+│   │       │   │   │   ├── MfaConfirmHandler.cs         ✅
+│   │       │   │   │   └── MfaConfirmValidator.cs       ✅
+│   │       │   │   ├── MfaVerify/                   ✅ (Task 007)
+│   │       │   │   │   ├── MfaVerifyCommand.cs          ✅
+│   │       │   │   │   ├── MfaVerifyHandler.cs          ✅
+│   │       │   │   │   └── MfaVerifyValidator.cs        ✅
+│   │       │   │   ├── MfaDisable/                  ✅ (Task 007)
+│   │       │   │   │   ├── MfaDisableCommand.cs         ✅
+│   │       │   │   │   ├── MfaDisableHandler.cs         ✅
+│   │       │   │   │   └── MfaDisableValidator.cs       ✅
+│   │       │   │   ├── RegenerateBackupCodes/       ✅ (Task 007)
+│   │       │   │   │   ├── RegenerateBackupCodesCommand.cs   ✅
+│   │       │   │   │   ├── RegenerateBackupCodesHandler.cs   ✅
+│   │       │   │   │   └── RegenerateBackupCodesValidator.cs ✅
+│   │       │   │   └── UpdatePreferences/           ✅ (Task 007)
+│   │       │   │       ├── UpdatePreferencesCommand.cs  ✅
+│   │       │   │       ├── UpdatePreferencesHandler.cs  ✅
+│   │       │   │       └── UpdatePreferencesValidator.cs ✅
 │   │       │   ├── Queries/
-│   │       │   │   └── GetCurrentUser/
-│   │       │   │       ├── GetCurrentUserQuery.cs   ✅
-│   │       │   │       └── GetCurrentUserHandler.cs ✅
+│   │       │   │   ├── GetCurrentUser/
+│   │       │   │   │   ├── GetCurrentUserQuery.cs   ✅
+│   │       │   │   │   └── GetCurrentUserHandler.cs ✅ (Task 007: State checks)
+│   │       │   │   └── GetSessions/                 ✅ (Task 007)
+│   │       │   │       ├── GetSessionsQuery.cs          ✅
+│   │       │   │       └── GetSessionsHandler.cs        ✅
 │   │       │   └── Models/
-│   │       │       └── AuthResponse.cs              ✅
+│   │       │       ├── AuthResponse.cs              ✅ (Task 007: MFA fields, SessionId, DeviceId, UserDto extended)
+│   │       │       ├── DeviceSessionDto.cs          ✅ (Task 007)
+│   │       │       └── MfaModels.cs                 ✅ (Task 007)
 │   │       ├── SystemUsers/
 │   │       │   ├── Commands/
 │   │       │   │   ├── InviteSystemUser/
 │   │       │   │   │   ├── InviteSystemUserCommand.cs   ✅
-│   │       │   │   │   ├── InviteSystemUserHandler.cs   ✅
-│   │       │   │   │   └── InviteSystemUserValidator.cs ✅
+│   │       │   │   │   ├── InviteSystemUserHandler.cs   ✅ (Task 007: RevokedAt filter)
+│   │       │   │   │   └── InviteSystemUserValidator.cs ✅ (Task 007: @deleted.local blocked)
 │   │       │   │   ├── UpdateSystemUser/
 │   │       │   │   │   ├── UpdateSystemUserCommand.cs   ✅
-│   │       │   │   │   ├── UpdateSystemUserHandler.cs   ✅
+│   │       │   │   │   ├── UpdateSystemUserHandler.cs   ✅ (Task 007: Deactivation safeguards, session revocation)
 │   │       │   │   │   └── UpdateSystemUserValidator.cs ✅
 │   │       │   │   ├── UpdatePermissions/
 │   │       │   │   │   ├── UpdateSystemUserPermissionsCommand.cs ✅
-│   │       │   │   │   └── UpdateSystemUserPermissionsHandler.cs ✅
-│   │       │   │   └── DeleteSystemUser/
-│   │       │   │       ├── DeleteSystemUserCommand.cs   ✅
-│   │       │   │       └── DeleteSystemUserHandler.cs   ✅
+│   │       │   │   │   └── UpdateSystemUserPermissionsHandler.cs ✅ (Task 007: IsAnonymized check)
+│   │       │   │   ├── DeleteSystemUser/
+│   │       │   │   │   ├── DeleteSystemUserCommand.cs   ✅
+│   │       │   │   │   └── DeleteSystemUserHandler.cs   ✅
+│   │       │   │   ├── ResetUserMfa/                ✅ (Task 007)
+│   │       │   │   │   ├── ResetUserMfaCommand.cs       ✅
+│   │       │   │   │   └── ResetUserMfaHandler.cs       ✅
+│   │       │   │   ├── UnlockUser/                  ✅ (Task 007)
+│   │       │   │   │   ├── UnlockUserCommand.cs         ✅
+│   │       │   │   │   └── UnlockUserHandler.cs         ✅
+│   │       │   │   ├── RevokeUserSessions/          ✅ (Task 007)
+│   │       │   │   │   ├── RevokeUserSessionsCommand.cs ✅
+│   │       │   │   │   └── RevokeUserSessionsHandler.cs ✅
+│   │       │   │   ├── AnonymizeUser/               ✅ (Task 007)
+│   │       │   │   │   ├── AnonymizeUserCommand.cs      ✅
+│   │       │   │   │   └── AnonymizeUserHandler.cs      ✅
+│   │       │   │   ├── DeactivateSystemUser/        ✅ (Task 007)
+│   │       │   │   │   ├── DeactivateSystemUserCommand.cs   ✅
+│   │       │   │   │   └── DeactivateSystemUserHandler.cs   ✅
+│   │       │   │   └── ActivateSystemUser/          ✅ (Task 007)
+│   │       │   │       ├── ActivateSystemUserCommand.cs     ✅
+│   │       │   │       └── ActivateSystemUserHandler.cs     ✅
 │   │       │   ├── Queries/
 │   │       │   │   ├── GetSystemUsers/
 │   │       │   │   │   ├── GetSystemUsersQuery.cs       ✅
 │   │       │   │   │   └── GetSystemUsersHandler.cs     ✅
-│   │       │   │   └── GetSystemUser/
-│   │       │   │       ├── GetSystemUserQuery.cs        ✅
-│   │       │   │       └── GetSystemUserHandler.cs      ✅
+│   │       │   │   ├── GetSystemUser/
+│   │       │   │   │   ├── GetSystemUserQuery.cs        ✅
+│   │       │   │   │   └── GetSystemUserHandler.cs      ✅
+│   │       │   │   └── GetUserSessions/             ✅ (Task 007)
+│   │       │   │       ├── GetUserSessionsQuery.cs      ✅
+│   │       │   │       └── GetUserSessionsHandler.cs    ✅
 │   │       │   └── Models/
 │   │       │       └── SystemUserDto.cs                 ✅
 │   │       ├── SystemPermissions/
@@ -282,7 +362,7 @@ backend/
 │   │           │   │   └── RevokeInviteHandler.cs         ✅
 │   │           │   └── ResendInvite/
 │   │           │       ├── ResendInviteCommand.cs         ✅
-│   │           │       └── ResendInviteHandler.cs         ✅
+│   │           │       └── ResendInviteHandler.cs         ✅ (Task 007: invite.Language)
 │   │           ├── Queries/
 │   │           │   ├── GetSystemInvites/
 │   │           │   │   ├── GetSystemInvitesQuery.cs       ✅
@@ -298,21 +378,24 @@ backend/
 │   │
 │   ├── ExoAuth.Infrastructure/
 │   │   ├── ExoAuth.Infrastructure.csproj
-│   │   ├── DependencyInjection.cs               ✅
+│   │   ├── DependencyInjection.cs               ✅ (Task 007: All new services)
 │   │   ├── Persistence/
-│   │   │   ├── AppDbContext.cs                  ✅
+│   │   │   ├── AppDbContext.cs                  ✅ (Task 007: DeviceSessions, MfaBackupCodes)
 │   │   │   ├── Configurations/
-│   │   │   │   ├── SystemUserConfiguration.cs           ✅
+│   │   │   │   ├── SystemUserConfiguration.cs           ✅ (Task 007: MFA fields)
 │   │   │   │   ├── SystemPermissionConfiguration.cs     ✅
 │   │   │   │   ├── SystemUserPermissionConfiguration.cs ✅
 │   │   │   │   ├── SystemAuditLogConfiguration.cs       ✅
 │   │   │   │   ├── SystemInviteConfiguration.cs         ✅
-│   │   │   │   └── RefreshTokenConfiguration.cs         ✅
-│   │   │   ├── Migrations/                      ✅ (mehrere)
+│   │   │   │   ├── RefreshTokenConfiguration.cs         ✅ (Task 007: DeviceSession relation)
+│   │   │   │   ├── PasswordResetTokenConfiguration.cs   ✅ (Task 007)
+│   │   │   │   ├── DeviceSessionConfiguration.cs        ✅ (Task 007)
+│   │   │   │   └── MfaBackupCodeConfiguration.cs        ✅ (Task 007)
+│   │   │   ├── Migrations/                      ✅ (mehrere + Task 007 migrations)
 │   │   │   └── Repositories/
 │   │   │       └── SystemUserRepository.cs      ✅
 │   │   ├── Caching/
-│   │   │   ├── RedisCacheService.cs             ✅
+│   │   │   ├── RedisCacheService.cs             ✅ (Task 007: GetIntegerAsync)
 │   │   │   └── RedisConnectionFactory.cs        ✅
 │   │   ├── Messaging/
 │   │   │   ├── RabbitMqMessageBus.cs            ✅
@@ -323,34 +406,59 @@ backend/
 │   │   ├── Services/
 │   │   │   ├── DateTimeProvider.cs              ✅
 │   │   │   ├── PasswordHasher.cs                ✅
-│   │   │   ├── TokenService.cs                  ✅
+│   │   │   ├── TokenService.cs                  ✅ (Task 007: session_id claim)
 │   │   │   ├── AuditService.cs                  ✅
-│   │   │   ├── EmailService.cs                  ✅
-│   │   │   ├── EmailTemplateService.cs          ✅
+│   │   │   ├── EmailService.cs                  ✅ (Task 007: Localized subjects)
+│   │   │   ├── EmailTemplateService.cs          ✅ (Task 007: en-US/de-DE folders)
 │   │   │   ├── PermissionCacheService.cs        ✅
-│   │   │   ├── BruteForceProtectionService.cs   ✅
+│   │   │   ├── BruteForceProtectionService.cs   ✅ (Task 007: Progressive lockout)
 │   │   │   ├── TokenBlacklistService.cs         ✅
-│   │   │   └── ForceReauthService.cs            ✅
+│   │   │   ├── ForceReauthService.cs            ✅
+│   │   │   ├── PasswordResetService.cs          ✅ (Task 007)
+│   │   │   ├── SystemInviteService.cs           ✅ (Task 007)
+│   │   │   ├── DeviceSessionService.cs          ✅ (Task 007)
+│   │   │   ├── GeoIpService.cs                  ✅ (Task 007)
+│   │   │   ├── DeviceDetectionService.cs        ✅ (Task 007)
+│   │   │   ├── RevokedSessionService.cs         ✅ (Task 007)
+│   │   │   ├── MfaService.cs                    ✅ (Task 007)
+│   │   │   ├── EncryptionService.cs             ✅ (Task 007)
+│   │   │   └── BackupCodeService.cs             ✅ (Task 007)
 │   │   └── Sessions/                            [LEER]
+│   │
+│   ├── ExoAuth.EmailWorker/                     ✅ (Task 007 - Neues Projekt)
+│   │   ├── ExoAuth.EmailWorker.csproj           ✅
+│   │   ├── Program.cs                           ✅
+│   │   ├── appsettings.json                     ✅
+│   │   ├── appsettings.Development.json         ✅
+│   │   ├── EmailWorkerService.cs                ✅
+│   │   ├── RabbitMqConnectionFactory.cs         ✅
+│   │   ├── Consumers/
+│   │   │   └── SendEmailConsumer.cs             ✅
+│   │   ├── Models/
+│   │   │   ├── SendEmailMessage.cs              ✅
+│   │   │   └── EmailSettings.cs                 ✅
+│   │   └── Services/
+│   │       ├── IEmailTemplateService.cs         ✅
+│   │       └── EmailTemplateService.cs          ✅
 │   │
 │   └── ExoAuth.Api/
 │       ├── ExoAuth.Api.csproj
-│       ├── Program.cs                           ✅ (JWT Auth, Permission Cache Invalidation)
-│       ├── appsettings.json                     ✅ (Jwt, Email, BruteForce, Cache, etc.)
+│       ├── Program.cs                           ✅ (Task 007: DataProtection)
+│       ├── appsettings.json                     ✅ (Task 007: MFA, GeoIP, Lockout config)
 │       ├── appsettings.Development.json         ✅
 │       ├── appsettings.Production.json
 │       ├── Controllers/
 │       │   ├── ApiControllerBase.cs             ✅
 │       │   ├── HealthController.cs              ✅
-│       │   ├── AuthController.cs                ✅
-│       │   ├── SystemUsersController.cs         ✅
+│       │   ├── AuthController.cs                ✅ (Task 007: MFA, Sessions, Preferences endpoints)
+│       │   ├── SystemUsersController.cs         ✅ (Task 007: Admin MFA/Sessions/Deactivate endpoints)
 │       │   ├── SystemPermissionsController.cs   ✅
 │       │   ├── SystemAuditLogsController.cs     ✅
 │       │   └── SystemInvitesController.cs       ✅
 │       ├── Middleware/
 │       │   ├── ExceptionMiddleware.cs           ✅
 │       │   ├── RequestLoggingMiddleware.cs      ✅
-│       │   └── ForceReauthMiddleware.cs         ✅
+│       │   └── ForceReauthMiddleware.cs         ✅ (Task 007: Revoked session check)
 │       ├── Filters/
 │       │   ├── RateLimitAttribute.cs            ✅
 │       │   ├── RateLimitFilter.cs               ✅
@@ -359,14 +467,40 @@ backend/
 │       ├── Extensions/
 │       │   └── ServiceCollectionExtensions.cs   ✅
 │       └── Services/
-│           └── CurrentUserService.cs            ✅
+│           └── CurrentUserService.cs            ✅ (Task 007: SessionId)
 │
 ├── templates/
 │   └── emails/
-│       ├── en/
-│       │   └── system-invite.html               ✅
-│       └── de/
-│           └── system-invite.html               ✅
+│       ├── en-US/                               ✅ (Task 007: Renamed from en/)
+│       │   ├── system-invite.html               ✅
+│       │   ├── password-reset.html              ✅ (Task 007)
+│       │   ├── password-changed.html            ✅ (Task 007)
+│       │   ├── new-device-login.html            ✅ (Task 007)
+│       │   ├── new-location-login.html          ✅ (Task 007)
+│       │   ├── mfa-enabled.html                 ✅ (Task 007)
+│       │   ├── mfa-disabled.html                ✅ (Task 007)
+│       │   ├── mfa-backup-code-used.html        ✅ (Task 007)
+│       │   ├── mfa-reset-admin.html             ✅ (Task 007)
+│       │   ├── account-unlocked.html            ✅ (Task 007)
+│       │   ├── account-locked.html              ✅ (Task 007)
+│       │   └── sessions-revoked-admin.html      ✅ (Task 007)
+│       └── de-DE/                               ✅ (Task 007: Renamed from de/)
+│           ├── system-invite.html               ✅
+│           ├── password-reset.html              ✅ (Task 007)
+│           ├── password-changed.html            ✅ (Task 007)
+│           ├── new-device-login.html            ✅ (Task 007)
+│           ├── new-location-login.html          ✅ (Task 007)
+│           ├── mfa-enabled.html                 ✅ (Task 007)
+│           ├── mfa-disabled.html                ✅ (Task 007)
+│           ├── mfa-backup-code-used.html        ✅ (Task 007)
+│           ├── mfa-reset-admin.html             ✅ (Task 007)
+│           ├── account-unlocked.html            ✅ (Task 007)
+│           ├── account-locked.html              ✅ (Task 007)
+│           └── sessions-revoked-admin.html      ✅ (Task 007)
+│
+├── docker/
+│   └── email-worker/
+│       └── Dockerfile                           ✅ (Task 007)
 │
 └── tests/
     └── ExoAuth.UnitTests/
@@ -374,11 +508,25 @@ backend/
         ├── Features/
         │   ├── Auth/
         │   │   ├── RegisterHandlerTests.cs      ✅
-        │   │   ├── LoginHandlerTests.cs         ✅
-        │   │   └── RefreshTokenHandlerTests.cs  ✅
+        │   │   ├── LoginHandlerTests.cs         ✅ (Task 007: MFA tests)
+        │   │   ├── RefreshTokenHandlerTests.cs  ✅
+        │   │   ├── ForgotPasswordHandlerTests.cs    ✅ (Task 007)
+        │   │   ├── ResetPasswordHandlerTests.cs     ✅ (Task 007)
+        │   │   ├── GetSessionsHandlerTests.cs       ✅ (Task 007)
+        │   │   ├── RevokeSessionHandlerTests.cs     ✅ (Task 007)
+        │   │   ├── RevokeAllSessionsHandlerTests.cs ✅ (Task 007)
+        │   │   ├── UpdateSessionHandlerTests.cs     ✅ (Task 007)
+        │   │   └── UpdatePreferencesHandlerTests.cs ✅ (Task 007)
         │   ├── SystemUsers/
         │   │   ├── InviteSystemUserHandlerTests.cs      ✅
-        │   │   └── UpdatePermissionsHandlerTests.cs     ✅
+        │   │   ├── UpdatePermissionsHandlerTests.cs     ✅
+        │   │   ├── ResetUserMfaHandlerTests.cs          ✅ (Task 007)
+        │   │   ├── UnlockUserHandlerTests.cs            ✅ (Task 007)
+        │   │   ├── GetUserSessionsHandlerTests.cs       ✅ (Task 007)
+        │   │   ├── RevokeUserSessionsHandlerTests.cs    ✅ (Task 007)
+        │   │   ├── AnonymizeUserHandlerTests.cs         ✅ (Task 007)
+        │   │   ├── DeactivateSystemUserHandlerTests.cs  ✅ (Task 007)
+        │   │   └── ActivateSystemUserHandlerTests.cs    ✅ (Task 007)
         │   └── SystemInvites/
         │       ├── RevokeInviteHandlerTests.cs          ✅
         │       ├── ResendInviteHandlerTests.cs          ✅
@@ -386,13 +534,13 @@ backend/
         ├── Services/
         │   ├── PasswordHasherTests.cs           ✅
         │   ├── TokenServiceTests.cs             ✅
-        │   ├── BruteForceProtectionServiceTests.cs ✅
+        │   ├── BruteForceProtectionServiceTests.cs ✅ (Task 007: Progressive lockout tests)
         │   ├── PermissionCacheServiceTests.cs   ✅
-        │   ├── EmailTemplateServiceTests.cs     ✅
+        │   ├── EmailTemplateServiceTests.cs     ✅ (Task 007: en-US/de-DE paths)
         │   └── ForceReauthServiceTests.cs       ✅
         └── Helpers/
             ├── MockDbContext.cs                 ✅
-            ├── TestDataFactory.cs               ✅
+            ├── TestDataFactory.cs               ✅ (Task 007: CreateDeviceSession)
             └── AsyncQueryableExtensions.cs      ✅
 ```
 
@@ -411,6 +559,12 @@ backend/
 | ExoAuth.Infrastructure | Konscious.Security.Cryptography.Argon2 | 1.3.1 |
 | ExoAuth.Infrastructure | Microsoft.Extensions.Hosting.Abstractions | 8.0.1 |
 | ExoAuth.Infrastructure | System.IdentityModel.Tokens.Jwt | 8.x |
+| ExoAuth.Infrastructure | Otp.NET | 1.4.1 | (Task 007: TOTP) |
+| ExoAuth.Infrastructure | MaxMind.GeoIP2 | 5.4.1 | (Task 007: GeoIP) |
+| ExoAuth.Infrastructure | UAParser | 3.1.47 | (Task 007: User-Agent) |
+| ExoAuth.Infrastructure | Microsoft.AspNetCore.DataProtection.Abstractions | 8.0.11 | (Task 007: Encryption) |
+| ExoAuth.Infrastructure | Microsoft.Extensions.Configuration.Abstractions | 8.0.0 | (Task 007) |
+| ExoAuth.Infrastructure | Microsoft.Extensions.Configuration.Binder | 8.0.2 | (Task 007) |
 | ExoAuth.Api | Mediator.SourceGenerator | 3.0.1 |
 | ExoAuth.Api | Mediator.Abstractions | 3.0.1 |
 | ExoAuth.Api | Swashbuckle.AspNetCore | default |
@@ -595,23 +749,34 @@ Bei jedem neuen Endpoint MUSS geprüft werden:
 
 ## Letzte Änderung
 
-- **Datum:** 2025-12-28
-- **Status:** Backend Improvements komplett (Task 005)
+- **Datum:** 2025-12-30
+- **Status:** Auth Security & Device Management komplett (Task 007)
 - **Erledigte Tasks:**
   - Task 001: Foundation & Infrastructure Setup ✅
   - Task 002: System Authentication, Users, Permissions & Audit ✅ (106 Unit Tests)
   - Task 003: Frontend Foundation ✅
   - Task 004: Frontend System Authentication & User Management ✅
   - Task 005: Backend Improvements - Audit, Users, Invitations & Security ✅ (129 Unit Tests)
-- **Nächster Task:** Task 006: Frontend Improvements
-- **Task 005 Updates:**
-  - SystemInvites Feature (List, Get, Revoke, Resend, Validate)
-  - Force Re-Auth (bei Permission-Änderungen)
-  - Error Audit Logging (403/500)
-  - Audit Log erweiterte Filter (involvedUserIds, actions, search in target)
-  - System Users Permission Filter (permissionIds)
-  - Neue Error Codes (Invite-bezogen)
+  - Task 006: Frontend Improvements ✅
+  - Task 007: Auth Security & Device Management ✅ (234 Unit Tests)
+  - Task 008: Frontend Security & Settings ✅
+- **Nächster Task:** Task 009 (TBD)
+- **Task 007 Updates:**
+  - Email Worker als separater Microservice
+  - Password Reset Flow (Token + Code)
+  - MFA (TOTP + Backup Codes)
+  - Device Session Management mit GeoIP
+  - Progressive Account Lockout
+  - Remember Me Funktionalität
+  - User Preferences (Sprache)
+  - Account Anonymisierung (GDPR)
+  - Admin MFA Reset, Unlock, Session Management
+  - Immediate Session Invalidation via Redis
+  - Language Code Standardization (en-US, de-DE)
+  - 24 Email Templates (EN/DE)
+  - Umfangreiche Bug Fixes (19 bugs fixed)
 
 ### Bekannte Einschränkungen
 - RabbitMQ Health Check nicht in `/health` enthalten (`RabbitMQ.Client 7.x` Inkompatibilität mit Health Check Package)
 - RabbitMQ Verbindung wird via `RabbitMqBackgroundService` beim Start geprüft
+- GeoIP erfordert MaxMind GeoLite2 Database (selbst zu beschaffen, graceful fallback wenn nicht vorhanden)

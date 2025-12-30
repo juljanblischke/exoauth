@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Mail, Calendar, Clock, Shield, Edit, Check } from 'lucide-react'
+import { Mail, Calendar, Clock, Shield, Edit, Check, AlertTriangle, Monitor } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -10,10 +10,19 @@ import {
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Separator } from '@/components/ui/separator'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { RelativeTime } from '@/components/shared/relative-time'
+import { useAuth } from '@/contexts'
 import { useSystemUser } from '../hooks'
+import { MfaBadge, LockedBadge, AnonymizedBadge } from './user-status-badges'
+import { UserSessionsSection } from './user-sessions-section'
 import type { SystemUserDto, PermissionDto } from '../types'
 
 interface UserDetailsSheetProps {
@@ -46,7 +55,11 @@ export function UserDetailsSheet({
   onPermissions,
 }: UserDetailsSheetProps) {
   const { t } = useTranslation()
+  const { hasPermission } = useAuth()
   const { data: userDetails, isLoading } = useSystemUser(open ? user?.id : undefined)
+
+  // Permission checks for admin sections
+  const canViewSessions = hasPermission('system:users:sessions:view')
 
   const permissionGroups = useMemo(() => {
     if (!userDetails?.permissions) return []
@@ -75,7 +88,7 @@ export function UserDetailsSheet({
             ) : (
               <UserAvatar name={displayUser.fullName} email={displayUser.email} size="lg" />
             )}
-            <div className="flex-1 space-y-1">
+            <div className="flex-1 min-w-0 space-y-1">
               {isLoading ? (
                 <>
                   <Skeleton className="h-6 w-32" />
@@ -84,10 +97,17 @@ export function UserDetailsSheet({
               ) : (
                 <>
                   <h2 className="text-xl font-semibold">{displayUser.fullName}</h2>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-3.5 w-3.5" />
-                    {displayUser.email}
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground cursor-default">
+                        <Mail className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{displayUser.email}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{displayUser.email}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </>
               )}
             </div>
@@ -110,6 +130,13 @@ export function UserDetailsSheet({
                   status={displayUser.emailVerified ? 'success' : 'warning'}
                   label={displayUser.emailVerified ? t('users:emailVerified.verified') : t('users:emailVerified.pending')}
                 />
+                <MfaBadge enabled={displayUser.mfaEnabled} />
+                {displayUser.isLocked && (
+                  <LockedBadge lockedUntil={displayUser.lockedUntil} />
+                )}
+                {displayUser.isAnonymized && (
+                  <AnonymizedBadge />
+                )}
               </>
             )}
           </div>
@@ -145,11 +172,25 @@ export function UserDetailsSheet({
                 )}
               </div>
             </div>
+
+            {/* Show failed login attempts if > 0 or locked */}
+            {!isLoading && (displayUser.failedLoginAttempts > 0 || displayUser.isLocked) && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <AlertTriangle className="h-4 w-4" />
+                  {t('users:security.failedAttempts')}
+                </div>
+                <div className="text-sm font-medium text-destructive">
+                  {displayUser.failedLoginAttempts}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Scrollable permissions section */}
+        {/* Scrollable content section */}
         <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+          {/* Permissions section */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-muted-foreground" />
@@ -189,37 +230,53 @@ export function UserDetailsSheet({
               </div>
             )}
           </div>
+
+          {/* Admin Sessions Section */}
+          {canViewSessions && user && (
+            <>
+              <Separator className="my-6" />
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Monitor className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-medium">{t('users:admin.sessions.sectionTitle')}</h3>
+                </div>
+                <UserSessionsSection userId={user.id} />
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Fixed bottom actions */}
-        <div className="shrink-0 border-t p-6 flex gap-2">
-          {onEdit && (
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => {
-                onEdit(user)
-                onOpenChange(false)
-              }}
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              {t('common:actions.edit')}
-            </Button>
-          )}
-          {onPermissions && (
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => {
-                onPermissions(user)
-                onOpenChange(false)
-              }}
-            >
-              <Shield className="mr-2 h-4 w-4" />
-              {t('users:actions.permissions')}
-            </Button>
-          )}
-        </div>
+        {/* Fixed bottom actions - hidden for anonymized users */}
+        {!displayUser.isAnonymized && (onEdit || onPermissions) && (
+          <div className="shrink-0 border-t p-6 flex gap-2">
+            {onEdit && (
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  onEdit(user)
+                  onOpenChange(false)
+                }}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                {t('common:actions.edit')}
+              </Button>
+            )}
+            {onPermissions && (
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  onPermissions(user)
+                  onOpenChange(false)
+                }}
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                {t('users:actions.permissions')}
+              </Button>
+            )}
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   )

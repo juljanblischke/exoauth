@@ -14,6 +14,7 @@ import { InvitePage } from './invite'
 import { AuditLogsPage } from './audit-logs'
 import { SettingsPage } from './settings'
 import { ImprintPage, PrivacyPage, TermsPage } from './legal'
+import { ResetPasswordPage } from './reset-password'
 
 // Permission-protected page wrapper
 function withPermission(Component: React.ComponentType, permission: string) {
@@ -93,6 +94,16 @@ const termsRoute = createRoute({
   component: TermsPage,
 })
 
+// Reset Password route
+const resetPasswordRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/reset-password',
+  component: ResetPasswordPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    token: (search.token as string) || '',
+  }),
+})
+
 // App layout - for authenticated pages (with sidebar)
 const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -168,6 +179,7 @@ export const routeTree = rootRoute.addChildren([
     imprintRoute,
     privacyRoute,
     termsRoute,
+    resetPasswordRoute,
   ]),
   appLayoutRoute.addChildren([
     dashboardRoute,

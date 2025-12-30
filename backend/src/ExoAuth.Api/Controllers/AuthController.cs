@@ -228,7 +228,11 @@ public sealed class AuthController : ApiControllerBase
 
         var result = await Mediator.Send(command, ct);
 
-        SetAuthCookies(result.AccessToken!, result.RefreshToken!);
+        // Only set cookies when registration is complete (not during MFA setup flow)
+        if (!result.MfaSetupRequired && result.AccessToken != null && result.RefreshToken != null)
+        {
+            SetAuthCookies(result.AccessToken, result.RefreshToken);
+        }
 
         return ApiOk(result);
     }

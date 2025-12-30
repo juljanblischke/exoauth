@@ -16,6 +16,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
     private readonly ITokenBlacklistService _tokenBlacklist;
     private readonly IPermissionCacheService _permissionCache;
     private readonly IDeviceSessionService _deviceSessionService;
+    private readonly IForceReauthService _forceReauthService;
     private readonly IAuditService _auditService;
 
     public RefreshTokenHandler(
@@ -25,6 +26,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
         ITokenBlacklistService tokenBlacklist,
         IPermissionCacheService permissionCache,
         IDeviceSessionService deviceSessionService,
+        IForceReauthService forceReauthService,
         IAuditService auditService)
     {
         _context = context;
@@ -33,6 +35,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
         _tokenBlacklist = tokenBlacklist;
         _permissionCache = permissionCache;
         _deviceSessionService = deviceSessionService;
+        _forceReauthService = forceReauthService;
         _auditService = auditService;
     }
 
@@ -68,6 +71,12 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
         if (user is null || !user.IsActive || user.IsLocked)
         {
             throw new InvalidRefreshTokenException();
+        }
+
+        // Check if user has force re-auth flag - must re-login, can't just refresh
+        if (await _forceReauthService.HasFlagAsync(user.Id, ct))
+        {
+            throw new ForceReauthException();
         }
 
         // Revoke old token

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -19,12 +20,15 @@ import { getDeviceInfo } from '@/lib/device'
 import { MfaVerifyModal } from './mfa-verify-modal'
 import { MfaSetupModal } from './mfa-setup-modal'
 import { MfaConfirmModal } from './mfa-confirm-modal'
+import { ForgotPasswordModal } from './forgot-password-modal'
 
 const AUTH_SESSION_KEY = 'exoauth_has_session'
+const AUTH_QUERY_KEY = ['auth', 'me'] as const
 
 export function LoginForm() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   // MFA state
   const [mfaVerifyOpen, setMfaVerifyOpen] = useState(false)
@@ -35,6 +39,9 @@ export function LoginForm() {
   const [backupCodes, setBackupCodes] = useState<string[]>([])
   const [pendingAuthResponse, setPendingAuthResponse] = useState<MfaConfirmResponse | null>(null)
   const [rememberMeForMfa, setRememberMeForMfa] = useState(false)
+
+  // Forgot password state
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
 
   const { mutate: login, isPending, error } = useLogin({
     onMfaRequired: (response: AuthResponse) => {
@@ -76,7 +83,9 @@ export function LoginForm() {
 
   const handleMfaConfirmContinue = () => {
     // If we have auth data from setupToken flow, complete the login
-    if (pendingAuthResponse?.accessToken) {
+    if (pendingAuthResponse?.accessToken && pendingAuthResponse.user) {
+      // Set user in cache BEFORE navigating (triggers isAuthenticated)
+      queryClient.setQueryData(AUTH_QUERY_KEY, pendingAuthResponse.user)
       localStorage.setItem(AUTH_SESSION_KEY, 'true')
       navigate({ to: '/dashboard' })
     }
@@ -108,7 +117,16 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">{t('auth:login.password')}</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">{t('auth:login.password')}</Label>
+          <button
+            type="button"
+            onClick={() => setForgotPasswordOpen(true)}
+            className="text-sm text-primary hover:underline"
+          >
+            {t('auth:login.forgotPassword')}
+          </button>
+        </div>
         <PasswordInput
           id="password"
           autoComplete="current-password"
@@ -154,6 +172,13 @@ export function LoginForm() {
           {t('auth:login.register')}
         </Link>
       </p>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        open={forgotPasswordOpen}
+        onOpenChange={setForgotPasswordOpen}
+        defaultEmail={form.getValues('email')}
+      />
 
       {/* MFA Verify Modal - shown when user has MFA enabled */}
       <MfaVerifyModal
