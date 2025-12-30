@@ -100,6 +100,20 @@ public sealed class SystemInvite : BaseEntity
         SetUpdated();
     }
 
+    public void Update(string? firstName, string? lastName, List<Guid>? permissionIds)
+    {
+        if (firstName is not null)
+            FirstName = firstName;
+
+        if (lastName is not null)
+            LastName = lastName;
+
+        if (permissionIds is not null)
+            PermissionIds = JsonDocument.Parse(JsonSerializer.Serialize(permissionIds));
+
+        SetUpdated();
+    }
+
     public List<Guid> GetPermissionIds()
     {
         return JsonSerializer.Deserialize<List<Guid>>(PermissionIds.RootElement.GetRawText()) ?? new List<Guid>();

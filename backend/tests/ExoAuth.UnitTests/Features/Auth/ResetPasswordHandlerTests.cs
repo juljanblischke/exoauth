@@ -63,7 +63,7 @@ public sealed class ResetPasswordHandlerTests
         _mockPasswordHasher.Verify(x => x.Hash("NewPassword123!"), Times.Once);
         _mockUserRepository.Verify(x => x.UpdateAsync(user, It.IsAny<CancellationToken>()), Times.Once);
         _mockPasswordResetService.Verify(x => x.MarkAsUsedAsync(resetToken, It.IsAny<CancellationToken>()), Times.Once);
-        _mockForceReauthService.Verify(x => x.SetFlagAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
+        _mockForceReauthService.Verify(x => x.SetFlagForAllSessionsAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
         _mockEmailService.Verify(x => x.SendPasswordChangedAsync(
             user.Email,
             user.FirstName,
@@ -195,8 +195,8 @@ public sealed class ResetPasswordHandlerTests
         // Act
         await _handler.Handle(command, CancellationToken.None);
 
-        // Assert - Force re-auth is called to invalidate all existing sessions
-        _mockForceReauthService.Verify(x => x.SetFlagAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
+        // Assert - Force re-auth is called to invalidate all existing sessions (session-based)
+        _mockForceReauthService.Verify(x => x.SetFlagForAllSessionsAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

@@ -14,6 +14,7 @@ public sealed class MfaDisableHandler : ICommandHandler<MfaDisableCommand, MfaDi
     private readonly IEncryptionService _encryptionService;
     private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
+    private readonly IEmailTemplateService _emailTemplateService;
 
     public MfaDisableHandler(
         IAppDbContext context,
@@ -21,7 +22,8 @@ public sealed class MfaDisableHandler : ICommandHandler<MfaDisableCommand, MfaDi
         IMfaService mfaService,
         IEncryptionService encryptionService,
         IAuditService auditService,
-        IEmailService emailService)
+        IEmailService emailService,
+        IEmailTemplateService emailTemplateService)
     {
         _context = context;
         _currentUser = currentUser;
@@ -29,6 +31,7 @@ public sealed class MfaDisableHandler : ICommandHandler<MfaDisableCommand, MfaDi
         _encryptionService = encryptionService;
         _auditService = auditService;
         _emailService = emailService;
+        _emailTemplateService = emailTemplateService;
     }
 
     public async ValueTask<MfaDisableResponse> Handle(MfaDisableCommand command, CancellationToken ct)
@@ -91,17 +94,14 @@ public sealed class MfaDisableHandler : ICommandHandler<MfaDisableCommand, MfaDi
         );
 
         // Send notification email
-        var subject = user.PreferredLanguage.StartsWith("de")
-            ? "Zwei-Faktor-Authentifizierung deaktiviert"
-            : "Two-Factor Authentication Disabled";
-
         await _emailService.SendAsync(
             user.Email,
-            subject,
+            _emailTemplateService.GetSubject("mfa-disabled", user.PreferredLanguage),
             "mfa-disabled",
             new Dictionary<string, string>
             {
-                ["firstName"] = user.FirstName
+                ["firstName"] = user.FirstName,
+                ["year"] = DateTime.UtcNow.Year.ToString()
             },
             user.PreferredLanguage,
             ct

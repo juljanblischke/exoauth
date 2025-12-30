@@ -57,35 +57,39 @@ public sealed class ForceReauthMiddleware
             return;
         }
 
-        // Check if session has been revoked
+        // Get session ID from claims
         var sessionIdClaim = context.User.FindFirst("session_id")?.Value;
-        if (Guid.TryParse(sessionIdClaim, out var sessionId))
+        if (!Guid.TryParse(sessionIdClaim, out var sessionId))
         {
-            if (await revokedSessionService.IsSessionRevokedAsync(sessionId, context.RequestAborted))
-            {
-                _logger.LogWarning("Revoked session {SessionId} attempted access for user {UserId} on {Path}", sessionId, userId, path);
-
-                await ReturnUnauthorizedResponse(
-                    context,
-                    "Session has been revoked. Please login again.",
-                    ErrorCodes.SessionRevoked);
-                return;
-            }
+            await _next(context);
+            return;
         }
 
-        // Check if user has force re-auth flag
-        if (await forceReauthService.HasFlagAsync(userId, context.RequestAborted))
+        // Check if session has been revoked
+        if (await revokedSessionService.IsSessionRevokedAsync(sessionId, context.RequestAborted))
         {
-            _logger.LogWarning("Force re-auth triggered for user {UserId} on {Path}", userId, path);
+            _logger.LogWarning("Revoked session {SessionId} attempted access for user {UserId} on {Path}", sessionId, userId, path);
+
+            await ReturnUnauthorizedResponse(
+                context,
+                "Session has been revoked. Please login again.",
+                ErrorCodes.SessionRevoked);
+            return;
+        }
+
+        // Check if session has force re-auth flag (session-based, not user-based)
+        if (await forceReauthService.HasFlagAsync(sessionId, context.RequestAborted))
+        {
+            _logger.LogWarning("Force re-auth triggered for session {SessionId} (user {UserId}) on {Path}", sessionId, userId, path);
 
             // Audit log
             await auditService.LogWithContextAsync(
                 AuditActions.ForceReauthTriggered,
                 userId,
                 null,
-                null,
-                null,
-                new { Endpoint = path },
+                "DeviceSession",
+                sessionId,
+                new { Endpoint = path, SessionId = sessionId },
                 context.RequestAborted
             );
 

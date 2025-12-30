@@ -21,6 +21,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
     private readonly IForceReauthService _forceReauthService;
     private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
+    private readonly IEmailTemplateService _emailTemplateService;
     private readonly IConfiguration _configuration;
 
     public MfaVerifyHandler(
@@ -35,6 +36,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         IForceReauthService forceReauthService,
         IAuditService auditService,
         IEmailService emailService,
+        IEmailTemplateService emailTemplateService,
         IConfiguration configuration)
     {
         _context = context;
@@ -48,6 +50,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         _forceReauthService = forceReauthService;
         _auditService = auditService;
         _emailService = emailService;
+        _emailTemplateService = emailTemplateService;
         _configuration = configuration;
     }
 
@@ -125,18 +128,15 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
                     );
 
                     // Send notification email
-                    var backupCodeSubject = user.PreferredLanguage.StartsWith("de")
-                        ? "Backup-Code verwendet"
-                        : "Backup Code Used";
-
                     await _emailService.SendAsync(
                         user.Email,
-                        backupCodeSubject,
+                        _emailTemplateService.GetSubject("mfa-backup-code-used", user.PreferredLanguage),
                         "mfa-backup-code-used",
                         new Dictionary<string, string>
                         {
                             ["firstName"] = user.FirstName,
-                            ["remainingCodes"] = remainingCodes.ToString()
+                            ["remainingCodes"] = remainingCodes.ToString(),
+                            ["year"] = DateTime.UtcNow.Year.ToString()
                         },
                         user.PreferredLanguage,
                         ct
@@ -149,9 +149,6 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         {
             throw new MfaCodeInvalidException();
         }
-
-        // Clear force re-auth flag if set
-        await _forceReauthService.ClearFlagAsync(userId, ct);
 
         // Get permissions
         var permissions = await _permissionCache.GetOrSetPermissionsAsync(
@@ -170,6 +167,9 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
             command.DeviceFingerprint,
             ct
         );
+
+        // Clear force re-auth flag for this session (session-based, not user-based)
+        await _forceReauthService.ClearFlagAsync(deviceSession.Id, ct);
 
         // Generate tokens
         var accessToken = _tokenService.GenerateAccessToken(
@@ -300,13 +300,9 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = user.PreferredLanguage.StartsWith("de")
-            ? "Anmeldung von einem neuen Gerät erkannt"
-            : "New Device Login Detected";
-
         await _emailService.SendAsync(
             to: user.Email,
-            subject: subject,
+            subject: _emailTemplateService.GetSubject("new-device-login", user.PreferredLanguage),
             templateName: "new-device-login",
             variables: variables,
             language: user.PreferredLanguage,
@@ -340,13 +336,9 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = user.PreferredLanguage.StartsWith("de")
-            ? "Anmeldung von einem neuen Standort"
-            : "Login from New Location";
-
         await _emailService.SendAsync(
             to: user.Email,
-            subject: subject,
+            subject: _emailTemplateService.GetSubject("new-location-login", user.PreferredLanguage),
             templateName: "new-location-login",
             variables: variables,
             language: user.PreferredLanguage,

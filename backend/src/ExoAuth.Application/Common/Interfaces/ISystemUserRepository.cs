@@ -55,12 +55,26 @@ public interface ISystemUserRepository
     /// <summary>
     /// Gets paginated list of system users.
     /// </summary>
+    /// <param name="cursor">Pagination cursor.</param>
+    /// <param name="limit">Number of items per page.</param>
+    /// <param name="sortBy">Sort field and direction.</param>
+    /// <param name="search">Search term for email, firstName, lastName.</param>
+    /// <param name="permissionIds">Filter by users having ALL these permissions.</param>
+    /// <param name="isActive">Filter by active status.</param>
+    /// <param name="isAnonymized">Filter by anonymized status.</param>
+    /// <param name="isLocked">Filter by locked status.</param>
+    /// <param name="mfaEnabled">Filter by MFA enabled status.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task<(List<SystemUser> Users, string? NextCursor, int Total)> GetPagedAsync(
         string? cursor,
         int limit,
         string? sortBy,
         string? search,
         List<Guid>? permissionIds = null,
+        bool? isActive = null,
+        bool? isAnonymized = null,
+        bool? isLocked = null,
+        bool? mfaEnabled = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

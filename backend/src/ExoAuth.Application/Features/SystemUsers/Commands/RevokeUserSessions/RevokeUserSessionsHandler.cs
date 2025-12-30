@@ -13,19 +13,22 @@ public sealed class RevokeUserSessionsHandler : ICommandHandler<RevokeUserSessio
     private readonly IRevokedSessionService _revokedSessionService;
     private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
+    private readonly IEmailTemplateService _emailTemplateService;
 
     public RevokeUserSessionsHandler(
         IAppDbContext context,
         ICurrentUserService currentUser,
         IRevokedSessionService revokedSessionService,
         IAuditService auditService,
-        IEmailService emailService)
+        IEmailService emailService,
+        IEmailTemplateService emailTemplateService)
     {
         _context = context;
         _currentUser = currentUser;
         _revokedSessionService = revokedSessionService;
         _auditService = auditService;
         _emailService = emailService;
+        _emailTemplateService = emailTemplateService;
     }
 
     public async ValueTask<RevokeUserSessionsResponse> Handle(RevokeUserSessionsCommand command, CancellationToken ct)
@@ -84,18 +87,15 @@ public sealed class RevokeUserSessionsHandler : ICommandHandler<RevokeUserSessio
         // Send notification email to user (skip for anonymized users)
         if (!user.IsAnonymized)
         {
-            var subject = user.PreferredLanguage.StartsWith("de")
-                ? "Alle Ihre Sitzungen wurden widerrufen"
-                : "All Your Sessions Have Been Revoked";
-
             await _emailService.SendAsync(
                 user.Email,
-                subject,
+                _emailTemplateService.GetSubject("sessions-revoked-admin", user.PreferredLanguage),
                 "sessions-revoked-admin",
                 new Dictionary<string, string>
                 {
                     ["firstName"] = user.FirstName,
-                    ["sessionCount"] = revokedCount.ToString()
+                    ["sessionCount"] = revokedCount.ToString(),
+                    ["year"] = DateTime.UtcNow.Year.ToString()
                 },
                 user.PreferredLanguage,
                 ct

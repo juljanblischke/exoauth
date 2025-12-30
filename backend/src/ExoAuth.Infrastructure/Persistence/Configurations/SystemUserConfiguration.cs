@@ -67,6 +67,10 @@ public sealed class SystemUserConfiguration : IEntityTypeConfiguration<SystemUse
 
         builder.HasIndex(x => x.MfaEnabled);
 
+        builder.HasIndex(x => x.IsAnonymized);
+
+        builder.HasIndex(x => x.LockedUntil);
+
         // Navigation - defined in other configurations
     }
 }

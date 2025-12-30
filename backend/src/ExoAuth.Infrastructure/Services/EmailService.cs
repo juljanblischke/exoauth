@@ -8,6 +8,7 @@ namespace ExoAuth.Infrastructure.Services;
 public sealed class EmailService : IEmailService
 {
     private readonly IMessageBus _messageBus;
+    private readonly IEmailTemplateService _templateService;
     private readonly ILogger<EmailService> _logger;
     private readonly string _baseUrl;
     private readonly int _inviteExpirationHours;
@@ -15,10 +16,12 @@ public sealed class EmailService : IEmailService
 
     public EmailService(
         IMessageBus messageBus,
+        IEmailTemplateService templateService,
         IConfiguration configuration,
         ILogger<EmailService> logger)
     {
         _messageBus = messageBus;
+        _templateService = templateService;
         _logger = logger;
 
         var inviteSection = configuration.GetSection("SystemInvite");
@@ -68,13 +71,9 @@ public sealed class EmailService : IEmailService
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = language.StartsWith("de")
-            ? "Einladung zu ExoAuth"
-            : "You're invited to ExoAuth";
-
         await SendAsync(
             to: email,
-            subject: subject,
+            subject: _templateService.GetSubject("system-invite", language),
             templateName: "system-invite",
             variables: variables,
             language: language,
@@ -101,13 +100,9 @@ public sealed class EmailService : IEmailService
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = language.StartsWith("de")
-            ? "Passwort zurücksetzen"
-            : "Reset Your Password";
-
         await SendAsync(
             to: email,
-            subject: subject,
+            subject: _templateService.GetSubject("password-reset", language),
             templateName: "password-reset",
             variables: variables,
             language: language,
@@ -127,13 +122,9 @@ public sealed class EmailService : IEmailService
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = language.StartsWith("de")
-            ? "Dein Passwort wurde geändert"
-            : "Your Password Has Been Changed";
-
         await SendAsync(
             to: email,
-            subject: subject,
+            subject: _templateService.GetSubject("password-changed", language),
             templateName: "password-changed",
             variables: variables,
             language: language,

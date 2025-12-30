@@ -12,6 +12,7 @@ public sealed class UnlockUserHandler : ICommandHandler<UnlockUserCommand, Unloc
     private readonly ICurrentUserService _currentUser;
     private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
+    private readonly IEmailTemplateService _emailTemplateService;
     private readonly IBruteForceProtectionService _bruteForceService;
 
     public UnlockUserHandler(
@@ -19,12 +20,14 @@ public sealed class UnlockUserHandler : ICommandHandler<UnlockUserCommand, Unloc
         ICurrentUserService currentUser,
         IAuditService auditService,
         IEmailService emailService,
+        IEmailTemplateService emailTemplateService,
         IBruteForceProtectionService bruteForceService)
     {
         _context = context;
         _currentUser = currentUser;
         _auditService = auditService;
         _emailService = emailService;
+        _emailTemplateService = emailTemplateService;
         _bruteForceService = bruteForceService;
     }
 
@@ -63,17 +66,14 @@ public sealed class UnlockUserHandler : ICommandHandler<UnlockUserCommand, Unloc
         );
 
         // Send notification email to user
-        var subject = user.PreferredLanguage.StartsWith("de")
-            ? "Ihr Konto wurde entsperrt"
-            : "Your Account Has Been Unlocked";
-
         await _emailService.SendAsync(
             user.Email,
-            subject,
+            _emailTemplateService.GetSubject("account-unlocked", user.PreferredLanguage),
             "account-unlocked",
             new Dictionary<string, string>
             {
-                ["firstName"] = user.FirstName
+                ["firstName"] = user.FirstName,
+                ["year"] = DateTime.UtcNow.Year.ToString()
             },
             user.PreferredLanguage,
             ct

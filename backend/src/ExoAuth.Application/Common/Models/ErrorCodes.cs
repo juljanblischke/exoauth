@@ -59,6 +59,7 @@ public static class ErrorCodes
     public const string InviteResendCooldown = "INVITE_RESEND_COOLDOWN";
     public const string InviteExpired = "INVITE_EXPIRED";
     public const string InviteRevoked = "INVITE_REVOKED";
+    public const string InviteNotEditable = "INVITE_NOT_EDITABLE";
 
     // MFA Errors (400/401/403)
     public const string MfaRequired = "MFA_REQUIRED";

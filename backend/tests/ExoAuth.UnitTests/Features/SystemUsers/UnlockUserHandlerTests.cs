@@ -15,6 +15,7 @@ public sealed class UnlockUserHandlerTests
     private readonly Mock<ICurrentUserService> _mockCurrentUser;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly Mock<IEmailService> _mockEmailService;
+    private readonly Mock<IEmailTemplateService> _mockEmailTemplateService;
     private readonly Mock<IBruteForceProtectionService> _mockBruteForceService;
 
     public UnlockUserHandlerTests()
@@ -23,10 +24,14 @@ public sealed class UnlockUserHandlerTests
         _mockCurrentUser = new Mock<ICurrentUserService>();
         _mockAuditService = new Mock<IAuditService>();
         _mockEmailService = new Mock<IEmailService>();
+        _mockEmailTemplateService = new Mock<IEmailTemplateService>();
         _mockBruteForceService = new Mock<IBruteForceProtectionService>();
 
         _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
+
+        _mockEmailTemplateService.Setup(x => x.GetSubject(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string template, string lang) => $"Subject for {template}");
     }
 
     private UnlockUserHandler CreateHandler() => new(
@@ -34,6 +39,7 @@ public sealed class UnlockUserHandlerTests
         _mockCurrentUser.Object,
         _mockAuditService.Object,
         _mockEmailService.Object,
+        _mockEmailTemplateService.Object,
         _mockBruteForceService.Object);
 
     [Fact]
@@ -72,7 +78,7 @@ public sealed class UnlockUserHandlerTests
 
         _mockEmailService.Verify(x => x.SendAsync(
             user.Email,
-            "Your Account Has Been Unlocked",
+            It.IsAny<string>(),
             "account-unlocked",
             It.IsAny<Dictionary<string, string>>(),
             It.IsAny<string?>(),
@@ -198,7 +204,7 @@ public sealed class UnlockUserHandlerTests
         // Assert
         _mockEmailService.Verify(x => x.SendAsync(
             user.Email,
-            "Your Account Has Been Unlocked",
+            It.IsAny<string>(),
             "account-unlocked",
             It.Is<Dictionary<string, string>>(d => d["firstName"] == user.FirstName),
             user.PreferredLanguage,

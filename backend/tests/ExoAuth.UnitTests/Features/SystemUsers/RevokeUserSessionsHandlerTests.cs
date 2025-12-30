@@ -17,6 +17,7 @@ public sealed class RevokeUserSessionsHandlerTests
     private readonly Mock<IRevokedSessionService> _mockRevokedSessionService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly Mock<IEmailService> _mockEmailService;
+    private readonly Mock<IEmailTemplateService> _mockEmailTemplateService;
 
     public RevokeUserSessionsHandlerTests()
     {
@@ -25,9 +26,13 @@ public sealed class RevokeUserSessionsHandlerTests
         _mockRevokedSessionService = new Mock<IRevokedSessionService>();
         _mockAuditService = new Mock<IAuditService>();
         _mockEmailService = new Mock<IEmailService>();
+        _mockEmailTemplateService = new Mock<IEmailTemplateService>();
 
         _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
+
+        _mockEmailTemplateService.Setup(x => x.GetSubject(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string template, string lang) => $"Subject for {template}");
     }
 
     private RevokeUserSessionsHandler CreateHandler() => new(
@@ -35,7 +40,8 @@ public sealed class RevokeUserSessionsHandlerTests
         _mockCurrentUser.Object,
         _mockRevokedSessionService.Object,
         _mockAuditService.Object,
-        _mockEmailService.Object);
+        _mockEmailService.Object,
+        _mockEmailTemplateService.Object);
 
     [Fact]
     public async Task Handle_WithSessions_RevokesAllSessions()
@@ -252,7 +258,7 @@ public sealed class RevokeUserSessionsHandlerTests
         // Assert
         _mockEmailService.Verify(x => x.SendAsync(
             user.Email,
-            "All Your Sessions Have Been Revoked",
+            It.IsAny<string>(),
             "sessions-revoked-admin",
             It.Is<Dictionary<string, string>>(d =>
                 d["firstName"] == user.FirstName &&

@@ -24,6 +24,10 @@ public sealed class GetSystemUsersHandler : IQueryHandler<GetSystemUsersQuery, C
             sortBy: query.Sort,
             search: query.Search,
             permissionIds: query.PermissionIds,
+            isActive: query.IsActive,
+            isAnonymized: query.IsAnonymized,
+            isLocked: query.IsLocked,
+            mfaEnabled: query.MfaEnabled,
             cancellationToken: ct
         );
 

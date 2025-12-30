@@ -23,6 +23,7 @@ public sealed class LoginHandlerTests
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly Mock<IMfaService> _mockMfaService;
     private readonly Mock<IEmailService> _mockEmailService;
+    private readonly Mock<IEmailTemplateService> _mockEmailTemplateService;
     private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly LoginHandler _handler;
 
@@ -39,6 +40,7 @@ public sealed class LoginHandlerTests
         _mockAuditService = new Mock<IAuditService>();
         _mockMfaService = new Mock<IMfaService>();
         _mockEmailService = new Mock<IEmailService>();
+        _mockEmailTemplateService = new Mock<IEmailTemplateService>();
         _mockConfiguration = new Mock<IConfiguration>();
 
         // Default token service setup
@@ -46,6 +48,10 @@ public sealed class LoginHandlerTests
 
         // Default configuration setup
         _mockConfiguration.Setup(x => x["SystemInvite:BaseUrl"]).Returns("http://localhost:5173");
+
+        // Default email template service setup
+        _mockEmailTemplateService.Setup(x => x.GetSubject(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string template, string lang) => $"Subject for {template}");
 
         // Default device session service setup
         var mockSession = TestDataFactory.CreateDeviceSession(Guid.NewGuid());
@@ -71,6 +77,7 @@ public sealed class LoginHandlerTests
             _mockAuditService.Object,
             _mockMfaService.Object,
             _mockEmailService.Object,
+            _mockEmailTemplateService.Object,
             _mockConfiguration.Object);
     }
 

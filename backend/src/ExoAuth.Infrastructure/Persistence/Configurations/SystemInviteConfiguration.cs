@@ -63,5 +63,6 @@ public sealed class SystemInviteConfiguration : IEntityTypeConfiguration<SystemI
         builder.HasIndex(x => x.ExpiresAt);
         builder.HasIndex(x => x.AcceptedAt);
         builder.HasIndex(x => x.RevokedAt);
+        builder.HasIndex(x => x.CreatedAt);
     }
 }

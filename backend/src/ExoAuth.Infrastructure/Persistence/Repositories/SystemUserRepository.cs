@@ -92,9 +92,47 @@ public sealed class SystemUserRepository : ISystemUserRepository
         string? sortBy,
         string? search,
         List<Guid>? permissionIds = null,
+        bool? isActive = null,
+        bool? isAnonymized = null,
+        bool? isLocked = null,
+        bool? mfaEnabled = null,
         CancellationToken cancellationToken = default)
     {
         var query = _context.SystemUsers.AsQueryable();
+        var utcNow = DateTime.UtcNow;
+
+        // Filter: IsActive
+        if (isActive.HasValue)
+        {
+            query = query.Where(u => u.IsActive == isActive.Value);
+        }
+
+        // Filter: IsAnonymized
+        if (isAnonymized.HasValue)
+        {
+            query = query.Where(u => u.IsAnonymized == isAnonymized.Value);
+        }
+
+        // Filter: IsLocked (computed from LockedUntil)
+        if (isLocked.HasValue)
+        {
+            if (isLocked.Value)
+            {
+                // Show only locked users (LockedUntil has value and is in the future)
+                query = query.Where(u => u.LockedUntil != null && u.LockedUntil > utcNow);
+            }
+            else
+            {
+                // Show only non-locked users (LockedUntil is null or in the past)
+                query = query.Where(u => u.LockedUntil == null || u.LockedUntil <= utcNow);
+            }
+        }
+
+        // Filter: MfaEnabled
+        if (mfaEnabled.HasValue)
+        {
+            query = query.Where(u => u.MfaEnabled == mfaEnabled.Value);
+        }
 
         // Search
         if (!string.IsNullOrWhiteSpace(search))

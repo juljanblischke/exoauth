@@ -73,8 +73,8 @@ public sealed class ResetPasswordHandler : ICommandHandler<ResetPasswordCommand,
         // Mark token as used
         await _passwordResetService.MarkAsUsedAsync(resetToken, ct);
 
-        // Force re-auth on all sessions (invalidate existing tokens)
-        await _forceReauthService.SetFlagAsync(user.Id, ct);
+        // Force re-auth: Set flag for ALL sessions of this user (session-based reauth)
+        await _forceReauthService.SetFlagForAllSessionsAsync(user.Id, ct);
 
         // Send confirmation email
         await _emailService.SendPasswordChangedAsync(

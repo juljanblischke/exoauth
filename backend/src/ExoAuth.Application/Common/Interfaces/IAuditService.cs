@@ -64,6 +64,7 @@ public static class AuditActions
     // Invite actions
     public const string InviteRevoked = "system.invite.revoked";
     public const string InviteResent = "system.invite.resent";
+    public const string InviteUpdated = "system.invite.updated";
 
     // Force re-auth actions
     public const string ForceReauthTriggered = "system.access.forced_reauth";

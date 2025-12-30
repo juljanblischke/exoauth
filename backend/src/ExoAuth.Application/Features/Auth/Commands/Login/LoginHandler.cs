@@ -20,6 +20,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
     private readonly IAuditService _auditService;
     private readonly IMfaService _mfaService;
     private readonly IEmailService _emailService;
+    private readonly IEmailTemplateService _emailTemplateService;
     private readonly IConfiguration _configuration;
 
     public LoginHandler(
@@ -34,6 +35,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         IAuditService auditService,
         IMfaService mfaService,
         IEmailService emailService,
+        IEmailTemplateService emailTemplateService,
         IConfiguration configuration)
     {
         _context = context;
@@ -47,6 +49,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         _auditService = auditService;
         _mfaService = mfaService;
         _emailService = emailService;
+        _emailTemplateService = emailTemplateService;
         _configuration = configuration;
     }
 
@@ -176,9 +179,6 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             return AuthResponse.RequiresMfaSetup(setupToken);
         }
 
-        // Clear force re-auth flag if set
-        await _forceReauthService.ClearFlagAsync(user.Id, ct);
-
         // Create or update device session
         var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();
         var (deviceSession, isNewDevice, isNewLocation) = await _deviceSessionService.CreateOrUpdateSessionAsync(
@@ -189,6 +189,9 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             command.DeviceFingerprint,
             ct
         );
+
+        // Clear force re-auth flag for this session (session-based, not user-based)
+        await _forceReauthService.ClearFlagAsync(deviceSession.Id, ct);
 
         // Generate tokens with session ID
         var accessToken = _tokenService.GenerateAccessToken(
@@ -378,13 +381,9 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = user.PreferredLanguage.StartsWith("de")
-            ? "Ihr Konto wurde vorübergehend gesperrt"
-            : "Your Account Has Been Temporarily Locked";
-
         await _emailService.SendAsync(
             to: user.Email,
-            subject: subject,
+            subject: _emailTemplateService.GetSubject("account-locked", user.PreferredLanguage),
             templateName: "account-locked",
             variables: variables,
             language: user.PreferredLanguage,
@@ -418,13 +417,9 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = user.PreferredLanguage.StartsWith("de")
-            ? "Anmeldung von einem neuen Gerät erkannt"
-            : "New Device Login Detected";
-
         await _emailService.SendAsync(
             to: user.Email,
-            subject: subject,
+            subject: _emailTemplateService.GetSubject("new-device-login", user.PreferredLanguage),
             templateName: "new-device-login",
             variables: variables,
             language: user.PreferredLanguage,
@@ -458,13 +453,9 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             ["year"] = DateTime.UtcNow.Year.ToString()
         };
 
-        var subject = user.PreferredLanguage.StartsWith("de")
-            ? "Anmeldung von einem neuen Standort"
-            : "Login from New Location";
-
         await _emailService.SendAsync(
             to: user.Email,
-            subject: subject,
+            subject: _emailTemplateService.GetSubject("new-location-login", user.PreferredLanguage),
             templateName: "new-location-login",
             variables: variables,
             language: user.PreferredLanguage,

@@ -144,3 +144,17 @@ public sealed class BusinessException : SystemException
     {
     }
 }
+
+/// <summary>
+/// Exception when invite is not editable (not pending).
+/// </summary>
+public sealed class InviteNotEditableException : SystemException
+{
+    public Guid InviteId { get; }
+
+    public InviteNotEditableException(Guid inviteId)
+        : base("INVITE_NOT_EDITABLE", $"Invite with ID {inviteId} is not editable (only pending invites can be edited)", 400)
+    {
+        InviteId = inviteId;
+    }
+}

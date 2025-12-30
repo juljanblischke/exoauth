@@ -21,4 +21,12 @@ public interface IEmailTemplateService
     /// <param name="language">The language to check.</param>
     /// <returns>True if the template exists, false otherwise.</returns>
     bool TemplateExists(string templateName, string language);
+
+    /// <summary>
+    /// Gets the email subject for a template from the subjects.json file.
+    /// </summary>
+    /// <param name="templateName">The name of the template (e.g., "system-invite").</param>
+    /// <param name="language">The language for the subject (default: "en-US").</param>
+    /// <returns>The localized subject string. Falls back to en-US if not found.</returns>
+    string GetSubject(string templateName, string language = "en-US");
 }

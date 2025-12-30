@@ -51,7 +51,7 @@ public static class DependencyInjection
         services.AddSingleton<IPermissionCacheService, PermissionCacheService>();
         services.AddSingleton<IBruteForceProtectionService, BruteForceProtectionService>();
         services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
-        services.AddSingleton<IForceReauthService, ForceReauthService>();
+        services.AddScoped<IForceReauthService, ForceReauthService>();
         services.AddSingleton<IRevokedSessionService, RevokedSessionService>();
 
         // Device Session Services
@@ -68,6 +68,10 @@ public static class DependencyInjection
 
         // System Invite
         services.AddScoped<ISystemInviteService, SystemInviteService>();
+
+        // Invite Cleanup
+        services.AddScoped<IInviteCleanupService, InviteCleanupService>();
+        services.AddHostedService<InviteCleanupBackgroundService>();
 
         // MFA Services
         services.AddSingleton<IEncryptionService, EncryptionService>();

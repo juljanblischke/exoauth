@@ -12,6 +12,7 @@ public sealed class ResetUserMfaHandler : ICommandHandler<ResetUserMfaCommand, R
     private readonly ICurrentUserService _currentUser;
     private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
+    private readonly IEmailTemplateService _emailTemplateService;
     private readonly IForceReauthService _forceReauthService;
     private readonly ITokenBlacklistService _tokenBlacklistService;
 
@@ -20,6 +21,7 @@ public sealed class ResetUserMfaHandler : ICommandHandler<ResetUserMfaCommand, R
         ICurrentUserService currentUser,
         IAuditService auditService,
         IEmailService emailService,
+        IEmailTemplateService emailTemplateService,
         IForceReauthService forceReauthService,
         ITokenBlacklistService tokenBlacklistService)
     {
@@ -27,6 +29,7 @@ public sealed class ResetUserMfaHandler : ICommandHandler<ResetUserMfaCommand, R
         _currentUser = currentUser;
         _auditService = auditService;
         _emailService = emailService;
+        _emailTemplateService = emailTemplateService;
         _forceReauthService = forceReauthService;
         _tokenBlacklistService = tokenBlacklistService;
     }
@@ -58,8 +61,8 @@ public sealed class ResetUserMfaHandler : ICommandHandler<ResetUserMfaCommand, R
             _context.MfaBackupCodes.RemoveRange(backupCodes);
         }
 
-        // Force re-auth: user must login again after MFA reset
-        await _forceReauthService.SetFlagAsync(command.UserId, ct);
+        // Force re-auth: Set flag for ALL sessions of this user (session-based reauth)
+        await _forceReauthService.SetFlagForAllSessionsAsync(command.UserId, ct);
 
         // Revoke all refresh tokens for this user
         var activeTokens = await _context.RefreshTokens
@@ -86,22 +89,19 @@ public sealed class ResetUserMfaHandler : ICommandHandler<ResetUserMfaCommand, R
         );
 
         // Send notification email to user
-        var subject = user.PreferredLanguage.StartsWith("de")
-            ? "Ihre Zwei-Faktor-Authentifizierung wurde zurückgesetzt"
-            : "Your Two-Factor Authentication Has Been Reset";
-
         var defaultReason = user.PreferredLanguage.StartsWith("de")
             ? "Ein Administrator hat Ihre MFA zurückgesetzt."
             : "An administrator reset your MFA.";
 
         await _emailService.SendAsync(
             user.Email,
-            subject,
+            _emailTemplateService.GetSubject("mfa-reset-admin", user.PreferredLanguage),
             "mfa-reset-admin",
             new Dictionary<string, string>
             {
                 ["firstName"] = user.FirstName,
-                ["reason"] = command.Reason ?? defaultReason
+                ["reason"] = command.Reason ?? defaultReason,
+                ["year"] = DateTime.UtcNow.Year.ToString()
             },
             user.PreferredLanguage,
             ct

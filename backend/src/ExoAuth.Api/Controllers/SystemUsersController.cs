@@ -28,6 +28,16 @@ public sealed class SystemUsersController : ApiControllerBase
     /// <summary>
     /// Get paginated list of system users.
     /// </summary>
+    /// <param name="cursor">Pagination cursor.</param>
+    /// <param name="limit">Number of items per page (default: 20).</param>
+    /// <param name="sort">Sort field and direction (e.g., "email:asc").</param>
+    /// <param name="search">Search term for email, firstName, lastName.</param>
+    /// <param name="permissionIds">Comma-separated permission IDs to filter by.</param>
+    /// <param name="isActive">Filter by active status.</param>
+    /// <param name="isAnonymized">Filter by anonymized status. Default: false (hide anonymized users).</param>
+    /// <param name="isLocked">Filter by locked status.</param>
+    /// <param name="mfaEnabled">Filter by MFA enabled status.</param>
+    /// <param name="ct">Cancellation token.</param>
     [HttpGet]
     [SystemPermission(SystemPermissions.UsersRead)]
     [ProducesResponseType(typeof(CursorPagedList<SystemUserDto>), StatusCodes.Status200OK)]
@@ -39,6 +49,10 @@ public sealed class SystemUsersController : ApiControllerBase
         [FromQuery] string? sort = null,
         [FromQuery] string? search = null,
         [FromQuery] string? permissionIds = null,
+        [FromQuery] bool? isActive = null,
+        [FromQuery] bool? isAnonymized = false,
+        [FromQuery] bool? isLocked = null,
+        [FromQuery] bool? mfaEnabled = null,
         CancellationToken ct = default)
     {
         // Parse comma-separated permission IDs
@@ -53,7 +67,17 @@ public sealed class SystemUsersController : ApiControllerBase
                 .ToList();
         }
 
-        var query = new GetSystemUsersQuery(cursor, limit, sort, search, parsedPermissionIds);
+        var query = new GetSystemUsersQuery(
+            cursor,
+            limit,
+            sort,
+            search,
+            parsedPermissionIds,
+            isActive,
+            isAnonymized,
+            isLocked,
+            mfaEnabled
+        );
 
         var result = await Mediator.Send(query, ct);
 

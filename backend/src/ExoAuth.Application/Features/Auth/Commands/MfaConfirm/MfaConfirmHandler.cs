@@ -22,6 +22,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
     private readonly IPermissionCacheService _permissionCache;
     private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
+    private readonly IEmailTemplateService _emailTemplateService;
     private readonly int _backupCodeCount;
 
     public MfaConfirmHandler(
@@ -36,6 +37,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
         IPermissionCacheService permissionCache,
         IAuditService auditService,
         IEmailService emailService,
+        IEmailTemplateService emailTemplateService,
         IConfiguration configuration)
     {
         _context = context;
@@ -49,6 +51,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
         _permissionCache = permissionCache;
         _auditService = auditService;
         _emailService = emailService;
+        _emailTemplateService = emailTemplateService;
         _backupCodeCount = configuration.GetValue("Mfa:BackupCodeCount", 10);
     }
 
@@ -148,17 +151,14 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
         );
 
         // Send notification email
-        var subject = user.PreferredLanguage.StartsWith("de")
-            ? "Zwei-Faktor-Authentifizierung aktiviert"
-            : "Two-Factor Authentication Enabled";
-
         await _emailService.SendAsync(
             user.Email,
-            subject,
+            _emailTemplateService.GetSubject("mfa-enabled", user.PreferredLanguage),
             "mfa-enabled",
             new Dictionary<string, string>
             {
-                ["firstName"] = user.FirstName
+                ["firstName"] = user.FirstName,
+                ["year"] = DateTime.UtcNow.Year.ToString()
             },
             user.PreferredLanguage,
             ct

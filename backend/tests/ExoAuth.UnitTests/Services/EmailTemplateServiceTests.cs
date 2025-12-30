@@ -300,4 +300,172 @@ public sealed class EmailTemplateServiceTests : IDisposable
                 File.Delete(templatePath);
         }
     }
+
+    [Fact]
+    public void GetSubject_ReturnsEnglishSubject()
+    {
+        // Arrange
+        var subjectsPath = Path.Combine(_templatesDir, "en-US", "subjects.json");
+        var subjectsContent = @"{
+            ""system-invite"": ""Invitation to ExoAuth"",
+            ""password-reset"": ""Reset Your Password""
+        }";
+
+        try
+        {
+            File.WriteAllText(subjectsPath, subjectsContent);
+
+            // Act
+            var result = _service.GetSubject("system-invite", "en-US");
+
+            // Assert
+            result.Should().Be("Invitation to ExoAuth");
+        }
+        finally
+        {
+            if (File.Exists(subjectsPath))
+                File.Delete(subjectsPath);
+        }
+    }
+
+    [Fact]
+    public void GetSubject_ReturnsGermanSubject()
+    {
+        // Arrange
+        var subjectsPath = Path.Combine(_templatesDir, "de-DE", "subjects.json");
+        var subjectsContent = @"{
+            ""system-invite"": ""Einladung zu ExoAuth"",
+            ""password-reset"": ""Passwort zurücksetzen""
+        }";
+
+        try
+        {
+            File.WriteAllText(subjectsPath, subjectsContent);
+
+            // Act
+            var result = _service.GetSubject("system-invite", "de-DE");
+
+            // Assert
+            result.Should().Be("Einladung zu ExoAuth");
+        }
+        finally
+        {
+            if (File.Exists(subjectsPath))
+                File.Delete(subjectsPath);
+        }
+    }
+
+    [Fact]
+    public void GetSubject_FallsBackToEnglishWhenLanguageNotFound()
+    {
+        // Arrange
+        var enSubjectsPath = Path.Combine(_templatesDir, "en-US", "subjects.json");
+        var enSubjectsContent = @"{
+            ""system-invite"": ""Invitation to ExoAuth""
+        }";
+
+        try
+        {
+            File.WriteAllText(enSubjectsPath, enSubjectsContent);
+
+            // Act - request French but only English exists
+            var result = _service.GetSubject("system-invite", "fr-FR");
+
+            // Assert
+            result.Should().Be("Invitation to ExoAuth");
+        }
+        finally
+        {
+            if (File.Exists(enSubjectsPath))
+                File.Delete(enSubjectsPath);
+        }
+    }
+
+    [Fact]
+    public void GetSubject_FallsBackToEnglishWhenSubjectNotFoundInRequestedLanguage()
+    {
+        // Arrange
+        var enSubjectsPath = Path.Combine(_templatesDir, "en-US", "subjects.json");
+        var deSubjectsPath = Path.Combine(_templatesDir, "de-DE", "subjects.json");
+        var enSubjectsContent = @"{
+            ""system-invite"": ""Invitation to ExoAuth"",
+            ""special-template"": ""Special Subject""
+        }";
+        var deSubjectsContent = @"{
+            ""system-invite"": ""Einladung zu ExoAuth""
+        }";
+
+        try
+        {
+            File.WriteAllText(enSubjectsPath, enSubjectsContent);
+            File.WriteAllText(deSubjectsPath, deSubjectsContent);
+
+            // Act - request German but "special-template" only exists in English
+            var result = _service.GetSubject("special-template", "de-DE");
+
+            // Assert
+            result.Should().Be("Special Subject");
+        }
+        finally
+        {
+            if (File.Exists(enSubjectsPath))
+                File.Delete(enSubjectsPath);
+            if (File.Exists(deSubjectsPath))
+                File.Delete(deSubjectsPath);
+        }
+    }
+
+    [Fact]
+    public void GetSubject_ReturnsTemplateNameWhenSubjectNotFoundInAnyLanguage()
+    {
+        // Arrange
+        var subjectsPath = Path.Combine(_templatesDir, "en-US", "subjects.json");
+        var subjectsContent = @"{
+            ""system-invite"": ""Invitation to ExoAuth""
+        }";
+
+        try
+        {
+            File.WriteAllText(subjectsPath, subjectsContent);
+
+            // Act - request a template that doesn't exist in any subjects.json
+            var result = _service.GetSubject("non-existent-template", "en-US");
+
+            // Assert - should return the template name as fallback
+            result.Should().Be("non-existent-template");
+        }
+        finally
+        {
+            if (File.Exists(subjectsPath))
+                File.Delete(subjectsPath);
+        }
+    }
+
+    [Fact]
+    public void GetSubject_CachesSubjectsOnFirstLoad()
+    {
+        // Arrange
+        var subjectsPath = Path.Combine(_templatesDir, "en-US", "subjects.json");
+        var subjectsContent = @"{
+            ""system-invite"": ""Invitation to ExoAuth""
+        }";
+
+        try
+        {
+            File.WriteAllText(subjectsPath, subjectsContent);
+
+            // Act - call twice
+            var result1 = _service.GetSubject("system-invite", "en-US");
+            var result2 = _service.GetSubject("system-invite", "en-US");
+
+            // Assert - both should work and return the same result
+            result1.Should().Be("Invitation to ExoAuth");
+            result2.Should().Be("Invitation to ExoAuth");
+        }
+        finally
+        {
+            if (File.Exists(subjectsPath))
+                File.Delete(subjectsPath);
+        }
+    }
 }

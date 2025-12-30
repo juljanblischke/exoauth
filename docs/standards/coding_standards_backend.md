@@ -428,6 +428,7 @@ Verwende die vordefinierten Error Codes aus `ErrorCodes.cs`:
 | `INVITE_RESEND_COOLDOWN` | 429 | Bitte X Minuten warten vor erneutem Senden |
 | `INVITE_EXPIRED` | 400 | Einladung abgelaufen |
 | `INVITE_REVOKED` | 400 | Einladung wurde widerrufen |
+| `INVITE_NOT_EDITABLE` | 400 | Einladung ist nicht mehr pending (accepted/expired/revoked) |
 
 ### General Errors
 

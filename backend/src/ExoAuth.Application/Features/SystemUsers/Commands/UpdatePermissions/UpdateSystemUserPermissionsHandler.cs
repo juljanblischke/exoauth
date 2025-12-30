@@ -91,8 +91,8 @@ public sealed class UpdateSystemUserPermissionsHandler : ICommandHandler<UpdateS
         // Invalidate permission cache
         await _permissionCache.InvalidateAsync(command.UserId, ct);
 
-        // Force re-auth: Set flag and revoke all refresh tokens for the user
-        await _forceReauthService.SetFlagAsync(command.UserId, ct);
+        // Force re-auth: Set flag for ALL sessions of this user (session-based reauth)
+        await _forceReauthService.SetFlagForAllSessionsAsync(command.UserId, ct);
 
         // Revoke all refresh tokens for this user
         var activeTokens = await _context.RefreshTokens
