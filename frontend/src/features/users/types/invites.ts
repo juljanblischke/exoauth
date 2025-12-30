@@ -39,5 +39,15 @@ export interface SystemInvitesQueryParams {
   cursor?: string
   limit?: number
   search?: string
-  status?: InviteStatus | InviteStatus[]
+  statuses?: InviteStatus[]
+  sort?: string
+  includeExpired?: boolean
+  includeRevoked?: boolean
+}
+
+// Request to update an invite (PATCH)
+export interface UpdateInviteRequest {
+  firstName?: string
+  lastName?: string
+  permissionIds?: string[]
 }

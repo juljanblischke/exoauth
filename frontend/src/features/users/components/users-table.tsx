@@ -16,6 +16,8 @@ import { SelectFilter, type SelectFilterOption } from '@/components/shared/form'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { ConfirmDialog, TypeConfirmDialog } from '@/components/shared/feedback'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import { useDebounce } from '@/hooks'
 import { useAuth, usePermissions } from '@/contexts/auth-context'
 import { useSystemPermissions } from '@/features/permissions'
@@ -52,6 +54,12 @@ export function UsersTable({ onEdit, onPermissions, onRowClick }: UsersTableProp
   const [sorting, setSorting] = useState<SortingState>([])
   const [permissionFilters, setPermissionFilters] = useState<string[]>([])
   const debouncedSearch = useDebounce(search, 300)
+
+  // User status filters
+  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined)
+  const [lockedFilter, setLockedFilter] = useState<string | undefined>(undefined)
+  const [mfaFilter, setMfaFilter] = useState<string | undefined>(undefined)
+  const [showAnonymized, setShowAnonymized] = useState(false)
 
   // Admin action dialog states
   const [selectedUser, setSelectedUser] = useState<SystemUserDto | null>(null)
@@ -92,6 +100,11 @@ export function UsersTable({ onEdit, onPermissions, onRowClick }: UsersTableProp
       .join(',')
   }, [sorting])
 
+  // Convert filter strings to boolean values for API
+  const isActiveParam = statusFilter === 'active' ? true : statusFilter === 'inactive' ? false : undefined
+  const isLockedParam = lockedFilter === 'locked' ? true : lockedFilter === 'unlocked' ? false : undefined
+  const mfaEnabledParam = mfaFilter === 'enabled' ? true : mfaFilter === 'disabled' ? false : undefined
+
   const {
     data,
     isLoading,
@@ -102,6 +115,10 @@ export function UsersTable({ onEdit, onPermissions, onRowClick }: UsersTableProp
     search: debouncedSearch || undefined,
     sort: sortParam,
     permissionIds: permissionFilters.length > 0 ? permissionFilters : undefined,
+    isActive: isActiveParam,
+    isAnonymized: showAnonymized || undefined,
+    isLocked: isLockedParam,
+    mfaEnabled: mfaEnabledParam,
   })
 
   const users = useMemo(
@@ -326,16 +343,75 @@ export function UsersTable({ onEdit, onPermissions, onRowClick }: UsersTableProp
     )
   }, [permissionGroups])
 
-  // Only show filter if user has permission to read permissions
-  const filterContent = canReadPermissions && permissionOptions.length > 0 ? (
-    <SelectFilter
-      label={t('users:actions.permissions')}
-      options={permissionOptions}
-      multiple
-      values={permissionFilters}
-      onValuesChange={setPermissionFilters}
-    />
-  ) : null
+  // Status filter options
+  const statusOptions: SelectFilterOption[] = useMemo(
+    () => [
+      { label: t('users:status.active'), value: 'active' },
+      { label: t('users:status.inactive'), value: 'inactive' },
+    ],
+    [t]
+  )
+
+  // Locked filter options
+  const lockedOptions: SelectFilterOption[] = useMemo(
+    () => [
+      { label: t('users:filters.locked'), value: 'locked' },
+      { label: t('users:filters.unlocked'), value: 'unlocked' },
+    ],
+    [t]
+  )
+
+  // MFA filter options
+  const mfaOptions: SelectFilterOption[] = useMemo(
+    () => [
+      { label: t('users:filters.mfaEnabled'), value: 'enabled' },
+      { label: t('users:filters.mfaDisabled'), value: 'disabled' },
+    ],
+    [t]
+  )
+
+  // Filter content with all filters
+  const filterContent = (
+    <div className="flex flex-wrap items-center gap-2">
+      <SelectFilter
+        label={t('users:filters.status')}
+        options={statusOptions}
+        value={statusFilter}
+        onChange={setStatusFilter}
+      />
+      <SelectFilter
+        label={t('users:filters.accountLock')}
+        options={lockedOptions}
+        value={lockedFilter}
+        onChange={setLockedFilter}
+      />
+      <SelectFilter
+        label={t('users:filters.mfa')}
+        options={mfaOptions}
+        value={mfaFilter}
+        onChange={setMfaFilter}
+      />
+      {canReadPermissions && permissionOptions.length > 0 && (
+        <SelectFilter
+          label={t('users:actions.permissions')}
+          options={permissionOptions}
+          multiple
+          values={permissionFilters}
+          onValuesChange={setPermissionFilters}
+        />
+      )}
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="show-anonymized"
+          checked={showAnonymized}
+          onCheckedChange={(checked) => setShowAnonymized(checked === true)}
+        />
+        <Label htmlFor="show-anonymized" className="text-sm font-normal cursor-pointer">
+          {t('users:filters.showAnonymized')}
+        </Label>
+      </div>
+    </div>
+  )
 
   return (
     <>

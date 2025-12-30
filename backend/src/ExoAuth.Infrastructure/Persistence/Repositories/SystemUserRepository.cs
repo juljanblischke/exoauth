@@ -108,9 +108,12 @@ public sealed class SystemUserRepository : ISystemUserRepository
         }
 
         // Filter: IsAnonymized
-        if (isAnonymized.HasValue)
+        // Default behavior: hide anonymized users
+        // When isAnonymized=true: show ALL users (including anonymized)
+        // When isAnonymized=false or null: hide anonymized users
+        if (isAnonymized != true)
         {
-            query = query.Where(u => u.IsAnonymized == isAnonymized.Value);
+            query = query.Where(u => !u.IsAnonymized);
         }
 
         // Filter: IsLocked (computed from LockedUntil)

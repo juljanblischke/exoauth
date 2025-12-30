@@ -8,6 +8,18 @@
   "created": "Created",
   "empty": "No other active sessions",
   "loading": "Loading sessions...",
+  "details": {
+    "title": "Session Details",
+    "description": "View detailed information about this session",
+    "deviceInfo": "Device Information",
+    "browser": "Browser",
+    "os": "Operating System",
+    "deviceType": "Device Type",
+    "location": "Location",
+    "ipAddress": "IP Address",
+    "locationLabel": "Location",
+    "timeline": "Timeline"
+  },
   "revoke": {
     "button": "Log Out",
     "title": "Log Out Device",

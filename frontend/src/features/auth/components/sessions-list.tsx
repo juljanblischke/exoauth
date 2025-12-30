@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Loader2, LogOut } from 'lucide-react'
 
@@ -14,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { SessionCard } from './session-card'
+import { SessionDetailsSheet } from './session-details-sheet'
 import {
   useSessions,
   useRevokeSession,
@@ -21,14 +23,23 @@ import {
   useTrustSession,
   useUpdateSession,
 } from '../hooks'
+import type { DeviceSessionDto } from '../types'
 
 export function SessionsList() {
   const { t } = useTranslation()
+  const [selectedSession, setSelectedSession] = useState<DeviceSessionDto | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
+
   const { data: sessions, isLoading, error } = useSessions()
   const revokeSession = useRevokeSession()
   const revokeAllSessions = useRevokeAllSessions()
   const trustSession = useTrustSession()
   const updateSession = useUpdateSession()
+
+  const handleSessionClick = (session: DeviceSessionDto) => {
+    setSelectedSession(session)
+    setSheetOpen(true)
+  }
 
   if (isLoading) {
     return (
@@ -74,6 +85,7 @@ export function SessionsList() {
             onRevoke={(id) => revokeSession.mutate(id)}
             onTrust={(id) => trustSession.mutate(id)}
             onRename={(id, name) => updateSession.mutate({ sessionId: id, request: { name } })}
+            onClick={handleSessionClick}
             isRevoking={revokeSession.isPending && revokeSession.variables === session.id}
             isTrusting={trustSession.isPending && trustSession.variables === session.id}
             isRenaming={updateSession.isPending && updateSession.variables?.sessionId === session.id}
@@ -116,6 +128,18 @@ export function SessionsList() {
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      <SessionDetailsSheet
+        session={selectedSession}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onRevoke={(id) => revokeSession.mutate(id)}
+        onTrust={(id) => trustSession.mutate(id)}
+        onRename={(id, name) => updateSession.mutate({ sessionId: id, request: { name } })}
+        isRevoking={revokeSession.isPending && revokeSession.variables === selectedSession?.id}
+        isTrusting={trustSession.isPending && trustSession.variables === selectedSession?.id}
+        isRenaming={updateSession.isPending && updateSession.variables?.sessionId === selectedSession?.id}
+      />
     </div>
   )
 }

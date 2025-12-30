@@ -1,5 +1,6 @@
 using ExoAuth.Infrastructure.Services;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -8,6 +9,7 @@ namespace ExoAuth.UnitTests.Services;
 public sealed class EmailTemplateServiceTests : IDisposable
 {
     private readonly Mock<ILogger<EmailTemplateService>> _mockLogger;
+    private readonly IConfiguration _configuration;
     private readonly EmailTemplateService _service;
     private readonly string _tempDir;
     private readonly string _templatesDir;
@@ -15,7 +17,10 @@ public sealed class EmailTemplateServiceTests : IDisposable
     public EmailTemplateServiceTests()
     {
         _mockLogger = new Mock<ILogger<EmailTemplateService>>();
-        _service = new EmailTemplateService(_mockLogger.Object);
+        _configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .Build();
+        _service = new EmailTemplateService(_configuration, _mockLogger.Object);
 
         // Create temp directory for test templates
         _tempDir = Path.Combine(Path.GetTempPath(), "exoauth-tests-" + Guid.NewGuid().ToString("N"));

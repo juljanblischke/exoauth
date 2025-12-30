@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/tooltip'
 import { RelativeTime } from '@/components/shared'
 import { ConfirmDialog } from '@/components/shared/feedback'
+import { SessionDetailsSheet } from '@/features/auth/components'
 import { useUserSessions, useRevokeUserSession, useRevokeUserSessions } from '../hooks'
 import type { DeviceSessionDto } from '@/features/auth/types'
 
@@ -44,17 +45,30 @@ interface SessionItemProps {
   session: DeviceSessionDto
   userId: string
   onRevoke: (sessionId: string) => void
+  onClick?: (session: DeviceSessionDto) => void
   isRevoking: boolean
   revokingSessionId: string | null
 }
 
-function SessionItem({ session, userId, onRevoke, isRevoking, revokingSessionId }: SessionItemProps) {
+function SessionItem({ session, userId, onRevoke, onClick, isRevoking, revokingSessionId }: SessionItemProps) {
   const { t } = useTranslation()
   const DeviceIcon = getDeviceIcon(session.deviceType)
   const isThisRevoking = isRevoking && revokingSessionId === session.id
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick(session)
+    }
+  }
+
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg border bg-card">
+    <div
+      className={`flex items-start gap-3 p-3 rounded-lg border bg-card ${onClick ? 'cursor-pointer hover:bg-accent/50 transition-colors' : ''}`}
+      onClick={handleClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => e.key === 'Enter' && handleClick() : undefined}
+    >
       <div className="flex-shrink-0 p-2 rounded-full bg-muted">
         <DeviceIcon className="h-4 w-4 text-muted-foreground" />
       </div>
@@ -97,7 +111,10 @@ function SessionItem({ session, userId, onRevoke, isRevoking, revokingSessionId 
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-destructive"
-            onClick={() => onRevoke(session.id)}
+            onClick={(e) => {
+              e.stopPropagation()
+              onRevoke(session.id)
+            }}
             disabled={isRevoking}
           >
             {isThisRevoking ? (
@@ -119,10 +136,32 @@ export function UserSessionsSection({ userId, onSessionsRevoked }: UserSessionsS
   const { t } = useTranslation()
   const [showRevokeAllDialog, setShowRevokeAllDialog] = useState(false)
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null)
+  const [selectedSession, setSelectedSession] = useState<DeviceSessionDto | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const { data: sessions, isLoading } = useUserSessions(userId)
   const { mutate: revokeSession, isPending: isRevokingSingle } = useRevokeUserSession()
   const { mutate: revokeSessions, isPending: isRevokingAll } = useRevokeUserSessions()
+
+  const handleSessionClick = (session: DeviceSessionDto) => {
+    setSelectedSession(session)
+    setSheetOpen(true)
+  }
+
+  const handleRevokeFromSheet = (sessionId: string) => {
+    setRevokingSessionId(sessionId)
+    revokeSession(
+      { userId, sessionId },
+      {
+        onSuccess: () => {
+          setSheetOpen(false)
+        },
+        onSettled: () => {
+          setRevokingSessionId(null)
+        },
+      }
+    )
+  }
 
   const handleRevokeSingle = (sessionId: string) => {
     setRevokingSessionId(sessionId)
@@ -197,6 +236,7 @@ export function UserSessionsSection({ userId, onSessionsRevoked }: UserSessionsS
               session={session}
               userId={userId}
               onRevoke={handleRevokeSingle}
+              onClick={handleSessionClick}
               isRevoking={isRevokingSingle}
               revokingSessionId={revokingSessionId}
             />
@@ -213,6 +253,14 @@ export function UserSessionsSection({ userId, onSessionsRevoked }: UserSessionsS
         variant="destructive"
         onConfirm={handleRevokeAll}
         isLoading={isRevokingAll}
+      />
+
+      <SessionDetailsSheet
+        session={selectedSession}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onRevoke={handleRevokeFromSheet}
+        isRevoking={isRevokingSingle && revokingSessionId === selectedSession?.id}
       />
     </div>
   )

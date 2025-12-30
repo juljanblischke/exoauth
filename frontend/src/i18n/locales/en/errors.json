@@ -22,6 +22,7 @@
     "SYSTEM_CANNOT_DELETE_SELF": "Cannot delete yourself",
     "SYSTEM_USER_ANONYMIZED": "This user has been anonymized and cannot be modified",
     "SYSTEM_FORBIDDEN": "No permission for this action",
+    "INVITE_NOT_EDITABLE": "This invitation can no longer be edited",
     "INTERNAL_ERROR": "An internal error occurred. Please try again later.",
     "VALIDATION_REQUIRED": "This field is required",
     "VALIDATION_INVALID_FORMAT": "Invalid format",

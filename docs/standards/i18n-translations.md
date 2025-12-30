@@ -331,6 +331,13 @@ frontend/src/i18n/
 | `filters.status` | Status | Status |
 | `filters.role` | Role | Rolle |
 | `filters.all` | All | Alle |
+| `filters.accountLock` | Account Lock | Kontosperre |
+| `filters.locked` | Locked | Gesperrt |
+| `filters.unlocked` | Unlocked | Entsperrt |
+| `filters.mfa` | MFA | MFA |
+| `filters.mfaEnabled` | MFA Enabled | MFA aktiviert |
+| `filters.mfaDisabled` | MFA Disabled | MFA deaktiviert |
+| `filters.showAnonymized` | Show Anonymized | Anonymisierte anzeigen |
 | `tabs.users` | Users | Benutzer |
 | `tabs.invitations` | Invitations | Einladungen |
 | `fields.security` | Security | Sicherheit |
@@ -350,6 +357,8 @@ frontend/src/i18n/
 | `invites.status.accepted` | Accepted | Angenommen |
 | `invites.status.expired` | Expired | Abgelaufen |
 | `invites.status.revoked` | Revoked | Widerrufen |
+| `invites.filters.showExpired` | Show Expired | Abgelaufene anzeigen |
+| `invites.filters.showRevoked` | Show Revoked | Widerrufene anzeigen |
 | `invites.fields.email` | Email | E-Mail |
 | `invites.fields.name` | Name | Name |
 | `invites.fields.status` | Status | Status |
@@ -369,6 +378,9 @@ frontend/src/i18n/
 | `invites.revoke.success` | Invitation revoked | Einladung widerrufen |
 | `invites.details.title` | Invitation Details | Einladungsdetails |
 | `invites.details.permissions` | Permissions | Berechtigungen |
+| `invites.edit.title` | Edit Invitation | Einladung bearbeiten |
+| `invites.edit.description` | Update the invitation details and permissions | Aktualisieren Sie die Einladungsdetails und Berechtigungen |
+| `invites.edit.success` | Invitation updated successfully | Einladung erfolgreich aktualisiert |
 | `admin.actions.title` | Admin Actions | Admin-Aktionen |
 | `admin.sessions.sectionTitle` | Active Sessions | Aktive Sitzungen |
 | `admin.sessions.title` | Sessions | Sitzungen |
@@ -509,6 +521,16 @@ frontend/src/i18n/
 | `created` | Created | Erstellt |
 | `empty` | No other active sessions | Keine weiteren aktiven Sitzungen |
 | `loading` | Loading sessions... | Sitzungen werden geladen... |
+| `details.title` | Session Details | Sitzungsdetails |
+| `details.description` | View detailed information about this session | Detaillierte Informationen zu dieser Sitzung anzeigen |
+| `details.deviceInfo` | Device Information | Geraeteinformationen |
+| `details.browser` | Browser | Browser |
+| `details.os` | Operating System | Betriebssystem |
+| `details.deviceType` | Device Type | Geraetetyp |
+| `details.location` | Location | Standort |
+| `details.ipAddress` | IP Address | IP-Adresse |
+| `details.locationLabel` | Location | Standort |
+| `details.timeline` | Timeline | Zeitverlauf |
 | `revoke.button` | Log Out | Abmelden |
 | `revoke.title` | Log Out Device | Geraet abmelden |
 | `revoke.description` | This will end the session on this device... | Dies beendet die Sitzung auf diesem Geraet... |
@@ -559,6 +581,7 @@ frontend/src/i18n/
 | `codes.SYSTEM_CANNOT_DELETE_SELF` | Cannot delete yourself | Kann sich selbst nicht löschen |
 | `codes.SYSTEM_USER_ANONYMIZED` | This user has been anonymized and cannot be modified | Dieser Benutzer wurde anonymisiert und kann nicht bearbeitet werden |
 | `codes.SYSTEM_FORBIDDEN` | No permission for this action | Keine Berechtigung für diese Aktion |
+| `codes.INVITE_NOT_EDITABLE` | This invitation can no longer be edited | Diese Einladung kann nicht mehr bearbeitet werden |
 | `codes.INTERNAL_ERROR` | An internal error occurred. Please try again later. | Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es später erneut. |
 | `codes.VALIDATION_REQUIRED` | This field is required | Dieses Feld ist erforderlich |
 | `codes.VALIDATION_INVALID_FORMAT` | Invalid format | Ungültiges Format |

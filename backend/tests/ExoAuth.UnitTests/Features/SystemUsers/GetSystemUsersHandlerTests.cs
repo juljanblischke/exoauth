@@ -146,9 +146,11 @@ public sealed class GetSystemUsersHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithIsAnonymizedNull_ShowsAllUsers()
+    public async Task Handle_WithIsAnonymizedNull_PassesNullToRepository()
     {
         // Arrange
+        // Note: Repository will hide anonymized users when IsAnonymized is null or false
+        // Only when IsAnonymized=true will it show all users including anonymized
         var users = new List<SystemUser>();
 
         _mockUserRepository.Setup(x => x.GetPagedAsync(
@@ -177,7 +179,7 @@ public sealed class GetSystemUsersHandlerTests
             null,
             null,
             null,
-            null, // No filter - shows all
+            null, // Null hides anonymized (same as false in repository)
             null,
             null,
             It.IsAny<CancellationToken>()), Times.Once);

@@ -106,12 +106,13 @@ Verbesserungen an bestehenden Backend-Systemen: Session-basierte Reauth, Email-S
 | Datei | Was ändern? |
 |-------|-------------|
 | `IEmailTemplateService.cs` | `GetSubject(templateName, language)` Methode hinzufügen |
-| `EmailTemplateService.cs` | Subject aus JSON laden |
+| `EmailTemplateService.cs` | Subject aus JSON laden, **konfigurierbarer BasePath via IConfiguration** |
 | `EmailService.cs` | Hardcoded subjects entfernen, Service nutzen |
 | `MfaDisableHandler.cs` | `year` Variable hinzufügen |
 | `MfaConfirmHandler.cs` | `year` Variable hinzufügen |
 | Andere Handler | `year` Variable prüfen/hinzufügen |
 | `EmailTemplateServiceTests.cs` | Tests für GetSubject |
+| `docker-compose.yml` | `Templates__BasePath=/app/templates/emails` für API Service |
 
 ### Phase 3: User List Filters & Indexes
 | Datei | Was ändern? |
@@ -160,10 +161,11 @@ Keine neuen Packages erforderlich.
 1. [x] `templates/emails/en-US/subjects.json` erstellen
 2. [x] `templates/emails/de-DE/subjects.json` erstellen
 3. [x] `IEmailTemplateService.cs` - GetSubject Methode
-4. [x] `EmailTemplateService.cs` - JSON laden & parsen
+4. [x] `EmailTemplateService.cs` - JSON laden & parsen + **konfigurierbarer BasePath**
 5. [x] `EmailService.cs` - Hardcoded subjects entfernen
 6. [x] Handler mit fehlender `year` Variable fixen
-7. [x] Unit Tests
+7. [x] `docker-compose.yml` - `Templates__BasePath` Config für API
+8. [x] Unit Tests
 
 ### Phase 3: User List Filters & Indexes ✅
 1. [x] Migration für neue Indexes
@@ -263,6 +265,35 @@ On re-auth: clear only THAT session's flag
 }
 ```
 
+### Email Templates Path - Docker Fix
+
+**Problem:** `AppDomain.CurrentDomain.BaseDirectory` zeigt in Docker Dev Mode auf `/app/src/ExoAuth.Api/bin/Debug/net8.0/` statt `/app/`
+
+**Lösung:** Konfigurierbarer BasePath via `IConfiguration`
+
+```csharp
+// EmailTemplateService.cs
+public EmailTemplateService(IConfiguration configuration, ILogger<EmailTemplateService> logger)
+{
+    var configuredPath = configuration.GetValue<string>("Templates:BasePath");
+
+    if (!string.IsNullOrEmpty(configuredPath) && Path.IsPathRooted(configuredPath))
+    {
+        _templatesBasePath = configuredPath;
+    }
+    else
+    {
+        _templatesBasePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configuredPath ?? "templates/emails");
+    }
+}
+```
+
+```yaml
+# docker-compose.yml - API Service
+environment:
+  - Templates__BasePath=/app/templates/emails
+```
+
 ### Invite Status SQL Filtering
 
 **Status zu SQL Mapping:**
@@ -321,6 +352,11 @@ public sealed record GetSystemUsersQuery(
     bool? IsLocked = null,
     bool? MfaEnabled = null
 ) : IQuery<CursorPagedList<SystemUserDto>>;
+
+// Repository Filter Logic:
+// isAnonymized = true  → Show ALL users (including anonymized)
+// isAnonymized = false → Hide anonymized users (default)
+// isAnonymized = null  → Hide anonymized users (same as false)
 ```
 
 ### Invite List Default Behavior

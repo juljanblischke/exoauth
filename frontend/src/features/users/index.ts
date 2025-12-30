@@ -9,6 +9,7 @@ export {
   InvitationsTable,
   useInvitationsColumns,
   InviteDetailsSheet,
+  EditInviteModal,
 } from './components'
 
 // Hooks
@@ -22,6 +23,7 @@ export {
   useSystemInvite,
   useRevokeInvite,
   useResendInvite,
+  useUpdateInvite,
   // Admin hooks
   useResetUserMfa,
   useUnlockUser,

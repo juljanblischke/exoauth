@@ -8,6 +8,18 @@
   "created": "Erstellt",
   "empty": "Keine weiteren aktiven Sitzungen",
   "loading": "Sitzungen werden geladen...",
+  "details": {
+    "title": "Sitzungsdetails",
+    "description": "Detaillierte Informationen zu dieser Sitzung anzeigen",
+    "deviceInfo": "Geraeteinformationen",
+    "browser": "Browser",
+    "os": "Betriebssystem",
+    "deviceType": "Geraetetyp",
+    "location": "Standort",
+    "ipAddress": "IP-Adresse",
+    "locationLabel": "Standort",
+    "timeline": "Zeitverlauf"
+  },
   "revoke": {
     "button": "Abmelden",
     "title": "Geraet abmelden",

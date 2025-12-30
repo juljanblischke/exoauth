@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ExoAuth.Application.Common.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace ExoAuth.Infrastructure.Services;
@@ -11,10 +12,22 @@ public sealed class EmailTemplateService : IEmailTemplateService
     private readonly string _templatesBasePath;
     private readonly ConcurrentDictionary<string, Dictionary<string, string>> _subjectsCache = new();
 
-    public EmailTemplateService(ILogger<EmailTemplateService> logger)
+    public EmailTemplateService(IConfiguration configuration, ILogger<EmailTemplateService> logger)
     {
         _logger = logger;
-        _templatesBasePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "templates", "emails");
+
+        var configuredPath = configuration.GetValue<string>("Templates:BasePath");
+
+        if (!string.IsNullOrEmpty(configuredPath) && Path.IsPathRooted(configuredPath))
+        {
+            _templatesBasePath = configuredPath;
+        }
+        else
+        {
+            _templatesBasePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configuredPath ?? "templates/emails");
+        }
+
+        _logger.LogInformation("Email templates base path: {Path}", _templatesBasePath);
     }
 
     public string Render(string templateName, Dictionary<string, string> variables, string language = "en-US")

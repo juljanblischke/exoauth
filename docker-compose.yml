@@ -13,6 +13,7 @@ services:
       - Jwt__Secret=YourSuperSecretKeyForDevelopmentThatIsAtLeast32CharactersLong!
       - GeoIp__DatabasePath=/app/data/geoip/GeoLite2-City.mmdb
       - GeoIp__Enabled=true
+      - Templates__BasePath=/app/templates/emails
     volumes:
       # GeoIP data volume (optional, for development)
       # Download GeoLite2-City.mmdb from MaxMind and place in ./data/geoip/

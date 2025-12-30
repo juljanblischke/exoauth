@@ -4,6 +4,7 @@ import type {
   SystemInviteListDto,
   SystemInviteDetailDto,
   SystemInvitesQueryParams,
+  UpdateInviteRequest,
 } from '../types'
 
 export interface SystemInvitesResponse {
@@ -14,10 +15,8 @@ export interface SystemInvitesResponse {
 export const invitesApi = {
   // Get paginated list of system invites
   getAll: async (params: SystemInvitesQueryParams = {}): Promise<SystemInvitesResponse> => {
-    // Convert status array to comma-separated string if needed
-    const statusParam = Array.isArray(params.status)
-      ? params.status.join(',')
-      : params.status
+    // Convert statuses array to comma-separated string if needed
+    const statusesParam = params.statuses?.length ? params.statuses.join(',') : undefined
 
     const { data } = await apiClient.get<ApiResponse<SystemInviteListDto[]>>(
       '/system/invites',
@@ -26,7 +25,10 @@ export const invitesApi = {
           cursor: params.cursor,
           limit: params.limit || 20,
           search: params.search,
-          status: statusParam,
+          statuses: statusesParam,
+          sort: params.sort,
+          includeExpired: params.includeExpired,
+          includeRevoked: params.includeRevoked,
         },
       }
     )
@@ -64,6 +66,15 @@ export const invitesApi = {
   resend: async (id: string): Promise<SystemInviteListDto> => {
     const { data } = await apiClient.post<ApiResponse<SystemInviteListDto>>(
       `/system/invites/${id}/resend`
+    )
+    return data.data
+  },
+
+  // Update an invite (only for pending invites)
+  update: async (id: string, request: UpdateInviteRequest): Promise<SystemInviteDetailDto> => {
+    const { data } = await apiClient.patch<ApiResponse<SystemInviteDetailDto>>(
+      `/system/invites/${id}`,
+      request
     )
     return data.data
   },

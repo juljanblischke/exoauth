@@ -26,6 +26,10 @@
       "expired": "Expired",
       "revoked": "Revoked"
     },
+    "filters": {
+      "showExpired": "Show Expired",
+      "showRevoked": "Show Revoked"
+    },
     "fields": {
       "email": "Email",
       "name": "Name",
@@ -56,6 +60,11 @@
     "details": {
       "title": "Invitation Details",
       "permissions": "Permissions"
+    },
+    "edit": {
+      "title": "Edit Invitation",
+      "description": "Update the invitation details and permissions",
+      "success": "Invitation updated successfully"
     }
   },
   "fields": {
@@ -193,6 +202,13 @@
   "filters": {
     "status": "Status",
     "role": "Role",
-    "all": "All"
+    "all": "All",
+    "accountLock": "Account Lock",
+    "locked": "Locked",
+    "unlocked": "Unlocked",
+    "mfa": "MFA",
+    "mfaEnabled": "MFA Enabled",
+    "mfaDisabled": "MFA Disabled",
+    "showAnonymized": "Show Anonymized"
   }
 }

@@ -25,6 +25,10 @@ export const usersApi = {
         sort: params.sort,
         search: params.search,
         permissionIds: params.permissionIds?.join(','),
+        isActive: params.isActive,
+        isAnonymized: params.isAnonymized,
+        isLocked: params.isLocked,
+        mfaEnabled: params.mfaEnabled,
       },
     })
     const pagination: CursorPaginationMeta = (data.meta?.pagination as unknown as CursorPaginationMeta) ?? {

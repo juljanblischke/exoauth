@@ -6,21 +6,27 @@ export const SYSTEM_INVITES_KEY = ['system', 'invites'] as const
 
 interface UseSystemInvitesOptions {
   search?: string
-  status?: InviteStatus | InviteStatus[]
+  statuses?: InviteStatus[]
+  sort?: string
+  includeExpired?: boolean
+  includeRevoked?: boolean
   limit?: number
 }
 
 export function useSystemInvites(options: UseSystemInvitesOptions = {}) {
-  const { search, status, limit = 20 } = options
+  const { search, statuses, sort, includeExpired, includeRevoked, limit = 20 } = options
 
   return useInfiniteQuery({
-    queryKey: [...SYSTEM_INVITES_KEY, { search, status }],
+    queryKey: [...SYSTEM_INVITES_KEY, { search, statuses, sort, includeExpired, includeRevoked }],
     queryFn: async ({ pageParam }) => {
       const params: SystemInvitesQueryParams = {
         cursor: pageParam as string | undefined,
         limit,
         search,
-        status,
+        statuses,
+        sort,
+        includeExpired,
+        includeRevoked,
       }
       return invitesApi.getAll(params)
     },

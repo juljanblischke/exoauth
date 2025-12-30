@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { type ColumnDef, type Column } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
-import { ArrowUp, ArrowDown, ChevronsUpDown, Eye, Send, XCircle } from 'lucide-react'
+import { ArrowUp, ArrowDown, ChevronsUpDown, Eye, Pencil, Send, XCircle } from 'lucide-react'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { RelativeTime } from '@/components/shared/relative-time'
@@ -72,12 +72,14 @@ function SortableHeader<T>({ column, label }: { column: Column<T>; label: string
 
 interface UseInvitationsColumnsOptions {
   onViewDetails?: (invite: SystemInviteListDto) => void
+  onEdit?: (invite: SystemInviteListDto) => void
   onResend?: (invite: SystemInviteListDto) => void
   onRevoke?: (invite: SystemInviteListDto) => void
 }
 
 export function useInvitationsColumns({
   onViewDetails,
+  onEdit,
   onResend,
   onRevoke,
 }: UseInvitationsColumnsOptions): ColumnDef<SystemInviteListDto>[] {
@@ -151,7 +153,7 @@ export function useInvitationsColumns({
   ]
 
   // Add actions column if any action is available
-  const hasAnyAction = onViewDetails || onResend || onRevoke
+  const hasAnyAction = onViewDetails || onEdit || onResend || onRevoke
   if (hasAnyAction) {
     columns.push({
       id: 'actions',
@@ -167,6 +169,17 @@ export function useInvitationsColumns({
             label: t('users:invites.actions.viewDetails'),
             icon: <Eye className="h-4 w-4" />,
             onClick: onViewDetails,
+          })
+        }
+
+        if (onEdit) {
+          // Can only edit pending invites
+          const canEdit = invite.status === 'pending'
+          actions.push({
+            label: t('common:actions.edit'),
+            icon: <Pencil className="h-4 w-4" />,
+            onClick: onEdit,
+            disabled: !canEdit,
           })
         }
 

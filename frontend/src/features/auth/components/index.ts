@@ -13,6 +13,7 @@ export { BackupCodesDisplay } from './backup-codes-display'
 // Session components
 export { SessionCard } from './session-card'
 export { SessionsList } from './sessions-list'
+export { SessionDetailsSheet } from './session-details-sheet'
 
 // Password reset components
 export { ForgotPasswordModal } from './forgot-password-modal'

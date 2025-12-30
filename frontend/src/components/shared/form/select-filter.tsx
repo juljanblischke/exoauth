@@ -120,7 +120,7 @@ export function SelectFilter(props: SelectFilterProps) {
                 {options.map((option) => (
                   <CommandItem
                     key={option.value}
-                    value={option.label}
+                    value={`${option.value}::${option.label}`}
                     onSelect={() => handleSelect(option.value)}
                   >
                     <Check
@@ -197,7 +197,7 @@ export function SelectFilter(props: SelectFilterProps) {
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label}
+                  value={`${option.value}::${option.label}`}
                   onSelect={() => {
                     onChange?.(option.value === value ? undefined : option.value)
                     setOpen(false)

@@ -1,11 +1,13 @@
 import { useState, useMemo, useCallback, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Eye, Send, XCircle } from 'lucide-react'
+import { Eye, Send, XCircle, Pencil } from 'lucide-react'
 import { type SortingState } from '@tanstack/react-table'
 import { DataTable } from '@/components/shared/data-table'
 import { SelectFilter, type SelectFilterOption } from '@/components/shared/form'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import { useDebounce } from '@/hooks'
 import { useSystemInvites } from '../hooks'
 import { useInvitationsColumns } from './invitations-table-columns'
@@ -20,27 +22,57 @@ const statusMap: Record<InviteStatus, 'success' | 'warning' | 'error' | 'neutral
   revoked: 'error',
 }
 
-// All possible invite statuses
+// All possible invite statuses (for filter when showing expired/revoked)
 const INVITE_STATUSES: InviteStatus[] = ['pending', 'accepted', 'expired', 'revoked']
+// Default statuses shown when not including expired/revoked
+const DEFAULT_STATUSES: InviteStatus[] = ['pending', 'accepted']
 
 interface InvitationsTableProps {
   onViewDetails?: (invite: SystemInviteListDto) => void
+  onEdit?: (invite: SystemInviteListDto) => void
   onResend?: (invite: SystemInviteListDto) => void
   onRevoke?: (invite: SystemInviteListDto) => void
   onRowClick?: (invite: SystemInviteListDto) => void
 }
 
+// Map column IDs to backend field names
+const sortFieldMap: Record<string, string> = {
+  email: 'email',
+  name: 'firstName',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+}
+
 export function InvitationsTable({
   onViewDetails,
+  onEdit,
   onResend,
   onRevoke,
   onRowClick,
 }: InvitationsTableProps) {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [statusFilter, setStatusFilter] = useState<string | undefined>()
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }])
+  const [statusFilters, setStatusFilters] = useState<string[]>([])
+  const [showExpired, setShowExpired] = useState(false)
+  const [showRevoked, setShowRevoked] = useState(false)
   const debouncedSearch = useDebounce(search, 300)
+
+  // Convert sorting state to backend format
+  const sortParam = useMemo(() => {
+    if (sorting.length === 0) return undefined
+    const s = sorting[0]
+    const field = sortFieldMap[s.id] || s.id
+    return `${field}:${s.desc ? 'desc' : 'asc'}`
+  }, [sorting])
+
+  // Determine which statuses to filter by
+  const activeStatuses = useMemo(() => {
+    if (statusFilters.length > 0) {
+      return statusFilters as InviteStatus[]
+    }
+    return undefined
+  }, [statusFilters])
 
   const {
     data,
@@ -50,7 +82,10 @@ export function InvitationsTable({
     hasNextPage,
   } = useSystemInvites({
     search: debouncedSearch || undefined,
-    status: statusFilter ? [statusFilter as InviteStatus] : undefined,
+    statuses: activeStatuses,
+    sort: sortParam,
+    includeExpired: showExpired,
+    includeRevoked: showRevoked,
   })
 
   const invites = useMemo(
@@ -60,6 +95,7 @@ export function InvitationsTable({
 
   const columns = useInvitationsColumns({
     onViewDetails,
+    onEdit,
     onResend,
     onRevoke,
   })
@@ -72,6 +108,15 @@ export function InvitationsTable({
         label: t('users:invites.actions.viewDetails'),
         icon: <Eye className="h-4 w-4" />,
         onClick: onViewDetails,
+      })
+    }
+
+    if (onEdit) {
+      actions.push({
+        label: t('common:actions.edit'),
+        icon: <Pencil className="h-4 w-4" />,
+        onClick: onEdit,
+        disabled: (invite) => invite.status !== 'pending',
       })
     }
 
@@ -97,7 +142,7 @@ export function InvitationsTable({
     }
 
     return actions
-  }, [t, onViewDetails, onResend, onRevoke])
+  }, [t, onViewDetails, onEdit, onResend, onRevoke])
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetching) {
@@ -105,21 +150,52 @@ export function InvitationsTable({
     }
   }, [hasNextPage, isFetching, fetchNextPage])
 
-  // Build status filter options
+  // Build status filter options based on what's currently shown
   const statusOptions: SelectFilterOption[] = useMemo(() => {
-    return INVITE_STATUSES.map((status) => ({
+    const availableStatuses = showExpired && showRevoked
+      ? INVITE_STATUSES
+      : showExpired
+        ? ['pending', 'accepted', 'expired'] as InviteStatus[]
+        : showRevoked
+          ? ['pending', 'accepted', 'revoked'] as InviteStatus[]
+          : DEFAULT_STATUSES
+
+    return availableStatuses.map((status) => ({
       label: t(`users:invites.status.${status}`),
       value: status,
     }))
-  }, [t])
+  }, [t, showExpired, showRevoked])
 
   const filterContent = (
-    <SelectFilter
-      label={t('users:invites.fields.status')}
-      options={statusOptions}
-      value={statusFilter}
-      onChange={setStatusFilter}
-    />
+    <div className="flex flex-wrap items-center gap-2">
+      <SelectFilter
+        label={t('users:invites.fields.status')}
+        options={statusOptions}
+        multiple
+        values={statusFilters}
+        onValuesChange={setStatusFilters}
+      />
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="show-expired"
+          checked={showExpired}
+          onCheckedChange={(checked) => setShowExpired(checked === true)}
+        />
+        <Label htmlFor="show-expired" className="text-sm font-normal cursor-pointer">
+          {t('users:invites.filters.showExpired')}
+        </Label>
+      </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="show-revoked"
+          checked={showRevoked}
+          onCheckedChange={(checked) => setShowRevoked(checked === true)}
+        />
+        <Label htmlFor="show-revoked" className="text-sm font-normal cursor-pointer">
+          {t('users:invites.filters.showRevoked')}
+        </Label>
+      </div>
+    </div>
   )
 
   return (

@@ -15,6 +15,7 @@ import {
   UserPermissionsModal,
   InvitationsTable,
   InviteDetailsSheet,
+  EditInviteModal,
   useRevokeInvite,
   useResendInvite,
   type SystemUserDto,
@@ -39,6 +40,7 @@ export function UsersPage() {
 
   // Invite sheets/dialogs state
   const [detailsInvite, setDetailsInvite] = useState<SystemInviteListDto | null>(null)
+  const [editInvite, setEditInvite] = useState<SystemInviteListDto | null>(null)
   const [revokeTarget, setRevokeTarget] = useState<SystemInviteListDto | null>(null)
 
   // User handlers
@@ -49,6 +51,7 @@ export function UsersPage() {
   // Invite handlers
   const handleInviteRowClick = (invite: SystemInviteListDto) => setDetailsInvite(invite)
   const handleViewInviteDetails = (invite: SystemInviteListDto) => setDetailsInvite(invite)
+  const handleEditInvite = (invite: SystemInviteListDto) => setEditInvite(invite)
 
   const handleResendInvite = (invite: SystemInviteListDto) => {
     resendInvite(invite.id, {
@@ -114,6 +117,7 @@ export function UsersPage() {
         <TabsContent value="invitations" className="space-y-4">
           <InvitationsTable
             onViewDetails={handleViewInviteDetails}
+            onEdit={canUpdate ? handleEditInvite : undefined}
             onResend={canUpdate ? handleResendInvite : undefined}
             onRevoke={canUpdate ? handleRevokeInvite : undefined}
             onRowClick={handleInviteRowClick}
@@ -151,6 +155,12 @@ export function UsersPage() {
         invite={detailsInvite}
         onResend={canUpdate ? handleResendInvite : undefined}
         onRevoke={canUpdate ? handleRevokeInvite : undefined}
+      />
+
+      <EditInviteModal
+        open={!!editInvite}
+        onOpenChange={(open) => !open && setEditInvite(null)}
+        invite={editInvite}
       />
 
       <ConfirmDialog

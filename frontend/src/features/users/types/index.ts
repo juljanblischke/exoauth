@@ -65,6 +65,11 @@ export interface SystemUsersQueryParams {
   sort?: string
   search?: string
   permissionIds?: string[]
+  // User status filters
+  isActive?: boolean
+  isAnonymized?: boolean
+  isLocked?: boolean
+  mfaEnabled?: boolean
 }
 
 // Form schemas

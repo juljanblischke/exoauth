@@ -26,6 +26,10 @@
       "expired": "Abgelaufen",
       "revoked": "Widerrufen"
     },
+    "filters": {
+      "showExpired": "Abgelaufene anzeigen",
+      "showRevoked": "Widerrufene anzeigen"
+    },
     "fields": {
       "email": "E-Mail",
       "name": "Name",
@@ -56,6 +60,11 @@
     "details": {
       "title": "Einladungsdetails",
       "permissions": "Berechtigungen"
+    },
+    "edit": {
+      "title": "Einladung bearbeiten",
+      "description": "Aktualisieren Sie die Einladungsdetails und Berechtigungen",
+      "success": "Einladung erfolgreich aktualisiert"
     }
   },
   "fields": {
@@ -193,6 +202,13 @@
   "filters": {
     "status": "Status",
     "role": "Rolle",
-    "all": "Alle"
+    "all": "Alle",
+    "accountLock": "Kontosperre",
+    "locked": "Gesperrt",
+    "unlocked": "Entsperrt",
+    "mfa": "MFA",
+    "mfaEnabled": "MFA aktiviert",
+    "mfaDisabled": "MFA deaktiviert",
+    "showAnonymized": "Anonymisierte anzeigen"
   }
 }

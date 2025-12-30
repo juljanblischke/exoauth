@@ -11,4 +11,4 @@ services:
       - ./backend:/app
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      #- DOTNET_USE_POLLING_FILE_WATCHER=1

@@ -159,36 +159,38 @@ Keine neuen Packages erforderlich.
 ## 8. Implementation Reihenfolge
 
 ### Phase 1: Bug Fix ✅
-1. [ ] `select-filter.tsx` - Fix duplicate name bug
+1. [x] `select-filter.tsx` - Fix duplicate name bug
 
-### Phase 2: User List Filters
-1. [ ] Types: `SystemUsersQueryParams` erweitern
-2. [ ] API: `users-api.ts` params hinzufügen
-3. [ ] Hook: `use-system-users.ts` filter options
-4. [ ] UI: `users-table.tsx` filter dropdowns & toggle
-5. [ ] i18n: Filter labels
+### Phase 2: User List Filters ✅
+1. [x] Types: `SystemUsersQueryParams` erweitern
+2. [x] API: `users-api.ts` params hinzufügen
+3. [x] Hook: `use-system-users.ts` filter options
+4. [x] UI: `users-table.tsx` filter dropdowns & toggle
+5. [x] i18n: Filter labels
 
-### Phase 3: Invite List Filters & Sorting
-1. [ ] Types: Sort & filter params in `invites.ts`
-2. [ ] API: `invites-api.ts` neue params
-3. [ ] Hook: `use-system-invites.ts` sort & filter
-4. [ ] UI: `invitations-table.tsx` sort dropdown, status filter
-5. [ ] i18n: Sort & filter labels
+### Phase 3: Invite List Filters & Sorting ✅
+1. [x] Types: Sort & filter params in `invites.ts`
+2. [x] API: `invites-api.ts` neue params
+3. [x] Hook: `use-system-invites.ts` sort & filter
+4. [x] UI: `invitations-table.tsx` sort dropdown, status filter
+5. [x] i18n: Sort & filter labels
 
-### Phase 4: Edit Invite
-1. [ ] API: `invites-api.ts` update method
-2. [ ] Hook: `use-update-invite.ts` erstellen
-3. [ ] Component: `edit-invite-modal.tsx` erstellen
-4. [ ] UI: `invite-details-sheet.tsx` edit button
-5. [ ] i18n: Edit invite texts, INVITE_NOT_EDITABLE error
+### Phase 4: Edit Invite ✅
+1. [x] API: `invites-api.ts` update method
+2. [x] Hook: `use-update-invite.ts` erstellen
+3. [x] Component: `edit-invite-modal.tsx` erstellen
+4. [x] UI: `invite-details-sheet.tsx` edit button
+5. [x] UI: `invitations-table.tsx` & `invitations-table-columns.tsx` edit action
+6. [x] Fix: `use-invite-user.ts` invalidate invites cache after create
+7. [x] i18n: Edit invite texts, INVITE_NOT_EDITABLE error
 
-### Phase 5: Session Details Sheet
-1. [ ] Component: `session-details-sheet.tsx` erstellen
-2. [ ] Update: `session-card.tsx` onClick prop
-3. [ ] Update: `sessions-list.tsx` sheet integration
-4. [ ] Update: `sessions-section.tsx` (settings)
-5. [ ] Update: `user-sessions-section.tsx` (admin)
-6. [ ] i18n: Details sheet texts
+### Phase 5: Session Details Sheet ✅
+1. [x] Component: `session-details-sheet.tsx` erstellen
+2. [x] Update: `session-card.tsx` onClick prop
+3. [x] Update: `sessions-list.tsx` sheet integration
+4. [x] Update: `sessions-section.tsx` (settings) - no changes needed, uses SessionsList
+5. [x] Update: `user-sessions-section.tsx` (admin)
+6. [x] i18n: Details sheet texts
 
 ### Phase 6: Finalisierung
 1. [ ] Alle Tests grün

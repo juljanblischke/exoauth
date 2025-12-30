@@ -39,6 +39,7 @@ interface SessionCardProps {
   onRevoke: (sessionId: string) => void
   onTrust: (sessionId: string) => void
   onRename: (sessionId: string, name: string) => void
+  onClick?: (session: DeviceSessionDto) => void
   isRevoking?: boolean
   isTrusting?: boolean
   isRenaming?: boolean
@@ -60,6 +61,7 @@ export function SessionCard({
   onRevoke,
   onTrust,
   onRename,
+  onClick,
   isRevoking,
   isTrusting,
   isRenaming,
@@ -78,9 +80,21 @@ export function SessionCard({
     }
   }
 
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(session)
+    }
+  }
+
   return (
     <>
-      <div className="flex items-start gap-4 p-4 rounded-lg border bg-card">
+      <div
+        className={`flex items-start gap-4 p-4 rounded-lg border bg-card ${onClick ? 'cursor-pointer hover:bg-accent/50 transition-colors' : ''}`}
+        onClick={handleCardClick}
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        onKeyDown={onClick ? (e) => e.key === 'Enter' && handleCardClick() : undefined}
+      >
         <div className="flex-shrink-0 p-2 rounded-full bg-muted">
           <DeviceIcon className="h-5 w-5 text-muted-foreground" />
         </div>
@@ -119,7 +133,12 @@ export function SessionCard({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" disabled={isLoading}>
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={isLoading}
+              onClick={(e) => e.stopPropagation()}
+            >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (

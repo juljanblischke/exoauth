@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Mail, Calendar, Clock, Shield, Send, XCircle, User, Check } from 'lucide-react'
+import { Mail, Calendar, Clock, Shield, Send, XCircle, User, Check, Pencil } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -14,6 +14,7 @@ import { UserAvatar } from '@/components/shared/user-avatar'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { useSystemInvite } from '../hooks'
+import { EditInviteModal } from './edit-invite-modal'
 import type { SystemInviteListDto, InviteStatus, InvitePermissionDto } from '../types'
 
 // Map invite status to StatusBadge status
@@ -55,6 +56,7 @@ export function InviteDetailsSheet({
 }: InviteDetailsSheetProps) {
   const { t } = useTranslation()
   const { data: inviteDetails, isLoading } = useSystemInvite(open ? invite?.id ?? null : null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
 
   const permissionGroups = useMemo(() => {
     if (!inviteDetails?.permissions) return []
@@ -68,6 +70,7 @@ export function InviteDetailsSheet({
   const fullName = `${displayInvite.firstName} ${displayInvite.lastName}`.trim()
   const canResend = displayInvite.status === 'pending' || displayInvite.status === 'expired'
   const canRevoke = displayInvite.status === 'pending'
+  const canEdit = displayInvite.status === 'pending'
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -244,8 +247,18 @@ export function InviteDetailsSheet({
         </div>
 
         {/* Fixed bottom actions */}
-        {(onResend || onRevoke) && (
+        {(onResend || onRevoke || canEdit) && (
           <div className="shrink-0 border-t p-6 flex gap-2">
+            {canEdit && (
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setEditModalOpen(true)}
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                {t('common:actions.edit')}
+              </Button>
+            )}
             {onResend && (
               <Button
                 variant="outline"
@@ -276,6 +289,13 @@ export function InviteDetailsSheet({
             )}
           </div>
         )}
+
+        {/* Edit Invite Modal */}
+        <EditInviteModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          invite={invite}
+        />
       </SheetContent>
     </Sheet>
   )
