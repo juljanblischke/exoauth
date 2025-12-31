@@ -31,7 +31,24 @@ export function AuditLogDetailsSheet({
 
   if (!log) return null
 
-  const hasDetails = log.details && Object.keys(log.details).length > 0
+  // Parse details if it's a JSON string, otherwise use as-is
+  const parsedDetails = (() => {
+    if (!log.details) return null
+    if (typeof log.details === 'string') {
+      try {
+        return JSON.parse(log.details)
+      } catch {
+        return log.details // Return as-is if not valid JSON
+      }
+    }
+    return log.details
+  })()
+
+  const hasDetails = parsedDetails && (
+    typeof parsedDetails === 'object'
+      ? Object.keys(parsedDetails).length > 0
+      : true
+  )
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -185,7 +202,9 @@ export function AuditLogDetailsSheet({
                   {t('auditLogs:fields.details')}
                 </div>
                 <pre className="text-xs bg-muted p-3 rounded-md overflow-x-auto">
-                  {JSON.stringify(log.details, null, 2)}
+                  {typeof parsedDetails === 'object'
+                    ? JSON.stringify(parsedDetails, null, 2)
+                    : parsedDetails}
                 </pre>
               </div>
             )}

@@ -18,7 +18,7 @@
     "AUTH_USER_NOT_FOUND": "Kein Konto mit dieser E-Mail-Adresse gefunden.",
     "SYSTEM_USER_NOT_FOUND": "Benutzer nicht gefunden",
     "SYSTEM_PERMISSION_NOT_FOUND": "Berechtigung nicht gefunden",
-    "SYSTEM_LAST_PERMISSION_HOLDER": "Kann nicht entfernen - letzter Benutzer mit dieser Berechtigung",
+    "SYSTEM_LAST_PERMISSION_HOLDER": "Die Berechtigung '{{permission}}' kann nicht vom letzten Benutzer entfernt werden. Mindestens ein Benutzer muss die Berechtigungen 'system:users:update' und 'system:users:read' besitzen.",
     "SYSTEM_CANNOT_DELETE_SELF": "Kann sich selbst nicht löschen",
     "SYSTEM_USER_ANONYMIZED": "Dieser Benutzer wurde anonymisiert und kann nicht bearbeitet werden",
     "SYSTEM_FORBIDDEN": "Keine Berechtigung für diese Aktion",

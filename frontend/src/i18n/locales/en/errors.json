@@ -18,7 +18,7 @@
     "AUTH_USER_NOT_FOUND": "No account found with this email address.",
     "SYSTEM_USER_NOT_FOUND": "User not found",
     "SYSTEM_PERMISSION_NOT_FOUND": "Permission not found",
-    "SYSTEM_LAST_PERMISSION_HOLDER": "Cannot remove - last user with this permission",
+    "SYSTEM_LAST_PERMISSION_HOLDER": "Cannot remove permission '{{permission}}' from the last user who holds it. At least one user must have 'system:users:update' and 'system:users:read' permissions.",
     "SYSTEM_CANNOT_DELETE_SELF": "Cannot delete yourself",
     "SYSTEM_USER_ANONYMIZED": "This user has been anonymized and cannot be modified",
     "SYSTEM_FORBIDDEN": "No permission for this action",

@@ -65,6 +65,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const handleSessionExpired = () => {
       queryClient.setQueryData(AUTH_QUERY_KEY, null)
       queryClient.clear()
+      window.location.href = '/login'
     }
 
     const handleForceReauth = () => {
@@ -87,6 +88,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
       window.removeEventListener('auth:force-reauth', handleForceReauth)
     }
   }, [queryClient, t])
+
+  // Multi-tab logout sync: Listen for localStorage changes from other tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === AUTH_SESSION_KEY && !e.newValue) {
+        // Logged out in another tab - sync this tab
+        queryClient.setQueryData(AUTH_QUERY_KEY, null)
+        queryClient.clear()
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [queryClient])
 
   // Fetch current user - only if we might have a session
   const {

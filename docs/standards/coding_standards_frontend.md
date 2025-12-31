@@ -802,4 +802,4 @@ Jede Task-Datei (`docs/tasks/XXX_*.md`) sollte:
 ## Letzte Änderung
 
 - **Datum:** 2025-12-31
-- **Änderungen:** Task 010 complete (Session Details Sheet, Edit Invite Modal, SelectFilter bug fix, User/Invite list filters)
+- **Änderungen:** Task 012 in progress - Multi-Tab Auth Sync, Audit Log Anonymized Filter, Error Messages updated (Phases 1-2 pending: Cache Bug, Session Revoke UI)

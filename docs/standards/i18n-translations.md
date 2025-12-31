@@ -577,7 +577,7 @@ frontend/src/i18n/
 | `codes.AUTH_USER_NOT_FOUND` | No account found with this email address. | Kein Konto mit dieser E-Mail-Adresse gefunden. |
 | `codes.SYSTEM_USER_NOT_FOUND` | User not found | Benutzer nicht gefunden |
 | `codes.SYSTEM_PERMISSION_NOT_FOUND` | Permission not found | Berechtigung nicht gefunden |
-| `codes.SYSTEM_LAST_PERMISSION_HOLDER` | Cannot remove - last user with this permission | Kann nicht entfernen - letzter Benutzer mit dieser Berechtigung |
+| `codes.SYSTEM_LAST_PERMISSION_HOLDER` | Cannot remove permission '{{permission}}' from the last user who holds it. At least one user must have 'system:users:update' and 'system:users:read' permissions. | Die Berechtigung '{{permission}}' kann nicht vom letzten Benutzer entfernt werden. Mindestens ein Benutzer muss die Berechtigungen 'system:users:update' und 'system:users:read' besitzen. |
 | `codes.SYSTEM_CANNOT_DELETE_SELF` | Cannot delete yourself | Kann sich selbst nicht löschen |
 | `codes.SYSTEM_USER_ANONYMIZED` | This user has been anonymized and cannot be modified | Dieser Benutzer wurde anonymisiert und kann nicht bearbeitet werden |
 | `codes.SYSTEM_FORBIDDEN` | No permission for this action | Keine Berechtigung für diese Aktion |

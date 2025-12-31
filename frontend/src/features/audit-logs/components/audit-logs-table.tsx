@@ -21,6 +21,21 @@ const sortFieldMap: Record<string, string> = {
   createdAt: 'createdAt',
 }
 
+// Smart truncation for anonymized user emails
+// "anonymized-abc12345-def6-7890@deleted.local" → "ano...7890@deleted.local"
+function formatUserLabel(user: SystemUserDto): string {
+  if (user.isAnonymized) {
+    const email = user.email
+    const atIndex = email.indexOf('@')
+    if (atIndex === -1) return email
+    const localPart = email.substring(0, atIndex)
+    const domain = email.substring(atIndex)
+    const suffix = localPart.slice(-4)
+    return `ano...${suffix}${domain}`
+  }
+  return user.fullName || user.email
+}
+
 export function AuditLogsTable() {
   const { t } = useTranslation()
   const { hasPermission } = usePermissions()
@@ -93,11 +108,12 @@ export function AuditLogsTable() {
   }, [filtersData])
 
   // Build user filter options from users API (paginated, first page)
+  // Includes anonymized users with smart-truncated labels
   const userOptions: SelectFilterOption[] = useMemo(() => {
     if (!usersData?.pages) return []
     const users = usersData.pages.flatMap((page) => page.users)
     return users.map((user) => ({
-      label: user.fullName || user.email,
+      label: formatUserLabel(user),
       value: user.id,
     }))
   }, [usersData])

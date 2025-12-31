@@ -832,11 +832,13 @@ In der Task-Datei (`docs/tasks/XXX_*.md`):
 ## Letzte Änderung
 
 - **Datum:** 2025-12-31
-- **Status:** Frontend List Improvements Complete (Task 010)
+- **Status:** Task 012 In Progress (Phases 3, 4, 5 complete)
 - **Completed Tasks:**
   - Task 003: Foundation Complete
   - Task 004: Auth, Users, Permissions, Audit-Logs Features
   - Task 006: Frontend Improvements (Bugs, Invitations, Legal Pages, Security)
   - Task 008: Frontend Security & Settings (MFA, Sessions, Password Reset, Admin Actions)
   - Task 010: Frontend List Improvements (SelectFilter Bug, User/Invite Filters, Edit Invite, Session Details Sheet)
-- **Nächster Task:** Roles Feature, Tests
+  - Task 012 (partial): Multi-Tab Auth Sync, Session-Expired Redirect, Audit Log Anonymized Users Filter, Error Message Update
+- **In Progress:** Task 012 - Cache Bug Fix, Single Session Revoke UI
+- **Nächster Task:** Task 012 completion, then Roles Feature, Tests

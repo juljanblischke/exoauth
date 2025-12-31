@@ -621,6 +621,8 @@ public class MyCustomHealthCheck : IHealthCheck
 ## Letzte Änderung
 
 - **Datum:** 2025-12-31
+- **Task 011:** Backend Fixes - Error Codes bereits vorhanden:
+  - `SESSION_NOT_FOUND` bereits in Task 007 dokumentiert (404 - Session nicht gefunden)
 - **Task 009:** Backend Improvements - Neue Error Codes hinzugefügt:
   - `INVITE_NOT_EDITABLE` - Einladung ist nicht mehr pending (accepted/expired/revoked)
 - **Task 007:** Auth Security & Device Management - Neue Error Codes hinzugefügt:

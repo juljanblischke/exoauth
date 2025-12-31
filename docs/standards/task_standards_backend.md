@@ -318,6 +318,9 @@ backend/
 │   │       │   │   ├── RevokeUserSessions/          ✅ (Task 007)
 │   │       │   │   │   ├── RevokeUserSessionsCommand.cs ✅
 │   │       │   │   │   └── RevokeUserSessionsHandler.cs ✅
+│   │       │   │   ├── RevokeUserSession/           ✅ (Task 011)
+│   │       │   │   │   ├── RevokeUserSessionCommand.cs  ✅
+│   │       │   │   │   └── RevokeUserSessionHandler.cs  ✅
 │   │       │   │   ├── AnonymizeUser/               ✅ (Task 007)
 │   │       │   │   │   ├── AnonymizeUserCommand.cs      ✅
 │   │       │   │   │   └── AnonymizeUserHandler.cs      ✅
@@ -535,7 +538,10 @@ backend/
         │   │   ├── RevokeUserSessionsHandlerTests.cs    ✅ (Task 007)
         │   │   ├── AnonymizeUserHandlerTests.cs         ✅ (Task 007)
         │   │   ├── DeactivateSystemUserHandlerTests.cs  ✅ (Task 007)
-        │   │   └── ActivateSystemUserHandlerTests.cs    ✅ (Task 007)
+        │   │   ├── ActivateSystemUserHandlerTests.cs    ✅ (Task 007)
+        │   │   └── RevokeUserSessionHandlerTests.cs     ✅ (Task 011)
+        │   ├── SystemAuditLogs/                   ✅ (Task 011)
+        │   │   └── GetSystemAuditLogsHandlerTests.cs    ✅
         │   └── SystemInvites/
         │       ├── RevokeInviteHandlerTests.cs          ✅
         │       ├── ResendInviteHandlerTests.cs          ✅
@@ -761,7 +767,7 @@ Bei jedem neuen Endpoint MUSS geprüft werden:
 ## Letzte Änderung
 
 - **Datum:** 2025-12-31
-- **Status:** Backend Improvements komplett (Task 009)
+- **Status:** Backend Fixes komplett (Task 011)
 - **Erledigte Tasks:**
   - Task 001: Foundation & Infrastructure Setup ✅
   - Task 002: System Authentication, Users, Permissions & Audit ✅ (106 Unit Tests)
@@ -773,7 +779,16 @@ Bei jedem neuen Endpoint MUSS geprüft werden:
   - Task 008: Frontend Security & Settings ✅
   - Task 009: Backend Improvements - Reauth, Emails, Lists & Cleanup ✅
   - Task 010: Frontend List Improvements & Session Details ✅
-- **Nächster Task:** Task 011 - Backend Fixes (Session Revoke, GDPR, Audit Search, Permissions)
+  - Task 011: Backend Fixes - Session Revoke, GDPR, Audit Search & Permissions ✅ (303 Unit Tests)
+- **Nächster Task:** TBD
+- **Task 011 Updates:**
+  - Single Session Revoke API (DELETE /api/system/users/{userId}/sessions/{sessionId})
+  - GDPR: Invite deletion on user anonymization (alle Invites mit User-Email werden gelöscht)
+  - Audit Details Search (Case-insensitive search im Details JSON-Feld)
+  - Permission Safeguard erweitert (users:read UND users:update werden geprüft)
+  - UserSessionNotFoundException hinzugefügt
+  - SessionRevokedByAdmin Audit Action hinzugefügt
+  - SystemAuditLog.Details von JsonDocument? zu string? geändert (für LINQ Kompatibilität)
 - **Task 009 Updates:**
   - Session-Based Reauth (Redis key per session statt per user)
   - Email Subjects aus JSON Dateien (i18n: en-US/de-DE)

@@ -16,7 +16,7 @@ export function useUpdateInvite() {
     onSuccess: (_data, variables) => {
       // Invalidate both the list and the single invite query
       queryClient.invalidateQueries({ queryKey: SYSTEM_INVITES_KEY })
-      queryClient.invalidateQueries({ queryKey: ['system-invite', variables.id] })
+      queryClient.invalidateQueries({ queryKey: [...SYSTEM_INVITES_KEY, variables.id] })
     },
   })
 }
