@@ -64,7 +64,7 @@ export const createAcceptInviteSchema = (t: TFunction) =>
 export interface LoginFormData {
   email: string
   password: string
-  rememberMe: boolean
+  rememberMe?: boolean
 }
 
 export interface RegisterFormData {

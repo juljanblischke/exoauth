@@ -45,14 +45,14 @@ interface SessionCardProps {
   isRenaming?: boolean
 }
 
-function getDeviceIcon(deviceType: string | null) {
+function DeviceIcon({ deviceType, className }: { deviceType: string | null; className?: string }) {
   switch (deviceType?.toLowerCase()) {
     case 'mobile':
-      return Smartphone
+      return <Smartphone className={className} />
     case 'tablet':
-      return Tablet
+      return <Tablet className={className} />
     default:
-      return Monitor
+      return <Monitor className={className} />
   }
 }
 
@@ -70,7 +70,6 @@ export function SessionCard({
   const [showRenameDialog, setShowRenameDialog] = useState(false)
   const [newName, setNewName] = useState(session.deviceName || '')
 
-  const DeviceIcon = getDeviceIcon(session.deviceType)
   const isLoading = isRevoking || isTrusting || isRenaming
 
   const handleRename = () => {
@@ -96,7 +95,7 @@ export function SessionCard({
         onKeyDown={onClick ? (e) => e.key === 'Enter' && handleCardClick() : undefined}
       >
         <div className="flex-shrink-0 p-2 rounded-full bg-muted">
-          <DeviceIcon className="h-5 w-5 text-muted-foreground" />
+          <DeviceIcon deviceType={session.deviceType} className="h-5 w-5 text-muted-foreground" />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -147,19 +146,19 @@ export function SessionCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setShowRenameDialog(true)}>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setShowRenameDialog(true) }}>
               <Pencil className="h-4 w-4 mr-2" />
               {t('sessions:rename.button')}
             </DropdownMenuItem>
             {!session.isCurrent && !session.isTrusted && (
-              <DropdownMenuItem onClick={() => onTrust(session.id)}>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onTrust(session.id) }}>
                 <Shield className="h-4 w-4 mr-2" />
                 {t('sessions:trust.button')}
               </DropdownMenuItem>
             )}
             {!session.isCurrent && (
               <DropdownMenuItem
-                onClick={() => onRevoke(session.id)}
+                onClick={(e) => { e.stopPropagation(); onRevoke(session.id) }}
                 className="text-destructive focus:text-destructive"
               >
                 <LogOut className="h-4 w-4 mr-2" />

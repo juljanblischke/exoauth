@@ -253,10 +253,7 @@ export function UserDetailsSheet({
               <Button
                 variant="outline"
                 className="flex-1"
-                onClick={() => {
-                  onEdit(user)
-                  onOpenChange(false)
-                }}
+                onClick={() => onEdit(user)}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 {t('common:actions.edit')}
@@ -266,10 +263,7 @@ export function UserDetailsSheet({
               <Button
                 variant="outline"
                 className="flex-1"
-                onClick={() => {
-                  onPermissions(user)
-                  onOpenChange(false)
-                }}
+                onClick={() => onPermissions(user)}
               >
                 <Shield className="mr-2 h-4 w-4" />
                 {t('users:actions.permissions')}

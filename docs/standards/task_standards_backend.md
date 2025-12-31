@@ -206,7 +206,8 @@ backend/
 │   │   │   │   ├── IRevokedSessionService.cs    ✅ (Task 007)
 │   │   │   │   ├── IMfaService.cs               ✅ (Task 007)
 │   │   │   │   ├── IEncryptionService.cs        ✅ (Task 007)
-│   │   │   │   └── IBackupCodeService.cs        ✅ (Task 007)
+│   │   │   │   ├── IBackupCodeService.cs        ✅ (Task 007)
+│   │   │   │   └── IInviteCleanupService.cs     ✅ (Task 009)
 │   │   │   ├── Behaviors/
 │   │   │   │   └── ValidationBehavior.cs        ✅
 │   │   │   ├── Messages/
@@ -360,9 +361,13 @@ backend/
 │   │           │   ├── RevokeInvite/
 │   │           │   │   ├── RevokeInviteCommand.cs         ✅
 │   │           │   │   └── RevokeInviteHandler.cs         ✅
-│   │           │   └── ResendInvite/
-│   │           │       ├── ResendInviteCommand.cs         ✅
-│   │           │       └── ResendInviteHandler.cs         ✅ (Task 007: invite.Language)
+│   │           │   ├── ResendInvite/
+│   │           │   │   ├── ResendInviteCommand.cs         ✅
+│   │           │   │   └── ResendInviteHandler.cs         ✅ (Task 007: invite.Language)
+│   │           │   └── UpdateInvite/                      ✅ (Task 009)
+│   │           │       ├── UpdateInviteCommand.cs         ✅ (Task 009)
+│   │           │       ├── UpdateInviteHandler.cs         ✅ (Task 009)
+│   │           │       └── UpdateInviteValidator.cs       ✅ (Task 009)
 │   │           ├── Queries/
 │   │           │   ├── GetSystemInvites/
 │   │           │   │   ├── GetSystemInvitesQuery.cs       ✅
@@ -422,7 +427,9 @@ backend/
 │   │   │   ├── RevokedSessionService.cs         ✅ (Task 007)
 │   │   │   ├── MfaService.cs                    ✅ (Task 007)
 │   │   │   ├── EncryptionService.cs             ✅ (Task 007)
-│   │   │   └── BackupCodeService.cs             ✅ (Task 007)
+│   │   │   ├── BackupCodeService.cs             ✅ (Task 007)
+│   │   │   ├── InviteCleanupService.cs          ✅ (Task 009)
+│   │   │   └── InviteCleanupBackgroundService.cs ✅ (Task 009)
 │   │   └── Sessions/                            [LEER]
 │   │
 │   ├── ExoAuth.EmailWorker/                     ✅ (Task 007 - Neues Projekt)
@@ -483,7 +490,8 @@ backend/
 │       │   ├── mfa-reset-admin.html             ✅ (Task 007)
 │       │   ├── account-unlocked.html            ✅ (Task 007)
 │       │   ├── account-locked.html              ✅ (Task 007)
-│       │   └── sessions-revoked-admin.html      ✅ (Task 007)
+│       │   ├── sessions-revoked-admin.html      ✅ (Task 007)
+│       │   └── subjects.json                    ✅ (Task 009: Email subjects i18n)
 │       └── de-DE/                               ✅ (Task 007: Renamed from de/)
 │           ├── system-invite.html               ✅
 │           ├── password-reset.html              ✅ (Task 007)
@@ -496,7 +504,8 @@ backend/
 │           ├── mfa-reset-admin.html             ✅ (Task 007)
 │           ├── account-unlocked.html            ✅ (Task 007)
 │           ├── account-locked.html              ✅ (Task 007)
-│           └── sessions-revoked-admin.html      ✅ (Task 007)
+│           ├── sessions-revoked-admin.html      ✅ (Task 007)
+│           └── subjects.json                    ✅ (Task 009: Email subjects i18n)
 │
 ├── docker/
 │   └── email-worker/
@@ -530,14 +539,16 @@ backend/
         │   └── SystemInvites/
         │       ├── RevokeInviteHandlerTests.cs          ✅
         │       ├── ResendInviteHandlerTests.cs          ✅
-        │       └── ValidateInviteHandlerTests.cs        ✅
+        │       ├── ValidateInviteHandlerTests.cs        ✅
+        │       └── UpdateInviteHandlerTests.cs          ✅ (Task 009)
         ├── Services/
         │   ├── PasswordHasherTests.cs           ✅
         │   ├── TokenServiceTests.cs             ✅
         │   ├── BruteForceProtectionServiceTests.cs ✅ (Task 007: Progressive lockout tests)
         │   ├── PermissionCacheServiceTests.cs   ✅
-        │   ├── EmailTemplateServiceTests.cs     ✅ (Task 007: en-US/de-DE paths)
-        │   └── ForceReauthServiceTests.cs       ✅
+        │   ├── EmailTemplateServiceTests.cs     ✅ (Task 007: en-US/de-DE paths, Task 009: GetSubject)
+        │   ├── ForceReauthServiceTests.cs       ✅ (Task 009: Session-based)
+        │   └── InviteCleanupServiceTests.cs     ✅ (Task 009)
         └── Helpers/
             ├── MockDbContext.cs                 ✅
             ├── TestDataFactory.cs               ✅ (Task 007: CreateDeviceSession)
@@ -749,8 +760,8 @@ Bei jedem neuen Endpoint MUSS geprüft werden:
 
 ## Letzte Änderung
 
-- **Datum:** 2025-12-30
-- **Status:** Auth Security & Device Management komplett (Task 007)
+- **Datum:** 2025-12-31
+- **Status:** Backend Improvements komplett (Task 009)
 - **Erledigte Tasks:**
   - Task 001: Foundation & Infrastructure Setup ✅
   - Task 002: System Authentication, Users, Permissions & Audit ✅ (106 Unit Tests)
@@ -760,7 +771,21 @@ Bei jedem neuen Endpoint MUSS geprüft werden:
   - Task 006: Frontend Improvements ✅
   - Task 007: Auth Security & Device Management ✅ (234 Unit Tests)
   - Task 008: Frontend Security & Settings ✅
-- **Nächster Task:** Task 009 (TBD)
+  - Task 009: Backend Improvements - Reauth, Emails, Lists & Cleanup ✅
+  - Task 010: Frontend List Improvements & Session Details ✅
+- **Nächster Task:** Task 011 (TBD)
+- **Task 009 Updates:**
+  - Session-Based Reauth (Redis key per session statt per user)
+  - Email Subjects aus JSON Dateien (i18n: en-US/de-DE)
+  - Konfigurierbarer Templates BasePath für Docker
+  - User List Filter (isActive, isAnonymized, isLocked, mfaEnabled)
+  - User List versteckt anonymisierte User standardmäßig
+  - Invite List SQL-basiertes Filtering (Performance Fix)
+  - Invite List Sorting (email, firstName, lastName, createdAt, expiresAt)
+  - Invite List versteckt expired/revoked standardmäßig
+  - Edit Invites (PATCH endpoint, nur pending)
+  - Invite Cleanup Background Job (30 Tage Retention)
+  - Neue Indexes für User & Invite Performance
 - **Task 007 Updates:**
   - Email Worker als separater Microservice
   - Password Reset Flow (Token + Code)

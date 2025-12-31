@@ -192,10 +192,18 @@ Keine neuen Packages erforderlich.
 5. [x] Update: `user-sessions-section.tsx` (admin)
 6. [x] i18n: Details sheet texts
 
-### Phase 6: Finalisierung
+### Phase 6: Bug Fixes & Polish ✅
+1. [x] Fix: `session-card.tsx` - DropdownMenuItem clicks bubbling up and opening sheet
+2. [x] Fix: `sessions-list.tsx` - Sheet not refreshing after rename (added useEffect sync)
+3. [x] Fix: `user-sessions-section.tsx` - Same sheet refresh fix for admin view
+4. [x] Fix: `use-revoke-user-session.ts` - Changed endpoint from path param to query param (`?id=`)
+5. [x] Fix: `user-details-sheet.tsx` - Keep sheet open when clicking Edit/Permissions
+6. [x] Fix: `sonner.tsx` - Toaster z-index higher than sheets (z-100)
+
+### Phase 7: Finalisierung
 1. [ ] Alle Tests grün
 2. [ ] TypeScript keine Errors
-3. [ ] `task_standards_frontend.md` aktualisieren
+3. [x] `task_standards_frontend.md` aktualisieren
 
 ## 9. Tests
 
@@ -336,10 +344,59 @@ interface DeviceSessionDto {
 └─────────────────────────────────────┘
 ```
 
+### Phase 6 Bug Fixes - Technical Details
+
+#### DropdownMenuItem Click Bubbling
+**Problem:** Clicking Rename/Trust/Revoke in the "..." dropdown menu also triggered the card's onClick, opening the details sheet.
+
+**Fix:** Added `e.stopPropagation()` to all DropdownMenuItem onClick handlers in `session-card.tsx`:
+```tsx
+<DropdownMenuItem onClick={(e) => { e.stopPropagation(); setShowRenameDialog(true) }}>
+```
+
+#### Sheet Not Refreshing After Rename
+**Problem:** After renaming a session, the sheet still showed the old name because `selectedSession` was a stale state snapshot.
+
+**Fix:** Added `useEffect` in `sessions-list.tsx` and `user-sessions-section.tsx` to sync `selectedSession` with fresh data:
+```tsx
+useEffect(() => {
+  if (selectedSession && sessions) {
+    const updatedSession = sessions.find((s) => s.id === selectedSession.id)
+    if (updatedSession) {
+      setSelectedSession(updatedSession)
+    }
+  }
+}, [sessions, selectedSession?.id])
+```
+
+#### Admin Revoke Single Session Endpoint
+**Problem:** Frontend was calling `/system/users/{userId}/sessions/{sessionId}` (path param) but backend expects query param.
+
+**Fix:** Changed `use-revoke-user-session.ts`:
+```tsx
+// Before:
+await apiClient.delete(`/system/users/${userId}/sessions/${sessionId}`)
+
+// After:
+await apiClient.delete(`/system/users/${userId}/sessions?id=${sessionId}`)
+```
+
+#### Toaster Not Clickable When Sheet Open
+**Problem:** Sheet overlay (`z-50`) was covering the toast notifications.
+
+**Fix:** Added `zIndex: 100` to Sonner toaster in `sonner.tsx`:
+```tsx
+style={{
+  ...
+  zIndex: 100,
+}}
+```
+
 ## 11. Nach Completion
 
 - [ ] Alle Tests grün
-- [ ] `task_standards_frontend.md` aktualisiert (neue Files)
-- [ ] `i18n-translations.md` aktualisiert (neue Keys)
+- [x] `task_standards_frontend.md` aktualisiert (neue Files)
+- [x] `coding_standards_frontend.md` aktualisiert
+- [x] `i18n-translations.md` aktualisiert (neue Keys)
 - [ ] TypeScript keine Errors
 - [ ] Lint passed

@@ -201,10 +201,10 @@ Keine neuen Packages erforderlich.
 5. [x] `DependencyInjection.cs` - Registration
 6. [x] Unit Tests
 
-### Phase 7: Finalisierung
-1. [ ] Alle Unit Tests grün
-2. [ ] `task_standards_backend.md` aktualisieren
-3. [ ] `coding_standards_backend.md` aktualisieren (Error Codes)
+### Phase 7: Finalisierung ✅
+1. [x] Alle Unit Tests grün
+2. [x] `task_standards_backend.md` aktualisieren
+3. [x] `coding_standards_backend.md` aktualisieren (Error Codes)
 
 ## 10. Tests
 
@@ -374,8 +374,8 @@ public sealed record GetSystemInvitesQuery(
 
 ## 12. Nach Completion
 
-- [ ] Alle Unit Tests grün
-- [ ] `task_standards_backend.md` aktualisiert
-- [ ] `coding_standards_backend.md` aktualisiert (INVITE_NOT_EDITABLE error code)
+- [x] Alle Unit Tests grün
+- [x] `task_standards_backend.md` aktualisiert
+- [x] `coding_standards_backend.md` aktualisiert (INVITE_NOT_EDITABLE error code)
 - [ ] Code reviewed
 - [ ] Background Job in Production getestet

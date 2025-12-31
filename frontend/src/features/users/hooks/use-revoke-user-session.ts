@@ -13,7 +13,7 @@ export function useRevokeUserSession() {
 
   return useMutation({
     mutationFn: async ({ userId, sessionId }: RevokeUserSessionParams) => {
-      await apiClient.delete(`/system/users/${userId}/sessions/${sessionId}`)
+      await apiClient.delete(`/system/users/${userId}/sessions?id=${sessionId}`)
     },
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: [...USER_SESSIONS_KEY, userId] })

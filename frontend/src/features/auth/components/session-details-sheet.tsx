@@ -8,7 +8,6 @@ import {
   Shield,
   ShieldCheck,
   Clock,
-  Calendar,
   Cpu,
   Copy,
   Check,
@@ -36,7 +35,6 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { RelativeTime } from '@/components/shared'
 import { ConfirmDialog } from '@/components/shared/feedback'
 import { useCopyToClipboard } from '@/hooks'
@@ -54,14 +52,14 @@ interface SessionDetailsSheetProps {
   isRenaming?: boolean
 }
 
-function getDeviceIcon(deviceType: string | null) {
+function DeviceIcon({ deviceType, className }: { deviceType: string | null; className?: string }) {
   switch (deviceType?.toLowerCase()) {
     case 'mobile':
-      return Smartphone
+      return <Smartphone className={className} />
     case 'tablet':
-      return Tablet
+      return <Tablet className={className} />
     default:
-      return Monitor
+      return <Monitor className={className} />
   }
 }
 
@@ -128,11 +126,10 @@ export function SessionDetailsSheet({
 
   if (!session) return null
 
-  const DeviceIcon = getDeviceIcon(session.deviceType)
   const isLoading = isRevoking || isTrusting || isRenaming
 
   const handleRename = () => {
-    if (newName.trim()) {
+    if (newName.trim() && onRename) {
       onRename(session.id, newName.trim())
       setShowRenameDialog(false)
       setNewName('')
@@ -188,7 +185,7 @@ export function SessionDetailsSheet({
             {/* Session Header */}
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 p-3 rounded-full bg-muted">
-                <DeviceIcon className="h-6 w-6 text-muted-foreground" />
+                <DeviceIcon deviceType={session.deviceType} className="h-6 w-6 text-muted-foreground" />
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-lg">

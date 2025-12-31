@@ -428,7 +428,7 @@ Verwende die vordefinierten Error Codes aus `ErrorCodes.cs`:
 | `INVITE_RESEND_COOLDOWN` | 429 | Bitte X Minuten warten vor erneutem Senden |
 | `INVITE_EXPIRED` | 400 | Einladung abgelaufen |
 | `INVITE_REVOKED` | 400 | Einladung wurde widerrufen |
-| `INVITE_NOT_EDITABLE` | 400 | Einladung ist nicht mehr pending (accepted/expired/revoked) |
+| `INVITE_NOT_EDITABLE` | 400 | Einladung ist nicht mehr pending (accepted/expired/revoked) - Task 009 |
 
 ### General Errors
 
@@ -620,7 +620,9 @@ public class MyCustomHealthCheck : IHealthCheck
 
 ## Letzte Änderung
 
-- **Datum:** 2025-12-30
+- **Datum:** 2025-12-31
+- **Task 009:** Backend Improvements - Neue Error Codes hinzugefügt:
+  - `INVITE_NOT_EDITABLE` - Einladung ist nicht mehr pending (accepted/expired/revoked)
 - **Task 007:** Auth Security & Device Management - Neue Error Codes hinzugefügt:
   - Password Reset Errors (PASSWORD_RESET_TOKEN_INVALID/EXPIRED/USED)
   - MFA Errors (MFA_REQUIRED, MFA_SETUP_REQUIRED, MFA_CODE_INVALID, MFA_ALREADY_ENABLED, MFA_NOT_ENABLED, MFA_BACKUP_CODE_INVALID, MFA_TOKEN_INVALID)

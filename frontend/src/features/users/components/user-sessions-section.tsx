@@ -30,29 +30,27 @@ interface UserSessionsSectionProps {
   onSessionsRevoked?: () => void
 }
 
-function getDeviceIcon(deviceType: string | null) {
+function DeviceIcon({ deviceType, className }: { deviceType: string | null; className?: string }) {
   switch (deviceType?.toLowerCase()) {
     case 'mobile':
-      return Smartphone
+      return <Smartphone className={className} />
     case 'tablet':
-      return Tablet
+      return <Tablet className={className} />
     default:
-      return Monitor
+      return <Monitor className={className} />
   }
 }
 
 interface SessionItemProps {
   session: DeviceSessionDto
-  userId: string
   onRevoke: (sessionId: string) => void
   onClick?: (session: DeviceSessionDto) => void
   isRevoking: boolean
   revokingSessionId: string | null
 }
 
-function SessionItem({ session, userId, onRevoke, onClick, isRevoking, revokingSessionId }: SessionItemProps) {
+function SessionItem({ session, onRevoke, onClick, isRevoking, revokingSessionId }: SessionItemProps) {
   const { t } = useTranslation()
-  const DeviceIcon = getDeviceIcon(session.deviceType)
   const isThisRevoking = isRevoking && revokingSessionId === session.id
 
   const handleClick = () => {
@@ -70,7 +68,7 @@ function SessionItem({ session, userId, onRevoke, onClick, isRevoking, revokingS
       onKeyDown={onClick ? (e) => e.key === 'Enter' && handleClick() : undefined}
     >
       <div className="flex-shrink-0 p-2 rounded-full bg-muted">
-        <DeviceIcon className="h-4 w-4 text-muted-foreground" />
+        <DeviceIcon deviceType={session.deviceType} className="h-4 w-4 text-muted-foreground" />
       </div>
 
       <div className="flex-1 min-w-0">
@@ -136,15 +134,20 @@ export function UserSessionsSection({ userId, onSessionsRevoked }: UserSessionsS
   const { t } = useTranslation()
   const [showRevokeAllDialog, setShowRevokeAllDialog] = useState(false)
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null)
-  const [selectedSession, setSelectedSession] = useState<DeviceSessionDto | null>(null)
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const { data: sessions, isLoading } = useUserSessions(userId)
   const { mutate: revokeSession, isPending: isRevokingSingle } = useRevokeUserSession()
   const { mutate: revokeSessions, isPending: isRevokingAll } = useRevokeUserSessions()
 
+  // Derive selectedSession from sessions data at render time
+  const selectedSession = selectedSessionId
+    ? sessions?.find((s) => s.id === selectedSessionId) ?? null
+    : null
+
   const handleSessionClick = (session: DeviceSessionDto) => {
-    setSelectedSession(session)
+    setSelectedSessionId(session.id)
     setSheetOpen(true)
   }
 
@@ -234,7 +237,6 @@ export function UserSessionsSection({ userId, onSessionsRevoked }: UserSessionsS
             <SessionItem
               key={session.id}
               session={session}
-              userId={userId}
               onRevoke={handleRevokeSingle}
               onClick={handleSessionClick}
               isRevoking={isRevokingSingle}

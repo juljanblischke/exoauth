@@ -801,5 +801,5 @@ Jede Task-Datei (`docs/tasks/XXX_*.md`) sollte:
 
 ## Letzte Änderung
 
-- **Datum:** 2025-12-30
-- **Änderungen:** Updated i18n namespaces with Task 008 additions (settings, mfa, sessions)
+- **Datum:** 2025-12-31
+- **Änderungen:** Task 010 complete (Session Details Sheet, Edit Invite Modal, SelectFilter bug fix, User/Invite list filters)

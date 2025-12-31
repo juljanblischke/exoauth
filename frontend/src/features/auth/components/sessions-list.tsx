@@ -27,7 +27,7 @@ import type { DeviceSessionDto } from '../types'
 
 export function SessionsList() {
   const { t } = useTranslation()
-  const [selectedSession, setSelectedSession] = useState<DeviceSessionDto | null>(null)
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const { data: sessions, isLoading, error } = useSessions()
@@ -36,8 +36,13 @@ export function SessionsList() {
   const trustSession = useTrustSession()
   const updateSession = useUpdateSession()
 
+  // Derive selectedSession from sessions data at render time
+  const selectedSession = selectedSessionId
+    ? sessions?.find((s) => s.id === selectedSessionId) ?? null
+    : null
+
   const handleSessionClick = (session: DeviceSessionDto) => {
-    setSelectedSession(session)
+    setSelectedSessionId(session.id)
     setSheetOpen(true)
   }
 

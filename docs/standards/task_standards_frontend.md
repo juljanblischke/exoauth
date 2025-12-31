@@ -284,6 +284,7 @@ frontend/
 │   │   │   │   ├── forgot-password-modal.tsx ✅ Multi-step Reset (Task 008)
 │   │   │   │   ├── session-card.tsx         ✅ Single Session Display (Task 008)
 │   │   │   │   ├── sessions-list.tsx        ✅ Sessions List (Task 008)
+│   │   │   │   ├── session-details-sheet.tsx ✅ Session Details Sheet (Task 010)
 │   │   │   │   └── index.ts                 ✅ Barrel Export
 │   │   │   ├── types/
 │   │   │   │   ├── index.ts             ✅ Auth Types (+ Device, MFA response)
@@ -319,6 +320,7 @@ frontend/
 │   │   │   │   ├── use-deactivate-user.ts   ✅ Deactivate mutation (Task 008)
 │   │   │   │   ├── use-activate-user.ts     ✅ Activate mutation (Task 008)
 │   │   │   │   ├── use-anonymize-user.ts    ✅ Anonymize mutation (Task 008)
+│   │   │   │   ├── use-update-invite.ts     ✅ Update invite mutation (Task 010)
 │   │   │   │   └── index.ts                 ✅ Barrel Export
 │   │   │   ├── components/
 │   │   │   │   ├── users-table.tsx              ✅ Users DataTable (+ admin actions Task 008)
@@ -332,6 +334,7 @@ frontend/
 │   │   │   │   ├── invite-details-sheet.tsx     ✅ Invite Details Sheet (Task 006)
 │   │   │   │   ├── user-sessions-section.tsx    ✅ Admin Sessions View (Task 008)
 │   │   │   │   ├── user-status-badges.tsx       ✅ MFA/Locked/Anon Badges (Task 008)
+│   │   │   │   ├── edit-invite-modal.tsx        ✅ Edit Invite Modal (Task 010)
 │   │   │   │   └── index.ts                     ✅ Barrel Export
 │   │   │   ├── types/
 │   │   │   │   ├── index.ts             ✅ User Types (+ security fields Task 008)
@@ -828,11 +831,12 @@ In der Task-Datei (`docs/tasks/XXX_*.md`):
 
 ## Letzte Änderung
 
-- **Datum:** 2025-12-30
-- **Status:** Security & Settings Features Complete (Task 008)
+- **Datum:** 2025-12-31
+- **Status:** Frontend List Improvements Complete (Task 010)
 - **Completed Tasks:**
   - Task 003: Foundation Complete
   - Task 004: Auth, Users, Permissions, Audit-Logs Features
   - Task 006: Frontend Improvements (Bugs, Invitations, Legal Pages, Security)
   - Task 008: Frontend Security & Settings (MFA, Sessions, Password Reset, Admin Actions)
-- **Nächster Task:** Roles Feature, Tests for Task 008
+  - Task 010: Frontend List Improvements (SelectFilter Bug, User/Invite Filters, Edit Invite, Session Details Sheet)
+- **Nächster Task:** Roles Feature, Tests

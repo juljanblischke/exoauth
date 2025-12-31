@@ -25,8 +25,6 @@ export function UserStatusBadges({
   showAnonymized = true,
   className,
 }: UserStatusBadgesProps) {
-  const { t } = useTranslation()
-
   return (
     <div className={cn('flex flex-wrap items-center gap-1.5', className)}>
       {showMfa && (
