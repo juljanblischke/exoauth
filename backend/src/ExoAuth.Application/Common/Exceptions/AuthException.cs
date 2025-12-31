@@ -312,3 +312,63 @@ public sealed class ForceReauthException : AuthException
     {
     }
 }
+
+/// <summary>
+/// Exception when device approval token is invalid or expired.
+/// </summary>
+public sealed class ApprovalTokenInvalidException : AuthException
+{
+    public ApprovalTokenInvalidException()
+        : base("APPROVAL_TOKEN_INVALID", "Invalid or expired approval token", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when device approval token has expired.
+/// </summary>
+public sealed class ApprovalTokenExpiredException : AuthException
+{
+    public ApprovalTokenExpiredException()
+        : base("APPROVAL_TOKEN_EXPIRED", "Approval token has expired", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when device approval code is invalid.
+/// </summary>
+public sealed class ApprovalCodeInvalidException : AuthException
+{
+    public int? RemainingAttempts { get; }
+
+    public ApprovalCodeInvalidException(int? remainingAttempts = null)
+        : base("APPROVAL_CODE_INVALID", remainingAttempts.HasValue
+            ? $"Invalid approval code. {remainingAttempts} attempts remaining."
+            : "Invalid approval code", 400)
+    {
+        RemainingAttempts = remainingAttempts;
+    }
+}
+
+/// <summary>
+/// Exception when too many approval code attempts have been made.
+/// </summary>
+public sealed class ApprovalMaxAttemptsException : AuthException
+{
+    public ApprovalMaxAttemptsException()
+        : base("APPROVAL_MAX_ATTEMPTS", "Too many failed attempts. Please request a new approval.", 429)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when device approval was denied by user.
+/// </summary>
+public sealed class DeviceApprovalDeniedException : AuthException
+{
+    public DeviceApprovalDeniedException()
+        : base("DEVICE_APPROVAL_DENIED", "Device approval was denied", 403)
+    {
+    }
+}

@@ -10,5 +10,7 @@
   "new-location-login": "Login from New Location",
   "account-locked": "Your Account Has Been Temporarily Locked",
   "account-unlocked": "Your Account Has Been Unlocked",
-  "sessions-revoked-admin": "All Your Sessions Have Been Revoked"
+  "sessions-revoked-admin": "All Your Sessions Have Been Revoked",
+  "device-approval-required": "Device Approval Required",
+  "device-denied-alert": "Security Alert: Device Access Denied"
 }

@@ -68,4 +68,56 @@ public interface IEmailService
         string firstName,
         string language = "en-US",
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a device approval required email with approval link and code.
+    /// </summary>
+    /// <param name="email">The recipient email address.</param>
+    /// <param name="firstName">The recipient's first name.</param>
+    /// <param name="approvalToken">The URL token for approval link.</param>
+    /// <param name="approvalCode">The XXXX-XXXX code for manual entry.</param>
+    /// <param name="deviceName">Name of the device requesting approval.</param>
+    /// <param name="browser">Browser name.</param>
+    /// <param name="operatingSystem">Operating system name.</param>
+    /// <param name="location">Location of the login attempt.</param>
+    /// <param name="ipAddress">IP address of the login attempt.</param>
+    /// <param name="riskScore">The calculated risk score.</param>
+    /// <param name="language">The language for the template (default: "en-US").</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task SendDeviceApprovalRequiredAsync(
+        string email,
+        string firstName,
+        string approvalToken,
+        string approvalCode,
+        string? deviceName,
+        string? browser,
+        string? operatingSystem,
+        string? location,
+        string? ipAddress,
+        int riskScore,
+        string language = "en-US",
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a security alert when a device approval is denied.
+    /// </summary>
+    /// <param name="email">The recipient email address.</param>
+    /// <param name="firstName">The recipient's first name.</param>
+    /// <param name="deviceName">Name of the denied device.</param>
+    /// <param name="browser">Browser name.</param>
+    /// <param name="operatingSystem">Operating system name.</param>
+    /// <param name="location">Location of the denied attempt.</param>
+    /// <param name="ipAddress">IP address of the denied attempt.</param>
+    /// <param name="language">The language for the template (default: "en-US").</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task SendDeviceDeniedAlertAsync(
+        string email,
+        string firstName,
+        string? deviceName,
+        string? browser,
+        string? operatingSystem,
+        string? location,
+        string? ipAddress,
+        string language = "en-US",
+        CancellationToken cancellationToken = default);
 }

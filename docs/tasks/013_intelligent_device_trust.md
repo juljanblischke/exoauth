@@ -330,19 +330,19 @@ Keine neuen Packages erforderlich.
 1. [x] **Domain**: Entities erstellen (DeviceApprovalRequest, LoginPattern, ApprovalStatus)
 2. [x] **Infrastructure**: Configurations + DbContext + Migration
 3. [x] **Application**: Interfaces (IRiskScoringService, ILoginPatternService, IDeviceApprovalService) + RiskScore Model
-4. [ ] **Infrastructure**: Services implementieren
-   - [ ] RiskScoringService (Point-System)
-   - [ ] LoginPatternService (Pattern Tracking)
-   - [ ] DeviceApprovalService (Token/Code Generation, Validation mit Retry)
-5. [ ] **Application**: Commands/Handlers
-   - [ ] ApproveDevice (Code-based)
-   - [ ] ApproveDeviceLink (Token-based)
-   - [ ] DenyDevice
-6. [ ] **Application**: LoginHandler modifizieren (Risk Check, Approval Flow)
-7. [ ] **Application**: UpdateSessionHandler erweitern (Trust → Approval resolven)
-8. [ ] **API**: Neue Endpoints in AuthController
-9. [ ] **Email**: Templates erstellen (EN/DE)
-10. [ ] **Config**: appsettings.json erweitern
+4. [x] **Infrastructure**: Services implementieren
+   - [x] RiskScoringService (Point-System)
+   - [x] LoginPatternService (Pattern Tracking)
+   - [x] DeviceApprovalService (Token/Code Generation, Validation mit Retry)
+5. [x] **Application**: Commands/Handlers
+   - [x] ApproveDevice (Code-based)
+   - [x] ApproveDeviceLink (Token-based)
+   - [x] DenyDevice
+6. [x] **Application**: LoginHandler modifizieren (Risk Check, Approval Flow)
+7. [x] **Application**: UpdateSessionHandler erweitern (Trust → Approval resolven)
+8. [x] **API**: Neue Endpoints in AuthController
+9. [x] **Email**: Templates erstellen (EN/DE)
+10. [x] **Config**: appsettings.json erweitern
 11. [ ] **Tests**: Unit Tests schreiben
 12. [ ] **Standards updaten**: task_standards_backend.md + coding_standards_backend.md aktualisieren
 

@@ -10,5 +10,7 @@
   "new-location-login": "Anmeldung von einem neuen Standort",
   "account-locked": "Ihr Konto wurde vorübergehend gesperrt",
   "account-unlocked": "Ihr Konto wurde entsperrt",
-  "sessions-revoked-admin": "Alle Ihre Sitzungen wurden widerrufen"
+  "sessions-revoked-admin": "Alle Ihre Sitzungen wurden widerrufen",
+  "device-approval-required": "Gerätebestätigung erforderlich",
+  "device-denied-alert": "Sicherheitswarnung: Gerätezugriff verweigert"
 }

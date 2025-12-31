@@ -1,5 +1,6 @@
 using ExoAuth.Application.Common.Exceptions;
 using ExoAuth.Application.Common.Interfaces;
+using ExoAuth.Application.Common.Models;
 using ExoAuth.Application.Features.Auth.Commands.Login;
 using ExoAuth.Domain.Entities;
 using ExoAuth.Domain.Enums;
@@ -25,6 +26,11 @@ public sealed class LoginHandlerTests
     private readonly Mock<IEmailService> _mockEmailService;
     private readonly Mock<IEmailTemplateService> _mockEmailTemplateService;
     private readonly Mock<IConfiguration> _mockConfiguration;
+    private readonly Mock<IRiskScoringService> _mockRiskScoringService;
+    private readonly Mock<ILoginPatternService> _mockLoginPatternService;
+    private readonly Mock<IDeviceApprovalService> _mockDeviceApprovalService;
+    private readonly Mock<IGeoIpService> _mockGeoIpService;
+    private readonly Mock<IDeviceDetectionService> _mockDeviceDetectionService;
     private readonly LoginHandler _handler;
 
     public LoginHandlerTests()
@@ -42,6 +48,11 @@ public sealed class LoginHandlerTests
         _mockEmailService = new Mock<IEmailService>();
         _mockEmailTemplateService = new Mock<IEmailTemplateService>();
         _mockConfiguration = new Mock<IConfiguration>();
+        _mockRiskScoringService = new Mock<IRiskScoringService>();
+        _mockLoginPatternService = new Mock<ILoginPatternService>();
+        _mockDeviceApprovalService = new Mock<IDeviceApprovalService>();
+        _mockGeoIpService = new Mock<IGeoIpService>();
+        _mockDeviceDetectionService = new Mock<IDeviceDetectionService>();
 
         // Default token service setup
         _mockTokenService.Setup(x => x.RefreshTokenExpiration).Returns(TimeSpan.FromDays(30));
@@ -65,6 +76,21 @@ public sealed class LoginHandlerTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((mockSession, false, false));
 
+        // Default risk scoring setup - low risk, no approval required
+        _mockGeoIpService.Setup(x => x.GetLocation(It.IsAny<string?>()))
+            .Returns(GeoLocation.Empty);
+        _mockDeviceDetectionService.Setup(x => x.Parse(It.IsAny<string?>()))
+            .Returns(DeviceInfo.Empty);
+        _mockRiskScoringService.Setup(x => x.CalculateAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<DeviceInfo>(),
+                It.IsAny<GeoLocation>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(RiskScore.Low());
+        _mockRiskScoringService.Setup(x => x.RequiresApproval(It.IsAny<RiskScore>()))
+            .Returns(false);
+
         _handler = new LoginHandler(
             _mockContext.Object,
             _mockUserRepository.Object,
@@ -78,7 +104,12 @@ public sealed class LoginHandlerTests
             _mockMfaService.Object,
             _mockEmailService.Object,
             _mockEmailTemplateService.Object,
-            _mockConfiguration.Object);
+            _mockConfiguration.Object,
+            _mockRiskScoringService.Object,
+            _mockLoginPatternService.Object,
+            _mockDeviceApprovalService.Object,
+            _mockGeoIpService.Object,
+            _mockDeviceDetectionService.Object);
     }
 
     [Fact]

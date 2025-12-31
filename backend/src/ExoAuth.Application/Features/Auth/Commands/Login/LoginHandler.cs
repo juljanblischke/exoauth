@@ -1,5 +1,6 @@
 using ExoAuth.Application.Common.Exceptions;
 using ExoAuth.Application.Common.Interfaces;
+using ExoAuth.Application.Common.Models;
 using ExoAuth.Application.Features.Auth.Models;
 using ExoAuth.Domain.Enums;
 using Mediator;
@@ -22,6 +23,11 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
     private readonly IEmailService _emailService;
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IConfiguration _configuration;
+    private readonly IRiskScoringService _riskScoringService;
+    private readonly ILoginPatternService _loginPatternService;
+    private readonly IDeviceApprovalService _deviceApprovalService;
+    private readonly IGeoIpService _geoIpService;
+    private readonly IDeviceDetectionService _deviceDetectionService;
 
     public LoginHandler(
         IAppDbContext context,
@@ -36,7 +42,12 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         IMfaService mfaService,
         IEmailService emailService,
         IEmailTemplateService emailTemplateService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IRiskScoringService riskScoringService,
+        ILoginPatternService loginPatternService,
+        IDeviceApprovalService deviceApprovalService,
+        IGeoIpService geoIpService,
+        IDeviceDetectionService deviceDetectionService)
     {
         _context = context;
         _userRepository = userRepository;
@@ -51,6 +62,11 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         _emailService = emailService;
         _emailTemplateService = emailTemplateService;
         _configuration = configuration;
+        _riskScoringService = riskScoringService;
+        _loginPatternService = loginPatternService;
+        _deviceApprovalService = deviceApprovalService;
+        _geoIpService = geoIpService;
+        _deviceDetectionService = deviceDetectionService;
     }
 
     public async ValueTask<AuthResponse> Handle(LoginCommand command, CancellationToken ct)
@@ -190,6 +206,76 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             ct
         );
 
+        // Get geo location and device info for risk scoring
+        var geoLocation = _geoIpService.GetLocation(command.IpAddress);
+        var deviceInfo = _deviceDetectionService.Parse(command.UserAgent);
+
+        // Calculate risk score
+        var riskScore = await _riskScoringService.CalculateAsync(
+            user.Id,
+            deviceInfo,
+            geoLocation,
+            deviceSession.IsTrusted,
+            ct
+        );
+
+        // Check if device approval is required
+        if (_riskScoringService.RequiresApproval(riskScore))
+        {
+            // Create device approval request
+            var approvalResult = await _deviceApprovalService.CreateApprovalRequestAsync(
+                user.Id,
+                deviceSession.Id,
+                riskScore.Score,
+                riskScore.Factors,
+                ct
+            );
+
+            // Send device approval email
+            await _emailService.SendDeviceApprovalRequiredAsync(
+                email: user.Email,
+                firstName: user.FirstName,
+                approvalToken: approvalResult.Token,
+                approvalCode: approvalResult.Code,
+                deviceName: deviceSession.DisplayName,
+                browser: deviceSession.Browser,
+                operatingSystem: deviceSession.OperatingSystem,
+                location: deviceSession.LocationDisplay,
+                ipAddress: deviceSession.IpAddress,
+                riskScore: riskScore.Score,
+                language: user.PreferredLanguage,
+                cancellationToken: ct
+            );
+
+            // Audit log
+            await _auditService.LogWithContextAsync(
+                AuditActions.DeviceApprovalRequired,
+                user.Id,
+                null,
+                "DeviceSession",
+                deviceSession.Id,
+                new
+                {
+                    riskScore.Score,
+                    riskScore.Level,
+                    riskScore.Factors,
+                    DeviceId = deviceId,
+                    IsNewDevice = isNewDevice,
+                    IsNewLocation = isNewLocation
+                },
+                ct
+            );
+
+            return AuthResponse.RequiresDeviceApproval(
+                approvalToken: approvalResult.Token,
+                sessionId: deviceSession.Id,
+                deviceId: deviceId,
+                riskScore: riskScore.Score,
+                riskLevel: riskScore.Level.ToString(),
+                riskFactors: riskScore.Factors.ToList()
+            );
+        }
+
         // Clear force re-auth flag for this session (session-based, not user-based)
         await _forceReauthService.ClearFlagAsync(deviceSession.Id, ct);
 
@@ -220,6 +306,15 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         user.RecordLogin();
         await _userRepository.UpdateAsync(user, ct);
 
+        // Record login pattern for future risk scoring
+        await _loginPatternService.RecordLoginAsync(
+            user.Id,
+            geoLocation,
+            deviceInfo.DeviceType,
+            command.IpAddress,
+            ct
+        );
+
         // Audit log
         await _auditService.LogWithContextAsync(
             AuditActions.UserLogin,
@@ -233,7 +328,9 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
                 DeviceId = deviceId,
                 IsNewDevice = isNewDevice,
                 IsNewLocation = isNewLocation,
-                RememberMe = command.RememberMe
+                RememberMe = command.RememberMe,
+                RiskScore = riskScore.Score,
+                RiskLevel = riskScore.Level.ToString()
             },
             ct
         );

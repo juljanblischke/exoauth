@@ -10,15 +10,18 @@ public sealed class UpdateSessionHandler : ICommandHandler<UpdateSessionCommand,
     private readonly IDeviceSessionService _sessionService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IAuditService _auditService;
+    private readonly IDeviceApprovalService _deviceApprovalService;
 
     public UpdateSessionHandler(
         IDeviceSessionService sessionService,
         ICurrentUserService currentUserService,
-        IAuditService auditService)
+        IAuditService auditService,
+        IDeviceApprovalService deviceApprovalService)
     {
         _sessionService = sessionService;
         _currentUserService = currentUserService;
         _auditService = auditService;
+        _deviceApprovalService = deviceApprovalService;
     }
 
     public async ValueTask<DeviceSessionDto> Handle(UpdateSessionCommand command, CancellationToken ct)
@@ -66,6 +69,23 @@ public sealed class UpdateSessionHandler : ICommandHandler<UpdateSessionCommand,
                 new { IsTrusted = command.IsTrusted.Value },
                 ct
             );
+
+            // If trusting, resolve any pending device approval requests for this session
+            // This allows users to approve new devices from an existing trusted session
+            if (command.IsTrusted.Value)
+            {
+                await _deviceApprovalService.ResolveBySessionTrustAsync(command.SessionId, ct);
+
+                await _auditService.LogWithContextAsync(
+                    AuditActions.DeviceApprovedViaSession,
+                    userId,
+                    null,
+                    "DeviceSession",
+                    command.SessionId,
+                    new { ApprovedVia = "session_trust" },
+                    ct
+                );
+            }
         }
 
         // Reload session to get updated values

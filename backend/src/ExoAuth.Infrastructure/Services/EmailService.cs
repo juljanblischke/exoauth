@@ -13,6 +13,7 @@ public sealed class EmailService : IEmailService
     private readonly string _baseUrl;
     private readonly int _inviteExpirationHours;
     private readonly int _passwordResetExpiryMinutes;
+    private readonly int _deviceApprovalExpiryMinutes;
 
     public EmailService(
         IMessageBus messageBus,
@@ -29,6 +30,7 @@ public sealed class EmailService : IEmailService
         _inviteExpirationHours = inviteSection.GetValue<int>("ExpirationHours", 24);
 
         _passwordResetExpiryMinutes = configuration.GetValue("Auth:PasswordResetExpiryMinutes", 15);
+        _deviceApprovalExpiryMinutes = configuration.GetValue("DeviceTrust:ApprovalExpiryMinutes", 30);
     }
 
     public async Task SendAsync(
@@ -126,6 +128,82 @@ public sealed class EmailService : IEmailService
             to: email,
             subject: _templateService.GetSubject("password-changed", language),
             templateName: "password-changed",
+            variables: variables,
+            language: language,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    public async Task SendDeviceApprovalRequiredAsync(
+        string email,
+        string firstName,
+        string approvalToken,
+        string approvalCode,
+        string? deviceName,
+        string? browser,
+        string? operatingSystem,
+        string? location,
+        string? ipAddress,
+        int riskScore,
+        string language = "en-US",
+        CancellationToken cancellationToken = default)
+    {
+        var approvalUrl = $"{_baseUrl}/approve-device?token={approvalToken}";
+        var denyUrl = $"{_baseUrl}/deny-device?token={approvalToken}";
+
+        var variables = new Dictionary<string, string>
+        {
+            ["firstName"] = firstName,
+            ["approvalUrl"] = approvalUrl,
+            ["denyUrl"] = denyUrl,
+            ["approvalCode"] = approvalCode,
+            ["deviceName"] = deviceName ?? "Unknown Device",
+            ["browser"] = browser ?? "Unknown Browser",
+            ["operatingSystem"] = operatingSystem ?? "Unknown OS",
+            ["location"] = location ?? "Unknown Location",
+            ["ipAddress"] = ipAddress ?? "Unknown",
+            ["riskScore"] = riskScore.ToString(),
+            ["expiryMinutes"] = _deviceApprovalExpiryMinutes.ToString(),
+            ["year"] = DateTime.UtcNow.Year.ToString()
+        };
+
+        await SendAsync(
+            to: email,
+            subject: _templateService.GetSubject("device-approval-required", language),
+            templateName: "device-approval-required",
+            variables: variables,
+            language: language,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    public async Task SendDeviceDeniedAlertAsync(
+        string email,
+        string firstName,
+        string? deviceName,
+        string? browser,
+        string? operatingSystem,
+        string? location,
+        string? ipAddress,
+        string language = "en-US",
+        CancellationToken cancellationToken = default)
+    {
+        var variables = new Dictionary<string, string>
+        {
+            ["firstName"] = firstName,
+            ["deviceName"] = deviceName ?? "Unknown Device",
+            ["browser"] = browser ?? "Unknown Browser",
+            ["operatingSystem"] = operatingSystem ?? "Unknown OS",
+            ["location"] = location ?? "Unknown Location",
+            ["ipAddress"] = ipAddress ?? "Unknown",
+            ["deniedAt"] = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+            ["year"] = DateTime.UtcNow.Year.ToString()
+        };
+
+        await SendAsync(
+            to: email,
+            subject: _templateService.GetSubject("device-denied-alert", language),
+            templateName: "device-denied-alert",
             variables: variables,
             language: language,
             cancellationToken: cancellationToken

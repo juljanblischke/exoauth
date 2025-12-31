@@ -107,4 +107,12 @@ public static class AuditActions
     public const string PreferencesUpdated = "system.user.preferences_updated";
     public const string SessionsRevokedByAdmin = "system.sessions.revoked_by_admin";
     public const string SessionRevokedByAdmin = "system.session.revoked_by_admin";
+
+    // Device approval actions
+    public const string DeviceApprovalRequired = "system.device.approval_required";
+    public const string DeviceApproved = "system.device.approved";
+    public const string DeviceApprovedViaLink = "system.device.approved_via_link";
+    public const string DeviceApprovedViaCode = "system.device.approved_via_code";
+    public const string DeviceApprovedViaSession = "system.device.approved_via_session";
+    public const string DeviceDenied = "system.device.denied";
 }

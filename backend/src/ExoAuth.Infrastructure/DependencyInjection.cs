@@ -69,6 +69,11 @@ public static class DependencyInjection
         // System Invite
         services.AddScoped<ISystemInviteService, SystemInviteService>();
 
+        // Device Trust / Risk-Based Authentication
+        services.AddScoped<ILoginPatternService, LoginPatternService>();
+        services.AddScoped<IRiskScoringService, RiskScoringService>();
+        services.AddScoped<IDeviceApprovalService, DeviceApprovalService>();
+
         // Invite Cleanup
         services.AddScoped<IInviteCleanupService, InviteCleanupService>();
         services.AddHostedService<InviteCleanupBackgroundService>();

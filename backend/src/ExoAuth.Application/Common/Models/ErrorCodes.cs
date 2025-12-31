@@ -79,6 +79,15 @@ public static class ErrorCodes
     public const string AccountLockedPermanent = "ACCOUNT_LOCKED_PERMANENT";
     public const string AccountNotLocked = "ACCOUNT_NOT_LOCKED";
 
+    // Device Approval Errors (400/403/429)
+    public const string DeviceApprovalRequired = "DEVICE_APPROVAL_REQUIRED";
+    public const string DeviceNotTrusted = "DEVICE_NOT_TRUSTED";
+    public const string ApprovalTokenInvalid = "APPROVAL_TOKEN_INVALID";
+    public const string ApprovalTokenExpired = "APPROVAL_TOKEN_EXPIRED";
+    public const string ApprovalCodeInvalid = "APPROVAL_CODE_INVALID";
+    public const string ApprovalMaxAttempts = "APPROVAL_MAX_ATTEMPTS";
+    public const string DeviceApprovalDenied = "DEVICE_APPROVAL_DENIED";
+
     // User Errors (400)
     public const string UserAlreadyAnonymized = "USER_ALREADY_ANONYMIZED";
     public const string CannotAnonymizeSelf = "CANNOT_ANONYMIZE_SELF";

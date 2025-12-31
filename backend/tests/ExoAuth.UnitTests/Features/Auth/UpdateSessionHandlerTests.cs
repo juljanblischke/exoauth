@@ -13,6 +13,7 @@ public sealed class UpdateSessionHandlerTests
     private readonly Mock<IDeviceSessionService> _mockSessionService;
     private readonly Mock<ICurrentUserService> _mockCurrentUserService;
     private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<IDeviceApprovalService> _mockDeviceApprovalService;
     private readonly UpdateSessionHandler _handler;
 
     public UpdateSessionHandlerTests()
@@ -20,11 +21,13 @@ public sealed class UpdateSessionHandlerTests
         _mockSessionService = new Mock<IDeviceSessionService>();
         _mockCurrentUserService = new Mock<ICurrentUserService>();
         _mockAuditService = new Mock<IAuditService>();
+        _mockDeviceApprovalService = new Mock<IDeviceApprovalService>();
 
         _handler = new UpdateSessionHandler(
             _mockSessionService.Object,
             _mockCurrentUserService.Object,
-            _mockAuditService.Object);
+            _mockAuditService.Object,
+            _mockDeviceApprovalService.Object);
     }
 
     [Fact]

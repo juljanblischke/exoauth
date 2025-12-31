@@ -14,7 +14,12 @@ public sealed record AuthResponse(
     bool MfaRequired = false,
     string? MfaToken = null,
     bool MfaSetupRequired = false,
-    string? SetupToken = null
+    string? SetupToken = null,
+    bool DeviceApprovalRequired = false,
+    string? ApprovalToken = null,
+    int? RiskScore = null,
+    string? RiskLevel = null,
+    IReadOnlyList<string>? RiskFactors = null
 )
 {
     /// <summary>
@@ -49,6 +54,27 @@ public sealed record AuthResponse(
         RefreshToken: null,
         MfaSetupRequired: true,
         SetupToken: setupToken);
+
+    /// <summary>
+    /// Creates a device approval required response.
+    /// </summary>
+    public static AuthResponse RequiresDeviceApproval(
+        string approvalToken,
+        Guid sessionId,
+        string deviceId,
+        int riskScore,
+        string riskLevel,
+        IReadOnlyList<string> riskFactors) => new(
+            User: null,
+            AccessToken: null,
+            RefreshToken: null,
+            SessionId: sessionId,
+            DeviceId: deviceId,
+            DeviceApprovalRequired: true,
+            ApprovalToken: approvalToken,
+            RiskScore: riskScore,
+            RiskLevel: riskLevel,
+            RiskFactors: riskFactors);
 };
 
 /// <summary>

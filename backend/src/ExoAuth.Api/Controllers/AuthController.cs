@@ -14,6 +14,9 @@ using ExoAuth.Application.Features.Auth.Commands.ResetPassword;
 using ExoAuth.Application.Features.Auth.Commands.RevokeAllSessions;
 using ExoAuth.Application.Features.Auth.Commands.RevokeSession;
 using ExoAuth.Application.Features.Auth.Commands.UpdatePreferences;
+using ExoAuth.Application.Features.Auth.Commands.ApproveDevice;
+using ExoAuth.Application.Features.Auth.Commands.ApproveDeviceLink;
+using ExoAuth.Application.Features.Auth.Commands.DenyDevice;
 using ExoAuth.Application.Features.Auth.Commands.UpdateSession;
 using ExoAuth.Application.Features.Auth.Models;
 using ExoAuth.Application.Features.Auth.Queries.GetCurrentUser;
@@ -92,8 +95,8 @@ public sealed class AuthController : ApiControllerBase
 
         var result = await Mediator.Send(command, ct);
 
-        // Only set cookies when login is complete (not during MFA flow)
-        if (!result.MfaRequired && !result.MfaSetupRequired)
+        // Only set cookies when login is complete (not during MFA or device approval flow)
+        if (!result.MfaRequired && !result.MfaSetupRequired && !result.DeviceApprovalRequired)
         {
             SetAuthCookies(result.AccessToken!, result.RefreshToken!);
         }
@@ -334,6 +337,58 @@ public sealed class AuthController : ApiControllerBase
     public async Task<IActionResult> UpdateSession(Guid sessionId, UpdateSessionRequest request, CancellationToken ct)
     {
         var command = new UpdateSessionCommand(sessionId, request.Name, request.IsTrusted);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    #endregion
+
+    #region Device Approval
+
+    /// <summary>
+    /// Approve a device using the approval token and XXXX-XXXX code.
+    /// Called when user enters the code from the approval email.
+    /// </summary>
+    [HttpPost("approve-device")]
+    [RateLimit(5)]
+    [ProducesResponseType(typeof(ApproveDeviceResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> ApproveDevice(ApproveDeviceRequest request, CancellationToken ct)
+    {
+        var command = new ApproveDeviceCommand(request.ApprovalToken, request.Code);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Approve a device using the link token from email.
+    /// Called when user clicks the approval link in the email.
+    /// Returns a redirect URL to the login page.
+    /// </summary>
+    [HttpGet("approve-device-link")]
+    [RateLimit(10)]
+    [ProducesResponseType(typeof(ApproveDeviceLinkResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ApproveDeviceLink([FromQuery] string token, CancellationToken ct)
+    {
+        var command = new ApproveDeviceLinkCommand(token);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Deny a device approval request.
+    /// Called when user clicks the deny link in the email.
+    /// This will revoke the device session and send a security alert.
+    /// </summary>
+    [HttpPost("deny-device")]
+    [RateLimit(5)]
+    [ProducesResponseType(typeof(DenyDeviceResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DenyDevice(DenyDeviceRequest request, CancellationToken ct)
+    {
+        var command = new DenyDeviceCommand(request.ApprovalToken);
         var result = await Mediator.Send(command, ct);
         return ApiOk(result);
     }
@@ -592,4 +647,13 @@ public sealed record RegenerateBackupCodesRequest(
 
 public sealed record UpdatePreferencesRequest(
     string Language
+);
+
+public sealed record ApproveDeviceRequest(
+    string ApprovalToken,
+    string Code
+);
+
+public sealed record DenyDeviceRequest(
+    string ApprovalToken
 );
