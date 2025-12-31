@@ -327,9 +327,9 @@ Keine neuen Packages erforderlich.
 
 ## 10. Implementation Reihenfolge
 
-1. [ ] **Domain**: Entities erstellen (DeviceApprovalRequest, LoginPattern, ApprovalStatus)
-2. [ ] **Infrastructure**: Configurations + DbContext + Migration
-3. [ ] **Application**: Interfaces (IRiskScoringService, ILoginPatternService, IDeviceApprovalService)
+1. [x] **Domain**: Entities erstellen (DeviceApprovalRequest, LoginPattern, ApprovalStatus)
+2. [x] **Infrastructure**: Configurations + DbContext + Migration
+3. [x] **Application**: Interfaces (IRiskScoringService, ILoginPatternService, IDeviceApprovalService) + RiskScore Model
 4. [ ] **Infrastructure**: Services implementieren
    - [ ] RiskScoringService (Point-System)
    - [ ] LoginPatternService (Pattern Tracking)
