@@ -158,3 +158,19 @@ public sealed class InviteNotEditableException : SystemException
         InviteId = inviteId;
     }
 }
+
+/// <summary>
+/// Exception when session is not found or belongs to another user (used for admin actions).
+/// </summary>
+public sealed class UserSessionNotFoundException : SystemException
+{
+    public Guid SessionId { get; }
+    public Guid UserId { get; }
+
+    public UserSessionNotFoundException(Guid sessionId, Guid userId)
+        : base("SESSION_NOT_FOUND", $"Session with ID {sessionId} was not found for user {userId}", 404)
+    {
+        SessionId = sessionId;
+        UserId = userId;
+    }
+}

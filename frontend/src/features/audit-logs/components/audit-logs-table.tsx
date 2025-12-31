@@ -125,7 +125,12 @@ export function AuditLogsTable() {
       fullName: userInfo?.fullName || selectedLog?.userFullName || '',
       isActive: userInfo?.isActive ?? true,
       emailVerified: userInfo?.emailVerified ?? true,
+      mfaEnabled: userInfo?.mfaEnabled ?? false,
       lastLoginAt: userInfo?.lastLoginAt || null,
+      lockedUntil: userInfo?.lockedUntil || null,
+      isLocked: userInfo?.isLocked ?? false,
+      isAnonymized: userInfo?.isAnonymized ?? false,
+      failedLoginAttempts: userInfo?.failedLoginAttempts ?? 0,
       createdAt: userInfo?.createdAt || selectedLog?.createdAt || new Date().toISOString(),
       updatedAt: userInfo?.updatedAt || null,
     }

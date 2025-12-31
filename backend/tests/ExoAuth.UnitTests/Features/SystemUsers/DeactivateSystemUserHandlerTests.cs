@@ -210,6 +210,58 @@ public sealed class DeactivateSystemUserHandlerTests
         _mockPermissionCache.Verify(x => x.InvalidateAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task Handle_WhenLastUsersReadHolder_ThrowsLastPermissionHolderException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var currentUserId = Guid.NewGuid();
+        var command = new DeactivateSystemUserCommand(userId);
+
+        var user = CreateUser(userId, isActive: true);
+
+        _mockCurrentUser.Setup(x => x.UserId).Returns(currentUserId);
+        _mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _mockUserRepository.Setup(x => x.GetUserPermissionNamesAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string> { SystemPermissions.UsersRead });
+        _mockUserRepository.Setup(x => x.CountUsersWithPermissionAsync(SystemPermissions.UsersRead, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<LastPermissionHolderException>(
+            () => _handler.Handle(command, CancellationToken.None).AsTask());
+
+        exception.PermissionName.Should().Be(SystemPermissions.UsersRead);
+        _mockUserRepository.Verify(x => x.UpdateAsync(It.IsAny<SystemUser>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenOthersHaveUsersRead_AllowsDeactivation()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var currentUserId = Guid.NewGuid();
+        var command = new DeactivateSystemUserCommand(userId);
+
+        var user = CreateUser(userId, isActive: true);
+
+        _mockCurrentUser.Setup(x => x.UserId).Returns(currentUserId);
+        _mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _mockUserRepository.Setup(x => x.GetUserPermissionNamesAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string> { SystemPermissions.UsersRead });
+        _mockUserRepository.Setup(x => x.CountUsersWithPermissionAsync(SystemPermissions.UsersRead, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(3); // Multiple users have this permission
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().BeTrue();
+        _mockUserRepository.Verify(x => x.UpdateAsync(user, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private static SystemUser CreateUser(Guid userId, bool isActive = true)
     {
         var user = SystemUser.Create("test@example.com", "hash", "Test", "User", true);

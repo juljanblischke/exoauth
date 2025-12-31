@@ -199,6 +199,8 @@ export const mockUser: User = {
   fullName: 'Test User',
   isActive: true,
   emailVerified: true,
+  mfaEnabled: false,
+  preferredLanguage: 'en',
   permissions: ['system:users:read', 'system:users:write'],
   lastLoginAt: '2025-01-01T00:00:00Z',
   createdAt: '2025-01-01T00:00:00Z',

@@ -773,7 +773,7 @@ Bei jedem neuen Endpoint MUSS geprüft werden:
   - Task 008: Frontend Security & Settings ✅
   - Task 009: Backend Improvements - Reauth, Emails, Lists & Cleanup ✅
   - Task 010: Frontend List Improvements & Session Details ✅
-- **Nächster Task:** Task 011 (TBD)
+- **Nächster Task:** Task 011 - Backend Fixes (Session Revoke, GDPR, Audit Search, Permissions)
 - **Task 009 Updates:**
   - Session-Based Reauth (Redis key per session statt per user)
   - Email Subjects aus JSON Dateien (i18n: en-US/de-DE)

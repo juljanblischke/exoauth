@@ -46,7 +46,7 @@ export function LoginForm() {
   const { mutate: login, isPending, error } = useLogin({
     onMfaRequired: (response: AuthResponse) => {
       setMfaToken(response.mfaToken)
-      setRememberMeForMfa(form.getValues('rememberMe'))
+      setRememberMeForMfa(form.getValues('rememberMe') ?? false)
       setMfaVerifyOpen(true)
     },
     onMfaSetupRequired: (response: AuthResponse) => {
@@ -70,6 +70,7 @@ export function LoginForm() {
     const deviceInfo = getDeviceInfo()
     login({
       ...data,
+      rememberMe: data.rememberMe ?? false,
       ...deviceInfo,
     })
   }

@@ -32,7 +32,7 @@ public sealed class SystemAuditLogConfiguration : IEntityTypeConfiguration<Syste
             .HasMaxLength(500);
 
         builder.Property(x => x.Details)
-            .HasColumnType("jsonb");
+            .HasColumnType("text");
 
         builder.Property(x => x.CreatedAt)
             .IsRequired();

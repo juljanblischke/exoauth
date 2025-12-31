@@ -6,6 +6,7 @@ using ExoAuth.Application.Features.SystemUsers.Commands.ActivateSystemUser;
 using ExoAuth.Application.Features.SystemUsers.Commands.DeactivateSystemUser;
 using ExoAuth.Application.Features.SystemUsers.Commands.InviteSystemUser;
 using ExoAuth.Application.Features.SystemUsers.Commands.ResetUserMfa;
+using ExoAuth.Application.Features.SystemUsers.Commands.RevokeUserSession;
 using ExoAuth.Application.Features.SystemUsers.Commands.RevokeUserSessions;
 using ExoAuth.Application.Features.SystemUsers.Commands.UnlockUser;
 using ExoAuth.Application.Features.SystemUsers.Commands.UpdatePermissions;
@@ -275,6 +276,22 @@ public sealed class SystemUsersController : ApiControllerBase
     public async Task<IActionResult> RevokeSessions(Guid id, CancellationToken ct)
     {
         var command = new RevokeUserSessionsCommand(id);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Revoke a specific session for a system user.
+    /// </summary>
+    [HttpDelete("{userId:guid}/sessions/{sessionId:guid}")]
+    [SystemPermission(SystemPermissions.UsersSessionsRevoke)]
+    [ProducesResponseType(typeof(RevokeUserSessionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RevokeSession(Guid userId, Guid sessionId, CancellationToken ct)
+    {
+        var command = new RevokeUserSessionCommand(userId, sessionId);
         var result = await Mediator.Send(command, ct);
         return ApiOk(result);
     }

@@ -11,7 +11,7 @@ public sealed class SystemAuditLog : BaseEntity
     public Guid? EntityId { get; private set; }
     public string? IpAddress { get; private set; }
     public string? UserAgent { get; private set; }
-    public JsonDocument? Details { get; private set; }
+    public string? Details { get; private set; }
 
     // Navigation properties
     public SystemUser? User { get; private set; }
@@ -39,7 +39,7 @@ public sealed class SystemAuditLog : BaseEntity
             IpAddress = ipAddress,
             UserAgent = userAgent,
             Details = details is not null
-                ? JsonDocument.Parse(JsonSerializer.Serialize(details))
+                ? JsonSerializer.Serialize(details)
                 : null
         };
     }

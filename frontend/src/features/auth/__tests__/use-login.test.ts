@@ -37,12 +37,15 @@ describe('useLogin', () => {
       wrapper: createWrapper(),
     })
 
-    result.current.mutate({ email: 'test@example.com', password: 'password123' })
+    result.current.mutate({ email: 'test@example.com', password: 'password123', rememberMe: false, deviceId: null, deviceFingerprint: null })
 
     await waitFor(() => {
       expect(mockLoginApi).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password123',
+        rememberMe: false,
+        deviceId: null,
+        deviceFingerprint: null,
       })
     })
   })
@@ -59,7 +62,7 @@ describe('useLogin', () => {
       wrapper: createWrapper(),
     })
 
-    result.current.mutate({ email: 'test@example.com', password: 'password123' })
+    result.current.mutate({ email: 'test@example.com', password: 'password123', rememberMe: false, deviceId: null, deviceFingerprint: null })
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true)
@@ -80,7 +83,7 @@ describe('useLogin', () => {
       wrapper: createWrapper(),
     })
 
-    result.current.mutate({ email: 'test@example.com', password: 'password123' })
+    result.current.mutate({ email: 'test@example.com', password: 'password123', rememberMe: false, deviceId: null, deviceFingerprint: null })
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true)
@@ -97,7 +100,7 @@ describe('useLogin', () => {
       wrapper: createWrapper(),
     })
 
-    result.current.mutate({ email: 'test@example.com', password: 'wrong' })
+    result.current.mutate({ email: 'test@example.com', password: 'wrong', rememberMe: false, deviceId: null, deviceFingerprint: null })
 
     await waitFor(() => {
       expect(result.current.isError).toBe(true)
@@ -118,7 +121,7 @@ describe('useLogin', () => {
       wrapper: createWrapper(),
     })
 
-    result.current.mutate({ email: 'test@example.com', password: 'password123' })
+    result.current.mutate({ email: 'test@example.com', password: 'password123', rememberMe: false, deviceId: null, deviceFingerprint: null })
 
     // Wait for the mutation to start
     await waitFor(() => {

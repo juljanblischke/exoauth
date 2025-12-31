@@ -50,9 +50,10 @@ public sealed class DeactivateSystemUserHandler : ICommandHandler<DeactivateSyst
             throw new UserAlreadyDeactivatedException(command.Id);
         }
 
-        // Check if user is last holder of critical permission
+        // Check if user is last holder of critical permissions
         var userPermissions = await _userRepository.GetUserPermissionNamesAsync(command.Id, ct);
 
+        // Check system:users:update
         if (userPermissions.Contains(global::ExoAuth.Domain.Constants.SystemPermissions.UsersUpdate))
         {
             var holdersCount = await _userRepository.CountUsersWithPermissionAsync(global::ExoAuth.Domain.Constants.SystemPermissions.UsersUpdate, ct);
@@ -60,6 +61,17 @@ public sealed class DeactivateSystemUserHandler : ICommandHandler<DeactivateSyst
             if (holdersCount <= 1)
             {
                 throw new LastPermissionHolderException(global::ExoAuth.Domain.Constants.SystemPermissions.UsersUpdate);
+            }
+        }
+
+        // Check system:users:read
+        if (userPermissions.Contains(global::ExoAuth.Domain.Constants.SystemPermissions.UsersRead))
+        {
+            var holdersCount = await _userRepository.CountUsersWithPermissionAsync(global::ExoAuth.Domain.Constants.SystemPermissions.UsersRead, ct);
+
+            if (holdersCount <= 1)
+            {
+                throw new LastPermissionHolderException(global::ExoAuth.Domain.Constants.SystemPermissions.UsersRead);
             }
         }
 

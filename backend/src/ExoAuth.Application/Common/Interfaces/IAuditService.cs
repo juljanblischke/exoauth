@@ -105,5 +105,6 @@ public static class AuditActions
     public const string AccountUnlockedByAdmin = "system.account.unlocked_by_admin";
     public const string UserAnonymized = "system.user.anonymized";
     public const string PreferencesUpdated = "system.user.preferences_updated";
-    public const string SessionsRevokedByAdmin = "system.session.revoked_by_admin";
+    public const string SessionsRevokedByAdmin = "system.sessions.revoked_by_admin";
+    public const string SessionRevokedByAdmin = "system.session.revoked_by_admin";
 }

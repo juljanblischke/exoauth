@@ -91,3 +91,10 @@ public sealed record AnonymizeUserResponse(
     bool Success,
     Guid UserId
 );
+
+/// <summary>
+/// Response for admin revoke single user session.
+/// </summary>
+public sealed record RevokeUserSessionResponse(
+    bool Revoked
+);

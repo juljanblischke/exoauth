@@ -22,7 +22,7 @@ ENV ASPNETCORE_URLS=http://+:8080
 # Create directories for persistent data
 RUN mkdir -p /app/data/keys /app/data/geoip
 
-ENTRYPOINT ["dotnet", "watch", "run", "--project", "src/ExoAuth.Api", "--no-launch-profile"]
+ENTRYPOINT ["dotnet", "run", "--project", "src/ExoAuth.Api", "--no-launch-profile"]
 
 # Production stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS production

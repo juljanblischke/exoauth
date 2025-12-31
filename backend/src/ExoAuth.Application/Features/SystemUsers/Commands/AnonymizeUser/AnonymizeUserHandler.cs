@@ -50,8 +50,10 @@ public sealed class AnonymizeUserHandler : ICommandHandler<AnonymizeUserCommand,
             return new AnonymizeUserResponse(true, command.UserId);
         }
 
-        // Check if user is last holder of critical permission (system:users:update)
+        // Check if user is last holder of critical permissions
         var userPermissionNames = await _userRepository.GetUserPermissionNamesAsync(command.UserId, ct);
+
+        // Check system:users:update
         if (userPermissionNames.Contains(global::ExoAuth.Domain.Constants.SystemPermissions.UsersUpdate))
         {
             var holdersCount = await _userRepository.CountUsersWithPermissionAsync(
@@ -63,8 +65,30 @@ public sealed class AnonymizeUserHandler : ICommandHandler<AnonymizeUserCommand,
             }
         }
 
+        // Check system:users:read
+        if (userPermissionNames.Contains(global::ExoAuth.Domain.Constants.SystemPermissions.UsersRead))
+        {
+            var holdersCount = await _userRepository.CountUsersWithPermissionAsync(
+                global::ExoAuth.Domain.Constants.SystemPermissions.UsersRead, ct);
+
+            if (holdersCount <= 1)
+            {
+                throw new LastPermissionHolderException(global::ExoAuth.Domain.Constants.SystemPermissions.UsersRead);
+            }
+        }
+
         // Store original email for audit before anonymization
         var originalEmail = user.Email;
+
+        // GDPR: Delete all invites with this email (any status: pending, accepted, revoked, expired)
+        var invitesToDelete = await _context.SystemInvites
+            .Where(i => i.Email == originalEmail)
+            .ToListAsync(ct);
+
+        if (invitesToDelete.Count > 0)
+        {
+            _context.SystemInvites.RemoveRange(invitesToDelete);
+        }
 
         // Get all sessions for this user
         var sessions = await _context.DeviceSessions

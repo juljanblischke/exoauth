@@ -216,7 +216,7 @@ export function UsersTable({ onEdit, onPermissions, onRowClick }: UsersTableProp
   // Admin actions (used in both table and mobile card)
   const adminActions: RowAction<SystemUserDto>[] = useMemo(() => {
     const actions: RowAction<SystemUserDto>[] = []
-    const hasBasicActions = onEdit || onPermissions
+    const hasBasicActions = !!(onEdit || onPermissions)
 
     // Reset MFA action
     if (canResetMfa) {

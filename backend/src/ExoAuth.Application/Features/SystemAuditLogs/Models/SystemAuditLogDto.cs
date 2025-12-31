@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace ExoAuth.Application.Features.SystemAuditLogs.Models;
 
 /// <summary>
@@ -18,7 +16,7 @@ public sealed record SystemAuditLogDto(
     Guid? EntityId,
     string? IpAddress,
     string? UserAgent,
-    JsonDocument? Details,
+    string? Details,
     DateTime CreatedAt
 );
 

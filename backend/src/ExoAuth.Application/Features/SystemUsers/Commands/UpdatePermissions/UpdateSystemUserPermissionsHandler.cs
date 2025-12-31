@@ -80,6 +80,17 @@ public sealed class UpdateSystemUserPermissionsHandler : ICommandHandler<UpdateS
             }
         }
 
+        // Check if user is the last holder of system:users:read permission
+        if (removedPermissions.Contains(global::ExoAuth.Domain.Constants.SystemPermissions.UsersRead))
+        {
+            var holdersCount = await _userRepository.CountUsersWithPermissionAsync(global::ExoAuth.Domain.Constants.SystemPermissions.UsersRead, ct);
+
+            if (holdersCount <= 1)
+            {
+                throw new LastPermissionHolderException(global::ExoAuth.Domain.Constants.SystemPermissions.UsersRead);
+            }
+        }
+
         // Update permissions
         await _userRepository.SetUserPermissionsAsync(
             command.UserId,

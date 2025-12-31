@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
@@ -58,32 +58,58 @@ export function EditInviteModal({ open, onOpenChange, invite }: EditInviteModalP
   // Use fetched details when available, fall back to prop for basic data
   const displayInvite = inviteDetails ?? invite
 
-  // Match invite permissions (by name) to get their IDs when data loads
+  // Compute matched permission IDs from invite details
+  const matchedPermissionIds = useMemo(() => {
+    if (!inviteDetails?.permissions || !permissionGroups) return []
+    const invitePermissionNames = inviteDetails.permissions.map((p) => p.name)
+    const matchedIds: string[] = []
+    permissionGroups.forEach((group) => {
+      group.permissions.forEach((permission) => {
+        if (invitePermissionNames.includes(permission.name)) {
+          matchedIds.push(permission.id)
+        }
+      })
+    })
+    return matchedIds
+  }, [inviteDetails, permissionGroups])
+
+  // Track which invite we've initialized for to avoid re-initializing
+  const initializedInviteIdRef = useRef<string | null>(null)
+
+  // Sync form and permissions when modal opens with new data
   useEffect(() => {
-    if (displayInvite && permissionGroups && open) {
+    if (displayInvite && open && initializedInviteIdRef.current !== displayInvite.id) {
       // Reset form with invite data
       form.reset({
         firstName: displayInvite.firstName,
         lastName: displayInvite.lastName,
       })
+      initializedInviteIdRef.current = displayInvite.id
+    }
+    if (!open) {
+      initializedInviteIdRef.current = null
+    }
+  }, [displayInvite, open, form])
 
-      // Find permission IDs that match the invite's current permissions (only if we have details)
-      if (inviteDetails?.permissions) {
-        const invitePermissionNames = inviteDetails.permissions.map((p) => p.name)
-        const matchedIds: string[] = []
-
-        permissionGroups.forEach((group) => {
-          group.permissions.forEach((permission) => {
-            if (invitePermissionNames.includes(permission.name)) {
-              matchedIds.push(permission.id)
-            }
-          })
-        })
-
-        setSelectedPermissions(matchedIds)
+  // Sync permissions separately when computed IDs change and modal is open
+  // This is a legitimate modal initialization pattern - we need to sync state
+  // from async data (invite details) when the modal opens
+  const prevMatchedIdsRef = useRef<string[]>([])
+  useEffect(() => {
+    if (open && matchedPermissionIds.length > 0) {
+      const prevIds = prevMatchedIdsRef.current
+      const hasChanged = matchedPermissionIds.length !== prevIds.length ||
+        matchedPermissionIds.some((id, i) => id !== prevIds[i])
+      if (hasChanged) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Modal init from async data
+        setSelectedPermissions(matchedPermissionIds)
+        prevMatchedIdsRef.current = matchedPermissionIds
       }
     }
-  }, [displayInvite, inviteDetails, permissionGroups, open, form])
+    if (!open) {
+      prevMatchedIdsRef.current = []
+    }
+  }, [open, matchedPermissionIds])
 
   // Handle open change with form reset
   const handleOpenChange = useCallback(
