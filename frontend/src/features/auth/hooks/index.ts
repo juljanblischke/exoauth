@@ -23,3 +23,8 @@ export { useTrustSession } from './use-trust-session'
 // Password reset hooks
 export { useForgotPassword } from './use-forgot-password'
 export { useResetPassword } from './use-reset-password'
+
+// Device approval hooks
+export { useApproveDeviceByCode } from './use-approve-device-by-code'
+export { useApproveDeviceByLink } from './use-approve-device-by-link'
+export { useDenyDevice } from './use-deny-device'

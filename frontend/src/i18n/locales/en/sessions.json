@@ -3,6 +3,7 @@
   "description": "Manage your active sessions across devices",
   "current": "Current Session",
   "trusted": "Trusted",
+  "pendingApproval": "Pending Approval",
   "lastActive": "Last active",
   "location": "Location",
   "created": "Created",

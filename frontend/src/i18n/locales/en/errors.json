@@ -27,7 +27,12 @@
     "VALIDATION_REQUIRED": "This field is required",
     "VALIDATION_INVALID_FORMAT": "Invalid format",
     "VALIDATION_MIN_LENGTH": "Minimum {{min}} characters required",
-    "VALIDATION_MAX_LENGTH": "Maximum {{max}} characters allowed"
+    "VALIDATION_MAX_LENGTH": "Maximum {{max}} characters allowed",
+    "APPROVAL_TOKEN_INVALID": "Invalid verification token",
+    "APPROVAL_TOKEN_EXPIRED": "Verification token has expired",
+    "APPROVAL_CODE_INVALID": "Invalid verification code",
+    "APPROVAL_MAX_ATTEMPTS": "Too many failed attempts",
+    "DEVICE_APPROVAL_DENIED": "This device has been denied"
   },
   "general": {
     "title": "Something went wrong",

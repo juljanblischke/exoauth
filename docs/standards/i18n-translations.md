@@ -237,6 +237,25 @@ frontend/src/i18n/
 | `password.lowercase` | One lowercase letter | Ein Kleinbuchstabe |
 | `password.digit` | One number | Eine Zahl |
 | `password.special` | One special character | Ein Sonderzeichen |
+| `deviceApproval.title` | Device Verification Required | Geräte-Verifizierung erforderlich |
+| `deviceApproval.description` | New device from new location detected | Neues Gerät von neuem Standort erkannt |
+| `deviceApproval.codeLabel` | Enter verification code | Verifizierungscode eingeben |
+| `deviceApproval.codePlaceholder` | XXXX | XXXX |
+| `deviceApproval.codeHint` | Check your email for the verification code | Prüfen Sie Ihre E-Mail für den Verifizierungscode |
+| `deviceApproval.submitButton` | Verify Device | Gerät verifizieren |
+| `deviceApproval.retryButton` | Retry Login | Erneut einloggen |
+| `deviceApproval.denyLink` | This wasn't me | Das war ich nicht |
+| `deviceApproval.attemptsRemaining` | {{count}} attempts remaining | {{count}} Versuche übrig |
+| `deviceApproval.success` | Device verified successfully! | Gerät erfolgreich verifiziert! |
+| `deviceApproval.denied` | Device denied. We recommend changing your password. | Gerät abgelehnt. Wir empfehlen, Ihr Passwort zu ändern. |
+| `deviceApproval.expired` | Verification expired. Please try logging in again. | Verifizierung abgelaufen. Bitte erneut einloggen. |
+| `deviceApproval.maxAttempts` | Too many failed attempts. Please try logging in again. | Zu viele Fehlversuche. Bitte erneut einloggen. |
+| `deviceApproval.startNewLogin` | Start New Login | Neuen Login starten |
+| `deviceApproval.linkApproval.title` | Device Approval | Geräte-Genehmigung |
+| `deviceApproval.linkApproval.loading` | Verifying device... | Gerät wird verifiziert... |
+| `deviceApproval.linkApproval.success` | Device approved! You can now login. | Gerät genehmigt! Sie können sich jetzt einloggen. |
+| `deviceApproval.linkApproval.error` | Could not approve device. The link may have expired. | Gerät konnte nicht genehmigt werden. Der Link ist möglicherweise abgelaufen. |
+| `deviceApproval.linkApproval.backToLogin` | Back to Login | Zurück zum Login |
 
 ---
 
@@ -516,6 +535,7 @@ frontend/src/i18n/
 | `description` | Manage your active sessions across devices | Verwalten Sie Ihre aktiven Sitzungen auf verschiedenen Geraeten |
 | `current` | Current Session | Aktuelle Sitzung |
 | `trusted` | Trusted | Vertrauenswuerdig |
+| `pendingApproval` | Pending Approval | Genehmigung ausstehend |
 | `lastActive` | Last active | Zuletzt aktiv |
 | `location` | Location | Standort |
 | `created` | Created | Erstellt |
@@ -587,6 +607,11 @@ frontend/src/i18n/
 | `codes.VALIDATION_INVALID_FORMAT` | Invalid format | Ungültiges Format |
 | `codes.VALIDATION_MIN_LENGTH` | Minimum {{min}} characters required | Mindestens {{min}} Zeichen erforderlich |
 | `codes.VALIDATION_MAX_LENGTH` | Maximum {{max}} characters allowed | Maximal {{max}} Zeichen erlaubt |
+| `codes.APPROVAL_TOKEN_INVALID` | Invalid verification token | Ungültiges Verifizierungstoken |
+| `codes.APPROVAL_TOKEN_EXPIRED` | Verification token has expired | Verifizierungstoken ist abgelaufen |
+| `codes.APPROVAL_CODE_INVALID` | Invalid verification code | Ungültiger Verifizierungscode |
+| `codes.APPROVAL_MAX_ATTEMPTS` | Too many failed attempts | Zu viele Fehlversuche |
+| `codes.DEVICE_APPROVAL_DENIED` | This device has been denied | Dieses Gerät wurde abgelehnt |
 
 #### General Errors
 
@@ -675,4 +700,4 @@ function MyComponent() {
 
 ---
 
-**Last Updated:** 2025-12-31
+**Last Updated:** 2026-01-01

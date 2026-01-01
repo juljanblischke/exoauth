@@ -15,6 +15,7 @@ import { AuditLogsPage } from './audit-logs'
 import { SettingsPage } from './settings'
 import { ImprintPage, PrivacyPage, TermsPage } from './legal'
 import { ResetPasswordPage } from './reset-password'
+import { ApproveDevicePage } from './approve-device'
 
 // Permission-protected page wrapper
 function withPermission(Component: React.ComponentType, permission: string) {
@@ -104,6 +105,13 @@ const resetPasswordRoute = createRoute({
   }),
 })
 
+// Approve Device route (email link approval)
+const approveDeviceRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/approve-device/$token',
+  component: ApproveDevicePage,
+})
+
 // App layout - for authenticated pages (with sidebar)
 const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -180,6 +188,7 @@ export const routeTree = rootRoute.addChildren([
     privacyRoute,
     termsRoute,
     resetPasswordRoute,
+    approveDeviceRoute,
   ]),
   appLayoutRoute.addChildren([
     dashboardRoute,

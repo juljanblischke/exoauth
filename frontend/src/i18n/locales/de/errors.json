@@ -27,7 +27,12 @@
     "VALIDATION_REQUIRED": "Dieses Feld ist erforderlich",
     "VALIDATION_INVALID_FORMAT": "Ungültiges Format",
     "VALIDATION_MIN_LENGTH": "Mindestens {{min}} Zeichen erforderlich",
-    "VALIDATION_MAX_LENGTH": "Maximal {{max}} Zeichen erlaubt"
+    "VALIDATION_MAX_LENGTH": "Maximal {{max}} Zeichen erlaubt",
+    "APPROVAL_TOKEN_INVALID": "Ungültiges Verifizierungstoken",
+    "APPROVAL_TOKEN_EXPIRED": "Verifizierungstoken ist abgelaufen",
+    "APPROVAL_CODE_INVALID": "Ungültiger Verifizierungscode",
+    "APPROVAL_MAX_ATTEMPTS": "Zu viele Fehlversuche",
+    "DEVICE_APPROVAL_DENIED": "Dieses Gerät wurde abgelehnt"
   },
   "general": {
     "title": "Etwas ist schiefgelaufen",

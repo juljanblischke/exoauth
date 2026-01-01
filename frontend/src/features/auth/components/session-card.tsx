@@ -114,6 +114,12 @@ export function SessionCard({
                 {t('sessions:trusted')}
               </Badge>
             )}
+            {!session.isTrusted && !session.isCurrent && (
+              <Badge variant="outline" className="text-xs border-amber-500 text-amber-600 dark:text-amber-400">
+                <Shield className="h-3 w-3 mr-1" />
+                {t('sessions:pendingApproval')}
+              </Badge>
+            )}
           </div>
 
           <div className="mt-1 text-sm text-muted-foreground space-y-0.5">

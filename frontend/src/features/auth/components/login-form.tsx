@@ -13,7 +13,12 @@ import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/shared/form'
 
 import { useLogin } from '../hooks/use-login'
-import { createLoginSchema, type LoginFormData, type MfaConfirmResponse } from '../types'
+import {
+  createLoginSchema,
+  type LoginFormData,
+  type MfaConfirmResponse,
+  type DeviceApprovalRequiredResponse,
+} from '../types'
 import type { AuthResponse } from '@/types/auth'
 import { getErrorMessage } from '@/lib/error-utils'
 import { getDeviceInfo } from '@/lib/device'
@@ -21,6 +26,7 @@ import { MfaVerifyModal } from './mfa-verify-modal'
 import { MfaSetupModal } from './mfa-setup-modal'
 import { MfaConfirmModal } from './mfa-confirm-modal'
 import { ForgotPasswordModal } from './forgot-password-modal'
+import { DeviceApprovalModal } from './device-approval-modal'
 
 const AUTH_SESSION_KEY = 'exoauth_has_session'
 const AUTH_QUERY_KEY = ['auth', 'me'] as const
@@ -43,6 +49,11 @@ export function LoginForm() {
   // Forgot password state
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
 
+  // Device approval state
+  const [deviceApprovalOpen, setDeviceApprovalOpen] = useState(false)
+  const [deviceApprovalToken, setDeviceApprovalToken] = useState<string | null>(null)
+  const [deviceRiskFactors, setDeviceRiskFactors] = useState<string[]>([])
+
   const { mutate: login, isPending, error } = useLogin({
     onMfaRequired: (response: AuthResponse) => {
       setMfaToken(response.mfaToken)
@@ -52,6 +63,11 @@ export function LoginForm() {
     onMfaSetupRequired: (response: AuthResponse) => {
       setSetupToken(response.setupToken)
       setMfaSetupOpen(true)
+    },
+    onDeviceApprovalRequired: (response: DeviceApprovalRequiredResponse) => {
+      setDeviceApprovalToken(response.approvalToken)
+      setDeviceRiskFactors(response.riskFactors)
+      setDeviceApprovalOpen(true)
     },
   })
 
@@ -204,6 +220,24 @@ export function LoginForm() {
         onOpenChange={setMfaConfirmOpen}
         backupCodes={backupCodes}
         onContinue={handleMfaConfirmContinue}
+      />
+
+      {/* Device Approval Modal - shown when risk-based auth requires device verification */}
+      <DeviceApprovalModal
+        open={deviceApprovalOpen}
+        onOpenChange={setDeviceApprovalOpen}
+        approvalToken={deviceApprovalToken || ''}
+        riskFactors={deviceRiskFactors}
+        onSuccess={() => {
+          // After device approval, user needs to login again
+          setDeviceApprovalToken(null)
+          setDeviceRiskFactors([])
+        }}
+        onDeny={() => {
+          // After denying, just clear state
+          setDeviceApprovalToken(null)
+          setDeviceRiskFactors([])
+        }}
       />
     </form>
   )

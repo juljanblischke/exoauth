@@ -17,3 +17,7 @@ export { SessionDetailsSheet } from './session-details-sheet'
 
 // Password reset components
 export { ForgotPasswordModal } from './forgot-password-modal'
+
+// Device approval components
+export { DeviceApprovalCodeInput } from './device-approval-code-input'
+export { DeviceApprovalModal } from './device-approval-modal'

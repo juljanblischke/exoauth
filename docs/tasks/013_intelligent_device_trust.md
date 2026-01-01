@@ -40,17 +40,22 @@ Aktuell ist MFA der einzige Schutzmechanismus. Email-Benachrichtigungen über ne
 
 ### Flows
 
-#### Low Risk (0-30 Punkte)
+#### Login ohne MFA - Low Risk (0-30 Punkte)
 ```
-Login → Risk Score: 25 → MFA OK → ✅ Login Success → 📧 Info-Email
+Login → Password OK → Risk Score: 25 → ✅ Login Success → 📧 Info-Email
 ```
 Wie bisher, keine Änderung.
 
-#### Medium/High Risk (31+ Punkte)
+#### Login mit MFA - Low Risk (0-30 Punkte)
 ```
-Login → Risk Score: 60 → MFA OK → DeviceSession created (IsTrusted=false)
-                                → 📧 Approval Email mit Token + Code
-                                → Response: { requiresDeviceApproval: true, approvalToken: "..." }
+Login → Password OK → MFA Required → MfaVerify → Risk Score: 25 → ✅ Login Success → 📧 Info-Email
+```
+
+#### Medium/High Risk (31+ Punkte) - mit oder ohne MFA
+```
+Login → Password OK → [MFA wenn aktiviert] → Risk Score: 60 → DeviceSession created (IsTrusted=false)
+                                                            → 📧 Approval Email mit Token + Code
+                                                            → Response: { requiresDeviceApproval: true, approvalToken: "..." }
 
 User hat 2 Optionen:
 
@@ -282,6 +287,7 @@ public sealed class LoginPattern : BaseEntity
 | `src/ExoAuth.Application/Features/Auth/Commands/Login/LoginHandler.cs` | Risk Score Check, Approval Flow |
 | `src/ExoAuth.Application/Features/Auth/Commands/Login/LoginCommand.cs` | Response erweitern |
 | `src/ExoAuth.Application/Features/Auth/Models/AuthResponse.cs` | Approval Response Felder |
+| `src/ExoAuth.Application/Features/Auth/Commands/MfaVerify/MfaVerifyHandler.cs` | Risk Score Check, Approval Flow (wie LoginHandler) |
 | `src/ExoAuth.Application/Features/Auth/Commands/UpdateSession/UpdateSessionHandler.cs` | Bei Trust: Approval resolven |
 | `src/ExoAuth.Infrastructure/Persistence/AppDbContext.cs` | DbSets hinzufügen |
 | `src/ExoAuth.Infrastructure/DependencyInjection.cs` | Neue Services registrieren |
@@ -339,12 +345,13 @@ Keine neuen Packages erforderlich.
    - [x] ApproveDeviceLink (Token-based)
    - [x] DenyDevice
 6. [x] **Application**: LoginHandler modifizieren (Risk Check, Approval Flow)
-7. [x] **Application**: UpdateSessionHandler erweitern (Trust → Approval resolven)
-8. [x] **API**: Neue Endpoints in AuthController
-9. [x] **Email**: Templates erstellen (EN/DE)
-10. [x] **Config**: appsettings.json erweitern
-11. [ ] **Tests**: Unit Tests schreiben
-12. [ ] **Standards updaten**: task_standards_backend.md + coding_standards_backend.md aktualisieren
+7. [x] **Application**: MfaVerifyHandler modifizieren (Risk Check, Approval Flow) - **Bugfix: MFA Login bypassed Device Trust!**
+8. [x] **Application**: UpdateSessionHandler erweitern (Trust → Approval resolven)
+9. [x] **API**: Neue Endpoints in AuthController
+10. [x] **Email**: Templates erstellen (EN/DE)
+11. [x] **Config**: appsettings.json erweitern
+12. [ ] **Tests**: Unit Tests schreiben
+13. [ ] **Standards updaten**: task_standards_backend.md + coding_standards_backend.md aktualisieren
 
 ## 11. Tests
 
@@ -477,6 +484,33 @@ else
 }
 ```
 
+### MfaVerifyHandler Integration
+
+> ⚠️ **Wichtig:** MfaVerifyHandler muss die gleiche Risk-Scoring-Logik wie LoginHandler haben!
+> Ohne diese Integration würde MFA-Login das Device Trust System komplett umgehen.
+
+```csharp
+// In MfaVerifyHandler.Handle() - nach Device Session Creation
+
+// Get geo location and device info for risk scoring
+var geoLocation = _geoIpService.GetLocation(command.IpAddress);
+var deviceInfo = _deviceDetectionService.Parse(command.UserAgent);
+
+// Calculate risk score
+var riskScore = await _riskScoringService.CalculateAsync(
+    userId, deviceInfo, geoLocation, deviceSession.IsTrusted, ct);
+
+// Check if device approval is required
+if (_riskScoringService.RequiresApproval(riskScore))
+{
+    // Same approval flow as LoginHandler...
+    return AuthResponse.RequiresDeviceApproval(...);
+}
+
+// Record login pattern for future risk scoring
+await _loginPatternService.RecordLoginAsync(userId, geoLocation, deviceInfo.DeviceType, command.IpAddress, ct);
+```
+
 ### UpdateSessionHandler Integration
 
 ```csharp
@@ -492,12 +526,31 @@ if (command.IsTrusted == true)
 
 ## 13. Nach Completion
 
-- [ ] Alle Unit Tests grün
+- [x] Alle Unit Tests grün (303 tests passed)
 - [ ] `task_standards_backend.md` aktualisiert (File Tree, neue Entities/Services)
 - [ ] `coding_standards_backend.md` aktualisiert (neue Error Codes)
 - [ ] Code reviewed
 - [ ] Feature mit `DeviceTrust:Enabled = false` getestet (Fallback auf altes Verhalten)
 - [ ] Feature mit `DeviceTrust:Enabled = true` getestet
+
+## 13.1 Bugfixes
+
+### MfaVerifyHandler bypassed Device Trust (Fixed: 2026-01-01)
+
+**Problem:** `MfaVerifyHandler` hatte keine Risk-Scoring-Logik. MFA-Logins umgingen das Device Trust System komplett.
+
+**Auswirkung:** Angreifer mit gestohlenen Credentials + MFA-Gerät konnten von verdächtigen Standorten/Geräten einloggen ohne Device Approval.
+
+**Lösung:**
+- 5 neue Service-Injections in `MfaVerifyHandler` hinzugefügt:
+  - `IRiskScoringService`
+  - `ILoginPatternService`
+  - `IDeviceApprovalService`
+  - `IGeoIpService`
+  - `IDeviceDetectionService`
+- Risk-Scoring-Logik nach Device Session Creation eingefügt
+- Login Pattern Recording hinzugefügt
+- Risk Score zu Audit Log hinzugefügt
 
 ## 14. Offene Fragen / Entscheidungen
 

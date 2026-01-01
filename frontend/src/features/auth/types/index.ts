@@ -120,3 +120,18 @@ export type {
   RegenerateBackupCodesRequest,
   RegenerateBackupCodesResponse,
 } from './mfa'
+
+// Re-export Device Approval types
+export type {
+  DeviceApprovalRequiredResponse,
+  ApproveDeviceByCodeRequest,
+  ApproveDeviceByCodeResponse,
+  ApproveDeviceByLinkResponse,
+  DenyDeviceRequest,
+  DenyDeviceResponse,
+  DeviceApprovalModalState,
+  DeviceApprovalModalProps,
+  DeviceApprovalCodeInputProps,
+} from './device-approval'
+
+export { isDeviceApprovalRequired } from './device-approval'

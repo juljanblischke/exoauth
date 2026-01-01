@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { authApi } from '../api/auth-api'
-import type { LoginRequest, AuthResponse } from '../types'
+import type { LoginRequest, AuthResponse, DeviceApprovalRequiredResponse } from '../types'
+import { isDeviceApprovalRequired } from '../types'
 
 const AUTH_QUERY_KEY = ['auth', 'me'] as const
 const AUTH_SESSION_KEY = 'exoauth_has_session'
@@ -9,6 +10,7 @@ const AUTH_SESSION_KEY = 'exoauth_has_session'
 export interface UseLoginOptions {
   onMfaRequired?: (response: AuthResponse) => void
   onMfaSetupRequired?: (response: AuthResponse) => void
+  onDeviceApprovalRequired?: (response: DeviceApprovalRequiredResponse) => void
 }
 
 export function useLogin(options?: UseLoginOptions) {
@@ -18,6 +20,12 @@ export function useLogin(options?: UseLoginOptions) {
   return useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (response) => {
+      // Check if device approval is required (risk-based authentication)
+      if (isDeviceApprovalRequired(response)) {
+        options?.onDeviceApprovalRequired?.(response)
+        return
+      }
+
       // Check if MFA verification is required
       if (response.mfaRequired && response.mfaToken) {
         options?.onMfaRequired?.(response)

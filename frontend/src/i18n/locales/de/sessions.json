@@ -3,6 +3,7 @@
   "description": "Verwalten Sie Ihre aktiven Sitzungen auf verschiedenen Geraeten",
   "current": "Aktuelle Sitzung",
   "trusted": "Vertrauenswuerdig",
+  "pendingApproval": "Genehmigung ausstehend",
   "lastActive": "Zuletzt aktiv",
   "location": "Standort",
   "created": "Erstellt",

@@ -23,6 +23,11 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
     private readonly IEmailService _emailService;
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IConfiguration _configuration;
+    private readonly IRiskScoringService _riskScoringService;
+    private readonly ILoginPatternService _loginPatternService;
+    private readonly IDeviceApprovalService _deviceApprovalService;
+    private readonly IGeoIpService _geoIpService;
+    private readonly IDeviceDetectionService _deviceDetectionService;
 
     public MfaVerifyHandler(
         IAppDbContext context,
@@ -37,7 +42,12 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         IAuditService auditService,
         IEmailService emailService,
         IEmailTemplateService emailTemplateService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IRiskScoringService riskScoringService,
+        ILoginPatternService loginPatternService,
+        IDeviceApprovalService deviceApprovalService,
+        IGeoIpService geoIpService,
+        IDeviceDetectionService deviceDetectionService)
     {
         _context = context;
         _userRepository = userRepository;
@@ -52,6 +62,11 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         _emailService = emailService;
         _emailTemplateService = emailTemplateService;
         _configuration = configuration;
+        _riskScoringService = riskScoringService;
+        _loginPatternService = loginPatternService;
+        _deviceApprovalService = deviceApprovalService;
+        _geoIpService = geoIpService;
+        _deviceDetectionService = deviceDetectionService;
     }
 
     public async ValueTask<AuthResponse> Handle(MfaVerifyCommand command, CancellationToken ct)
@@ -168,6 +183,77 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
             ct
         );
 
+        // Get geo location and device info for risk scoring
+        var geoLocation = _geoIpService.GetLocation(command.IpAddress);
+        var deviceInfo = _deviceDetectionService.Parse(command.UserAgent);
+
+        // Calculate risk score
+        var riskScore = await _riskScoringService.CalculateAsync(
+            userId,
+            deviceInfo,
+            geoLocation,
+            deviceSession.IsTrusted,
+            ct
+        );
+
+        // Check if device approval is required
+        if (_riskScoringService.RequiresApproval(riskScore))
+        {
+            // Create device approval request
+            var approvalResult = await _deviceApprovalService.CreateApprovalRequestAsync(
+                userId,
+                deviceSession.Id,
+                riskScore.Score,
+                riskScore.Factors,
+                ct
+            );
+
+            // Send device approval email
+            await _emailService.SendDeviceApprovalRequiredAsync(
+                email: user.Email,
+                firstName: user.FirstName,
+                approvalToken: approvalResult.Token,
+                approvalCode: approvalResult.Code,
+                deviceName: deviceSession.DisplayName,
+                browser: deviceSession.Browser,
+                operatingSystem: deviceSession.OperatingSystem,
+                location: deviceSession.LocationDisplay,
+                ipAddress: deviceSession.IpAddress,
+                riskScore: riskScore.Score,
+                language: user.PreferredLanguage,
+                cancellationToken: ct
+            );
+
+            // Audit log
+            await _auditService.LogWithContextAsync(
+                AuditActions.DeviceApprovalRequired,
+                userId,
+                null,
+                "DeviceSession",
+                deviceSession.Id,
+                new
+                {
+                    riskScore.Score,
+                    riskScore.Level,
+                    riskScore.Factors,
+                    DeviceId = deviceId,
+                    IsNewDevice = isNewDevice,
+                    IsNewLocation = isNewLocation,
+                    IsBackupCode = isBackupCode
+                },
+                ct
+            );
+
+            return AuthResponse.RequiresDeviceApproval(
+                approvalToken: approvalResult.Token,
+                sessionId: deviceSession.Id,
+                deviceId: deviceId,
+                riskScore: riskScore.Score,
+                riskLevel: riskScore.Level.ToString(),
+                riskFactors: riskScore.Factors.ToList()
+            );
+        }
+
         // Clear force re-auth flag for this session (session-based, not user-based)
         await _forceReauthService.ClearFlagAsync(deviceSession.Id, ct);
 
@@ -197,6 +283,15 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         user.RecordLogin();
         await _userRepository.UpdateAsync(user, ct);
 
+        // Record login pattern for future risk scoring
+        await _loginPatternService.RecordLoginAsync(
+            userId,
+            geoLocation,
+            deviceInfo.DeviceType,
+            command.IpAddress,
+            ct
+        );
+
         // Audit log
         await _auditService.LogWithContextAsync(
             AuditActions.MfaVerified,
@@ -210,7 +305,9 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
                 DeviceId = deviceId,
                 IsNewDevice = isNewDevice,
                 IsNewLocation = isNewLocation,
-                IsBackupCode = isBackupCode
+                IsBackupCode = isBackupCode,
+                RiskScore = riskScore.Score,
+                RiskLevel = riskScore.Level.ToString()
             },
             ct
         );

@@ -92,49 +92,63 @@ public sealed class RiskScoringService : IRiskScoringService
         }
 
         // Check for new device (always applies if not trusted)
+        _logger.LogDebug("Checking device trust: IsTrusted={IsTrusted}", isTrustedDevice);
         if (!isTrustedDevice)
         {
             score += _newDeviceScore;
             factors.Add(RiskFactors.NewDevice);
+            _logger.LogDebug("New/untrusted device: +{Score} points", _newDeviceScore);
         }
 
         // Check for impossible travel first (it's the most severe)
+        _logger.LogDebug("Checking impossible travel: LastLocation={LastCountry}/{LastCity}, CurrentLocation={Country}/{City}",
+            pattern.LastCountry, pattern.LastCity, geoLocation.CountryCode, geoLocation.City);
         if (_loginPatternService.IsImpossibleTravel(pattern, geoLocation, _impossibleTravelSpeedKmh))
         {
             score += _impossibleTravelScore;
             factors.Add(RiskFactors.ImpossibleTravel);
-            _logger.LogWarning("Impossible travel detected for user {UserId}", userId);
+            _logger.LogWarning("Impossible travel detected for user {UserId}: +{Score} points", userId, _impossibleTravelScore);
         }
         else
         {
             // Only check location anomalies if no impossible travel
             // Check for new country
+            _logger.LogDebug("Checking country: Current={Country}, TypicalCountries={Typical}",
+                geoLocation.CountryCode, pattern.TypicalCountries);
             if (!pattern.IsTypicalCountry(geoLocation.CountryCode))
             {
                 score += _newCountryScore;
                 factors.Add(RiskFactors.NewCountry);
+                _logger.LogDebug("New country detected: +{Score} points", _newCountryScore);
             }
             // Check for new city (only if same country - otherwise new_country already covers it)
             else if (!pattern.IsTypicalCity(geoLocation.City))
             {
                 score += _newCityScore;
                 factors.Add(RiskFactors.NewCity);
+                _logger.LogDebug("New city detected: +{Score} points", _newCityScore);
             }
         }
 
         // Check for unusual login time
         var currentHour = DateTime.UtcNow.Hour;
+        _logger.LogDebug("Checking login time: CurrentHour={Hour}, TypicalHours={Typical}",
+            currentHour, pattern.TypicalHours);
         if (!pattern.IsTypicalHour(currentHour))
         {
             score += _unusualTimeScore;
             factors.Add(RiskFactors.UnusualTime);
+            _logger.LogDebug("Unusual login time: +{Score} points", _unusualTimeScore);
         }
 
         // Check for different device type
+        _logger.LogDebug("Checking device type: Current={DeviceType}, TypicalTypes={Typical}",
+            deviceInfo.DeviceType, pattern.TypicalDeviceTypes);
         if (!pattern.IsTypicalDeviceType(deviceInfo.DeviceType))
         {
             score += _differentDeviceTypeScore;
             factors.Add(RiskFactors.DifferentDeviceType);
+            _logger.LogDebug("Different device type: +{Score} points", _differentDeviceTypeScore);
         }
 
         // Note: VPN/Proxy and Tor detection not implemented in this version
@@ -144,6 +158,7 @@ public sealed class RiskScoringService : IRiskScoringService
         // Apply trusted device reduction if applicable
         if (isTrustedDevice && score > 0)
         {
+            _logger.LogDebug("Trusted device reduction: {Reduction} points", _trustedDeviceReduction);
             score += _trustedDeviceReduction; // This is negative
             factors.Add(RiskFactors.TrustedDevice);
 
