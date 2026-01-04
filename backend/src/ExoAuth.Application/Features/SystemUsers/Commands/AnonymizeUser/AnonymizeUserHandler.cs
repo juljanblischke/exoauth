@@ -13,19 +13,22 @@ public sealed class AnonymizeUserHandler : ICommandHandler<AnonymizeUserCommand,
     private readonly IRevokedSessionService _revokedSessionService;
     private readonly IAuditService _auditService;
     private readonly ISystemUserRepository _userRepository;
+    private readonly IDeviceService _deviceService;
 
     public AnonymizeUserHandler(
         IAppDbContext context,
         ICurrentUserService currentUser,
         IRevokedSessionService revokedSessionService,
         IAuditService auditService,
-        ISystemUserRepository userRepository)
+        ISystemUserRepository userRepository,
+        IDeviceService deviceService)
     {
         _context = context;
         _currentUser = currentUser;
         _revokedSessionService = revokedSessionService;
         _auditService = auditService;
         _userRepository = userRepository;
+        _deviceService = deviceService;
     }
 
     public async ValueTask<AnonymizeUserResponse> Handle(AnonymizeUserCommand command, CancellationToken ct)
@@ -90,16 +93,17 @@ public sealed class AnonymizeUserHandler : ICommandHandler<AnonymizeUserCommand,
             _context.SystemInvites.RemoveRange(invitesToDelete);
         }
 
-        // Get all sessions for this user
-        var sessions = await _context.DeviceSessions
-            .Where(s => s.UserId == command.UserId)
-            .ToListAsync(ct);
+        // Get all devices (sessions) for this user
+        var devices = await _deviceService.GetAllForUserAsync(command.UserId, ct);
 
-        // Mark sessions as revoked for immediate invalidation
-        foreach (var session in sessions)
+        // Mark devices as revoked for immediate invalidation
+        foreach (var device in devices)
         {
-            await _revokedSessionService.RevokeSessionAsync(session.Id, ct);
+            await _revokedSessionService.RevokeSessionAsync(device.Id, ct);
         }
+
+        // Remove all devices
+        await _deviceService.RemoveAllAsync(command.UserId, ct);
 
         // Revoke all refresh tokens
         var refreshTokens = await _context.RefreshTokens
@@ -110,9 +114,6 @@ public sealed class AnonymizeUserHandler : ICommandHandler<AnonymizeUserCommand,
         {
             token.Revoke();
         }
-
-        // Remove all sessions
-        _context.DeviceSessions.RemoveRange(sessions);
 
         // Delete all backup codes
         var backupCodes = await _context.MfaBackupCodes

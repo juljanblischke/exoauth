@@ -1,6 +1,7 @@
 using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Domain.Entities;
 using ExoAuth.Infrastructure.Services;
+using ExoAuth.UnitTests.Helpers;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -10,18 +11,18 @@ namespace ExoAuth.UnitTests.Services;
 public sealed class ForceReauthServiceTests
 {
     private readonly Mock<ICacheService> _mockCache;
-    private readonly Mock<IDeviceSessionService> _mockDeviceSessionService;
+    private readonly Mock<IDeviceService> _mockDeviceService;
     private readonly Mock<ILogger<ForceReauthService>> _mockLogger;
     private readonly ForceReauthService _service;
 
     public ForceReauthServiceTests()
     {
         _mockCache = new Mock<ICacheService>();
-        _mockDeviceSessionService = new Mock<IDeviceSessionService>();
+        _mockDeviceService = new Mock<IDeviceService>();
         _mockLogger = new Mock<ILogger<ForceReauthService>>();
         _service = new ForceReauthService(
             _mockCache.Object,
-            _mockDeviceSessionService.Object,
+            _mockDeviceService.Object,
             _mockLogger.Object);
     }
 
@@ -44,17 +45,17 @@ public sealed class ForceReauthServiceTests
     }
 
     [Fact]
-    public async Task SetFlagForAllSessionsAsync_SetsFlagForEachActiveSession()
+    public async Task SetFlagForAllSessionsAsync_SetsFlagForEachTrustedDevice()
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var session1 = CreateDeviceSession(userId);
-        var session2 = CreateDeviceSession(userId);
-        var session3 = CreateDeviceSession(userId);
+        var device1 = TestDataFactory.CreateDeviceWithId(Guid.NewGuid(), userId);
+        var device2 = TestDataFactory.CreateDeviceWithId(Guid.NewGuid(), userId);
+        var device3 = TestDataFactory.CreateDeviceWithId(Guid.NewGuid(), userId);
 
-        _mockDeviceSessionService
-            .Setup(x => x.GetActiveSessionsAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<DeviceSession> { session1, session2, session3 });
+        _mockDeviceService
+            .Setup(x => x.GetTrustedDevicesAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Device> { device1, device2, device3 });
 
         // Act
         var result = await _service.SetFlagForAllSessionsAsync(userId);
@@ -62,31 +63,31 @@ public sealed class ForceReauthServiceTests
         // Assert
         result.Should().Be(3);
         _mockCache.Verify(x => x.SetAsync(
-            $"session:force-reauth:{session1.Id}",
+            $"session:force-reauth:{device1.Id}",
             It.IsAny<object>(),
             TimeSpan.FromMinutes(15),
             It.IsAny<CancellationToken>()), Times.Once);
         _mockCache.Verify(x => x.SetAsync(
-            $"session:force-reauth:{session2.Id}",
+            $"session:force-reauth:{device2.Id}",
             It.IsAny<object>(),
             TimeSpan.FromMinutes(15),
             It.IsAny<CancellationToken>()), Times.Once);
         _mockCache.Verify(x => x.SetAsync(
-            $"session:force-reauth:{session3.Id}",
+            $"session:force-reauth:{device3.Id}",
             It.IsAny<object>(),
             TimeSpan.FromMinutes(15),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task SetFlagForAllSessionsAsync_WhenNoActiveSessions_ReturnsZero()
+    public async Task SetFlagForAllSessionsAsync_WhenNoTrustedDevices_ReturnsZero()
     {
         // Arrange
         var userId = Guid.NewGuid();
 
-        _mockDeviceSessionService
-            .Setup(x => x.GetActiveSessionsAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<DeviceSession>());
+        _mockDeviceService
+            .Setup(x => x.GetTrustedDevicesAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Device>());
 
         // Act
         var result = await _service.SetFlagForAllSessionsAsync(userId);
@@ -213,16 +214,5 @@ public sealed class ForceReauthServiceTests
             It.IsAny<object>(),
             It.IsAny<TimeSpan>(),
             It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    private static DeviceSession CreateDeviceSession(Guid userId)
-    {
-        return DeviceSession.Create(
-            userId,
-            Guid.NewGuid().ToString(),
-            "Test Device",
-            null,
-            "Mozilla/5.0",
-            "127.0.0.1");
     }
 }

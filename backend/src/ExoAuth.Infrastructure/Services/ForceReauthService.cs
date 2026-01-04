@@ -6,7 +6,7 @@ namespace ExoAuth.Infrastructure.Services;
 public sealed class ForceReauthService : IForceReauthService
 {
     private readonly ICacheService _cache;
-    private readonly IDeviceSessionService _deviceSessionService;
+    private readonly IDeviceService _deviceService;
     private readonly ILogger<ForceReauthService> _logger;
 
     private const string KeyPrefix = "session:force-reauth:";
@@ -14,11 +14,11 @@ public sealed class ForceReauthService : IForceReauthService
 
     public ForceReauthService(
         ICacheService cache,
-        IDeviceSessionService deviceSessionService,
+        IDeviceService deviceService,
         ILogger<ForceReauthService> logger)
     {
         _cache = cache;
-        _deviceSessionService = deviceSessionService;
+        _deviceService = deviceService;
         _logger = logger;
     }
 
@@ -31,19 +31,21 @@ public sealed class ForceReauthService : IForceReauthService
 
     public async Task<int> SetFlagForAllSessionsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var activeSessions = await _deviceSessionService.GetActiveSessionsAsync(userId, cancellationToken);
+        // Get all trusted devices (active sessions) for the user
+        var activeDevices = await _deviceService.GetTrustedDevicesAsync(userId, cancellationToken);
 
-        foreach (var session in activeSessions)
+        foreach (var device in activeDevices)
         {
-            await SetFlagAsync(session.Id, cancellationToken);
+            // Device.Id is the session ID
+            await SetFlagAsync(device.Id, cancellationToken);
         }
 
         _logger.LogInformation(
-            "Force re-auth flag set for {SessionCount} sessions of user {UserId}",
-            activeSessions.Count,
+            "Force re-auth flag set for {DeviceCount} devices of user {UserId}",
+            activeDevices.Count,
             userId);
 
-        return activeSessions.Count;
+        return activeDevices.Count;
     }
 
     public async Task<bool> HasFlagAsync(Guid sessionId, CancellationToken cancellationToken = default)

@@ -14,12 +14,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useMfaVerify } from '../hooks'
 import { getDeviceInfo } from '@/lib/device'
+import type { DeviceApprovalRequiredResponse } from '../types'
 
 interface MfaVerifyModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   mfaToken: string
   rememberMe: boolean
+  onDeviceApprovalRequired?: (response: DeviceApprovalRequiredResponse) => void
 }
 
 export function MfaVerifyModal({
@@ -27,12 +29,18 @@ export function MfaVerifyModal({
   onOpenChange,
   mfaToken,
   rememberMe,
+  onDeviceApprovalRequired,
 }: MfaVerifyModalProps) {
   const { t } = useTranslation()
   const [code, setCode] = useState('')
   const [useBackupCode, setUseBackupCode] = useState(false)
 
-  const mfaVerify = useMfaVerify()
+  const mfaVerify = useMfaVerify({
+    onDeviceApprovalRequired: (response) => {
+      onOpenChange(false)
+      onDeviceApprovalRequired?.(response)
+    },
+  })
 
   // Reset state when modal closes
   useEffect(() => {

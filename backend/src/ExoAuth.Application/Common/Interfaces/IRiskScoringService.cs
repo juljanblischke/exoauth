@@ -37,14 +37,14 @@ public interface IRiskScoringService
     /// on devices that are already trusted.
     /// </summary>
     /// <param name="userId">The user attempting to login.</param>
-    /// <param name="trustedDevice">The trusted device being used.</param>
+    /// <param name="device">The trusted device being used.</param>
     /// <param name="currentLocation">Current geographic location of the login attempt.</param>
     /// <param name="currentDeviceInfo">Current device information.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Result indicating if the attempt appears suspicious.</returns>
     Task<SpoofingCheckResult> CheckForSpoofingAsync(
         Guid userId,
-        TrustedDevice trustedDevice,
+        Device device,
         GeoLocation currentLocation,
         DeviceInfo currentDeviceInfo,
         CancellationToken cancellationToken = default);

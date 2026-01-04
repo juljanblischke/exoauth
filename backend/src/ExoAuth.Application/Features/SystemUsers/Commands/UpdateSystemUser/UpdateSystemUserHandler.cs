@@ -14,6 +14,7 @@ public sealed class UpdateSystemUserHandler : ICommandHandler<UpdateSystemUserCo
     private readonly IAppDbContext _context;
     private readonly IRevokedSessionService _revokedSessionService;
     private readonly IPermissionCacheService _permissionCache;
+    private readonly IDeviceService _deviceService;
 
     public UpdateSystemUserHandler(
         ISystemUserRepository userRepository,
@@ -21,7 +22,8 @@ public sealed class UpdateSystemUserHandler : ICommandHandler<UpdateSystemUserCo
         IAuditService auditService,
         IAppDbContext context,
         IRevokedSessionService revokedSessionService,
-        IPermissionCacheService permissionCache)
+        IPermissionCacheService permissionCache,
+        IDeviceService deviceService)
     {
         _userRepository = userRepository;
         _currentUser = currentUser;
@@ -29,6 +31,7 @@ public sealed class UpdateSystemUserHandler : ICommandHandler<UpdateSystemUserCo
         _context = context;
         _revokedSessionService = revokedSessionService;
         _permissionCache = permissionCache;
+        _deviceService = deviceService;
     }
 
     public async ValueTask<SystemUserDto> Handle(UpdateSystemUserCommand command, CancellationToken ct)
@@ -99,20 +102,18 @@ public sealed class UpdateSystemUserHandler : ICommandHandler<UpdateSystemUserCo
 
         await _userRepository.UpdateAsync(user, ct);
 
-        // If deactivating, revoke all sessions and tokens for immediate logout
+        // If deactivating, revoke all devices and tokens for immediate logout
         if (isDeactivating)
         {
-            // Revoke all sessions for immediate access token invalidation
-            var sessions = await _context.DeviceSessions
-                .Where(s => s.UserId == command.Id)
-                .ToListAsync(ct);
+            // Revoke all devices (sessions) for immediate access token invalidation
+            var devices = await _deviceService.GetAllForUserAsync(command.Id, ct);
 
-            foreach (var session in sessions)
+            foreach (var device in devices)
             {
-                await _revokedSessionService.RevokeSessionAsync(session.Id, ct);
+                await _revokedSessionService.RevokeSessionAsync(device.Id, ct);
             }
 
-            _context.DeviceSessions.RemoveRange(sessions);
+            await _deviceService.RemoveAllAsync(command.Id, ct);
 
             // Revoke all refresh tokens
             var refreshTokens = await _context.RefreshTokens

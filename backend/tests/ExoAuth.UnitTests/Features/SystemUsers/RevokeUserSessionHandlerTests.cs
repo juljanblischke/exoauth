@@ -14,6 +14,7 @@ public sealed class RevokeUserSessionHandlerTests
 {
     private readonly Mock<IAppDbContext> _mockContext;
     private readonly Mock<ICurrentUserService> _mockCurrentUser;
+    private readonly Mock<IDeviceService> _mockDeviceService;
     private readonly Mock<IRevokedSessionService> _mockRevokedSessionService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly Mock<IEmailService> _mockEmailService;
@@ -23,6 +24,7 @@ public sealed class RevokeUserSessionHandlerTests
     {
         _mockContext = new Mock<IAppDbContext>();
         _mockCurrentUser = new Mock<ICurrentUserService>();
+        _mockDeviceService = new Mock<IDeviceService>();
         _mockRevokedSessionService = new Mock<IRevokedSessionService>();
         _mockAuditService = new Mock<IAuditService>();
         _mockEmailService = new Mock<IEmailService>();
@@ -33,11 +35,15 @@ public sealed class RevokeUserSessionHandlerTests
 
         _mockEmailTemplateService.Setup(x => x.GetSubject(It.IsAny<string>(), It.IsAny<string>()))
             .Returns((string template, string lang) => $"Subject for {template}");
+
+        _mockDeviceService.Setup(x => x.RevokeAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
     }
 
     private RevokeUserSessionHandler CreateHandler() => new(
         _mockContext.Object,
         _mockCurrentUser.Object,
+        _mockDeviceService.Object,
         _mockRevokedSessionService.Object,
         _mockAuditService.Object,
         _mockEmailService.Object,
@@ -54,14 +60,12 @@ public sealed class RevokeUserSessionHandlerTests
 
         var user = CreateUser(userId);
         var users = new List<SystemUser> { user };
-        var session = CreateSession(sessionId, userId);
-        var sessions = new List<DeviceSession> { session };
-        var refreshToken = RefreshToken.Create(userId, UserType.System, "token123", 30);
-        SetRefreshTokenSessionId(refreshToken, sessionId);
-        var refreshTokens = new List<RefreshToken> { refreshToken };
+        var device = TestDataFactory.CreateDeviceWithId(sessionId, userId);
 
-        SetupMockDbSets(users, sessions, refreshTokens);
+        SetupMockUserDbSet(users);
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+        _mockDeviceService.Setup(x => x.GetByIdAsync(sessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(device);
 
         var handler = CreateHandler();
 
@@ -73,13 +77,13 @@ public sealed class RevokeUserSessionHandlerTests
         result.Revoked.Should().BeTrue();
 
         _mockRevokedSessionService.Verify(x => x.RevokeSessionAsync(sessionId, It.IsAny<CancellationToken>()), Times.Once);
-        refreshToken.IsRevoked.Should().BeTrue();
+        _mockDeviceService.Verify(x => x.RevokeAsync(sessionId, It.IsAny<CancellationToken>()), Times.Once);
 
         _mockAuditService.Verify(x => x.LogAsync(
             AuditActions.SessionRevokedByAdmin,
             adminUserId,
             userId,
-            "DeviceSession",
+            "Device",
             sessionId,
             It.IsAny<object?>(),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -120,8 +124,7 @@ public sealed class RevokeUserSessionHandlerTests
         var command = new RevokeUserSessionCommand(userId, sessionId);
 
         var users = new List<SystemUser>();
-
-        SetupMockDbSets(users, new List<DeviceSession>(), new List<RefreshToken>());
+        SetupMockUserDbSet(users);
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         var handler = CreateHandler();
@@ -134,7 +137,7 @@ public sealed class RevokeUserSessionHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenSessionNotFound_ThrowsUserSessionNotFoundException()
+    public async Task Handle_WhenDeviceNotFound_ThrowsUserSessionNotFoundException()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -144,10 +147,11 @@ public sealed class RevokeUserSessionHandlerTests
 
         var user = CreateUser(userId);
         var users = new List<SystemUser> { user };
-        var sessions = new List<DeviceSession>(); // No sessions
 
-        SetupMockDbSets(users, sessions, new List<RefreshToken>());
+        SetupMockUserDbSet(users);
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+        _mockDeviceService.Setup(x => x.GetByIdAsync(sessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Device?)null);
 
         var handler = CreateHandler();
 
@@ -160,7 +164,7 @@ public sealed class RevokeUserSessionHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenSessionBelongsToOtherUser_ThrowsUserSessionNotFoundException()
+    public async Task Handle_WhenDeviceBelongsToOtherUser_ThrowsUserSessionNotFoundException()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -172,12 +176,13 @@ public sealed class RevokeUserSessionHandlerTests
         var user = CreateUser(userId);
         var users = new List<SystemUser> { user };
 
-        // Session belongs to a different user
-        var session = CreateSession(sessionId, otherUserId);
-        var sessions = new List<DeviceSession> { session };
+        // Device belongs to a different user
+        var device = TestDataFactory.CreateDeviceWithId(sessionId, otherUserId);
 
-        SetupMockDbSets(users, sessions, new List<RefreshToken>());
+        SetupMockUserDbSet(users);
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+        _mockDeviceService.Setup(x => x.GetByIdAsync(sessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(device);
 
         var handler = CreateHandler();
 
@@ -201,11 +206,12 @@ public sealed class RevokeUserSessionHandlerTests
         var user = CreateUser(userId);
         user.Anonymize(); // Anonymize the user
         var users = new List<SystemUser> { user };
-        var session = CreateSession(sessionId, userId);
-        var sessions = new List<DeviceSession> { session };
+        var device = TestDataFactory.CreateDeviceWithId(sessionId, userId);
 
-        SetupMockDbSets(users, sessions, new List<RefreshToken>());
+        SetupMockUserDbSet(users);
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+        _mockDeviceService.Setup(x => x.GetByIdAsync(sessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(device);
 
         var handler = CreateHandler();
 
@@ -224,18 +230,10 @@ public sealed class RevokeUserSessionHandlerTests
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    private void SetupMockDbSets(
-        List<SystemUser> users,
-        List<DeviceSession> sessions,
-        List<RefreshToken> refreshTokens)
+    private void SetupMockUserDbSet(List<SystemUser> users)
     {
         var mockUsersDbSet = CreateAsyncMockDbSet(users);
-        var mockSessionsDbSet = CreateAsyncMockDbSet(sessions);
-        var mockRefreshTokensDbSet = CreateAsyncMockDbSet(refreshTokens);
-
         _mockContext.Setup(x => x.SystemUsers).Returns(mockUsersDbSet.Object);
-        _mockContext.Setup(x => x.DeviceSessions).Returns(mockSessionsDbSet.Object);
-        _mockContext.Setup(x => x.RefreshTokens).Returns(mockRefreshTokensDbSet.Object);
     }
 
     private static SystemUser CreateUser(Guid userId)
@@ -245,28 +243,11 @@ public sealed class RevokeUserSessionHandlerTests
         return user;
     }
 
-    private static DeviceSession CreateSession(Guid sessionId, Guid userId)
-    {
-        var session = DeviceSession.Create(userId, "device123", null, null, "Mozilla/5.0", "127.0.0.1");
-        var idField = typeof(DeviceSession).BaseType?
-            .GetField("<Id>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        idField?.SetValue(session, sessionId);
-        return session;
-    }
-
     private static void SetUserId(SystemUser user, Guid userId)
     {
         var idField = typeof(SystemUser).BaseType?
             .GetField("<Id>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         idField?.SetValue(user, userId);
-    }
-
-    private static void SetRefreshTokenSessionId(RefreshToken token, Guid sessionId)
-    {
-        var sessionIdField = typeof(RefreshToken)
-            .GetProperty("DeviceSessionId")?
-            .GetSetMethod(true);
-        sessionIdField?.Invoke(token, new object[] { sessionId });
     }
 
     private static Mock<DbSet<T>> CreateAsyncMockDbSet<T>(List<T> data) where T : class
@@ -285,18 +266,6 @@ public sealed class RevokeUserSessionHandlerTests
         mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(queryable.Expression);
         mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
         mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(() => data.GetEnumerator());
-
-        mockSet.Setup(m => m.Remove(It.IsAny<T>()))
-            .Callback<T>(entity => data.Remove(entity));
-
-        mockSet.Setup(m => m.RemoveRange(It.IsAny<IEnumerable<T>>()))
-            .Callback<IEnumerable<T>>(entities =>
-            {
-                foreach (var entity in entities.ToList())
-                {
-                    data.Remove(entity);
-                }
-            });
 
         return mockSet;
     }

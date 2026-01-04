@@ -18,6 +18,7 @@ public sealed class DeactivateSystemUserHandlerTests
     private readonly Mock<ICurrentUserService> _mockCurrentUser;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly Mock<IRevokedSessionService> _mockRevokedSessionService;
+    private readonly Mock<IDeviceService> _mockDeviceService;
     private readonly DeactivateSystemUserHandler _handler;
 
     public DeactivateSystemUserHandlerTests()
@@ -28,12 +29,16 @@ public sealed class DeactivateSystemUserHandlerTests
         _mockCurrentUser = new Mock<ICurrentUserService>();
         _mockAuditService = new Mock<IAuditService>();
         _mockRevokedSessionService = new Mock<IRevokedSessionService>();
+        _mockDeviceService = new Mock<IDeviceService>();
 
         _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Setup empty DbSets
-        _mockContext.Setup(x => x.DeviceSessions).Returns(CreateMockDbSet(new List<DeviceSession>()).Object);
         _mockContext.Setup(x => x.RefreshTokens).Returns(CreateMockDbSet(new List<RefreshToken>()).Object);
+
+        // Setup device service to return empty list by default
+        _mockDeviceService.Setup(x => x.GetAllForUserAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Device>());
 
         _handler = new DeactivateSystemUserHandler(
             _mockContext.Object,
@@ -41,7 +46,8 @@ public sealed class DeactivateSystemUserHandlerTests
             _mockPermissionCache.Object,
             _mockCurrentUser.Object,
             _mockAuditService.Object,
-            _mockRevokedSessionService.Object);
+            _mockRevokedSessionService.Object,
+            _mockDeviceService.Object);
     }
 
     [Fact]

@@ -54,10 +54,9 @@ public static class DependencyInjection
         services.AddScoped<IForceReauthService, ForceReauthService>();
         services.AddSingleton<IRevokedSessionService, RevokedSessionService>();
 
-        // Device Session Services
+        // Device Services
         services.AddSingleton<IGeoIpService, GeoIpService>();
         services.AddSingleton<IDeviceDetectionService, DeviceDetectionService>();
-        services.AddScoped<IDeviceSessionService, DeviceSessionService>();
 
         // Email Services
         services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
@@ -72,8 +71,7 @@ public static class DependencyInjection
         // Device Trust / Risk-Based Authentication
         services.AddScoped<ILoginPatternService, LoginPatternService>();
         services.AddScoped<IRiskScoringService, RiskScoringService>();
-        services.AddScoped<IDeviceApprovalService, DeviceApprovalService>();
-        services.AddScoped<ITrustedDeviceService, TrustedDeviceService>();
+        services.AddScoped<IDeviceService, DeviceService>();
 
         // Invite Cleanup
         services.AddScoped<IInviteCleanupService, InviteCleanupService>();

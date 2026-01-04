@@ -19,16 +19,14 @@ backend/
 │   │   │   ├── SystemUserPermission.cs
 │   │   │   ├── SystemAuditLog.cs
 │   │   │   ├── SystemInvite.cs
-│   │   │   ├── RefreshToken.cs                  (DeviceSessionId, RememberMe)
+│   │   │   ├── RefreshToken.cs                  (DeviceId, RememberMe)
 │   │   │   ├── PasswordResetToken.cs
-│   │   │   ├── DeviceSession.cs
 │   │   │   ├── MfaBackupCode.cs
-│   │   │   ├── DeviceApprovalRequest.cs         (Task 013)
-│   │   │   ├── LoginPattern.cs                  (Task 013)
-│   │   │   └── TrustedDevice.cs                 (Task 015)
+│   │   │   ├── Device.cs                        (Task 017 - consolidated from DeviceSession, TrustedDevice, DeviceApprovalRequest)
+│   │   │   └── LoginPattern.cs                  (Task 013)
 │   │   ├── Enums/
 │   │   │   ├── UserType.cs
-│   │   │   └── ApprovalStatus.cs                (Task 013)
+│   │   │   └── DeviceStatus.cs                  (Task 017 - PendingApproval, Trusted, Revoked)
 │   │   └── Constants/
 │   │       └── SystemPermissions.cs
 │   │
@@ -53,7 +51,7 @@ backend/
 │   │   │   │   ├── IForceReauthService.cs
 │   │   │   │   ├── IPasswordResetService.cs
 │   │   │   │   ├── ISystemInviteService.cs
-│   │   │   │   ├── IDeviceSessionService.cs
+│   │   │   │   ├── IDeviceService.cs             (Task 017 - consolidated device management)
 │   │   │   │   ├── IDeviceDetectionService.cs
 │   │   │   │   ├── IGeoIpService.cs
 │   │   │   │   ├── IRevokedSessionService.cs
@@ -62,9 +60,7 @@ backend/
 │   │   │   │   ├── IBackupCodeService.cs
 │   │   │   │   ├── IInviteCleanupService.cs
 │   │   │   │   ├── IRiskScoringService.cs       (Task 013)
-│   │   │   │   ├── ILoginPatternService.cs      (Task 013)
-│   │   │   │   ├── IDeviceApprovalService.cs    (Task 013)
-│   │   │   │   └── ITrustedDeviceService.cs     (Task 015)
+│   │   │   │   └── ILoginPatternService.cs      (Task 013)
 │   │   │   ├── Behaviors/
 │   │   │   │   └── ValidationBehavior.cs
 │   │   │   ├── Messages/
@@ -88,29 +84,25 @@ backend/
 │   │       │   │   ├── AcceptInvite/
 │   │       │   │   ├── ForgotPassword/
 │   │       │   │   ├── ResetPassword/
-│   │       │   │   ├── RevokeSession/
-│   │       │   │   ├── RevokeAllSessions/
-│   │       │   │   ├── UpdateSession/
 │   │       │   │   ├── MfaSetup/
 │   │       │   │   ├── MfaConfirm/
 │   │       │   │   ├── MfaVerify/
 │   │       │   │   ├── MfaDisable/
 │   │       │   │   ├── RegenerateBackupCodes/
 │   │       │   │   ├── UpdatePreferences/
-│   │       │   │   ├── ApproveDevice/           (Task 013)
-│   │       │   │   ├── ApproveDeviceLink/       (Task 013)
-│   │       │   │   ├── DenyDevice/              (Task 013)
-│   │       │   │   ├── RemoveTrustedDevice/     (Task 015)
-│   │       │   │   └── RenameTrustedDevice/     (Task 015)
+│   │       │   │   ├── ApproveDevice/           (Task 013/017)
+│   │       │   │   ├── ApproveDeviceLink/       (Task 013/017)
+│   │       │   │   ├── ApproveDeviceFromSession/(Task 017)
+│   │       │   │   ├── DenyDevice/              (Task 013/017)
+│   │       │   │   ├── RevokeDevice/            (Task 017)
+│   │       │   │   └── RenameDevice/            (Task 017)
 │   │       │   ├── Queries/
 │   │       │   │   ├── GetCurrentUser/
-│   │       │   │   ├── GetSessions/
-│   │       │   │   └── GetTrustedDevices/       (Task 015)
+│   │       │   │   └── GetDevices/              (Task 017)
 │   │       │   └── Models/
 │   │       │       ├── AuthResponse.cs
-│   │       │       ├── DeviceSessionDto.cs
-│   │       │       ├── MfaModels.cs
-│   │       │       └── TrustedDeviceDto.cs      (Task 015)
+│   │       │       ├── DeviceDto.cs             (Task 017)
+│   │       │       └── MfaModels.cs
 │   │       ├── SystemUsers/
 │   │       │   ├── Commands/
 │   │       │   │   ├── InviteSystemUser/
@@ -119,18 +111,15 @@ backend/
 │   │       │   │   ├── DeleteSystemUser/
 │   │       │   │   ├── ResetUserMfa/
 │   │       │   │   ├── UnlockUser/
-│   │       │   │   ├── RevokeUserSessions/
-│   │       │   │   ├── RevokeUserSession/
+│   │       │   │   ├── RevokeUserSessions/          (returns DeviceDto)
+│   │       │   │   ├── RevokeUserSession/           (returns DeviceDto)
 │   │       │   │   ├── AnonymizeUser/
 │   │       │   │   ├── DeactivateSystemUser/
-│   │       │   │   ├── ActivateSystemUser/
-│   │       │   │   ├── RemoveUserTrustedDevice/      (Task 015)
-│   │       │   │   └── RemoveAllUserTrustedDevices/  (Task 015)
+│   │       │   │   └── ActivateSystemUser/
 │   │       │   ├── Queries/
 │   │       │   │   ├── GetSystemUsers/
 │   │       │   │   ├── GetSystemUser/
-│   │       │   │   ├── GetUserSessions/
-│   │       │   │   └── GetUserTrustedDevices/        (Task 015)
+│   │       │   │   └── GetUserSessions/             (returns List<DeviceDto>)
 │   │       │   └── Models/
 │   │       │       └── SystemUserDto.cs
 │   │       ├── SystemPermissions/
@@ -149,11 +138,9 @@ backend/
 │   │   │   │   ├── SystemInviteConfiguration.cs
 │   │   │   │   ├── RefreshTokenConfiguration.cs
 │   │   │   │   ├── PasswordResetTokenConfiguration.cs
-│   │   │   │   ├── DeviceSessionConfiguration.cs
 │   │   │   │   ├── MfaBackupCodeConfiguration.cs
-│   │   │   │   ├── DeviceApprovalRequestConfiguration.cs  (Task 013)
-│   │   │   │   ├── LoginPatternConfiguration.cs           (Task 013)
-│   │   │   │   └── TrustedDeviceConfiguration.cs          (Task 015)
+│   │   │   │   ├── DeviceConfiguration.cs                 (Task 017)
+│   │   │   │   └── LoginPatternConfiguration.cs           (Task 013)
 │   │   │   ├── Migrations/
 │   │   │   └── Repositories/
 │   │   │       └── SystemUserRepository.cs
@@ -179,7 +166,7 @@ backend/
 │   │       ├── ForceReauthService.cs
 │   │       ├── PasswordResetService.cs
 │   │       ├── SystemInviteService.cs
-│   │       ├── DeviceSessionService.cs
+│   │       ├── DeviceService.cs              (Task 017)
 │   │       ├── GeoIpService.cs
 │   │       ├── DeviceDetectionService.cs
 │   │       ├── RevokedSessionService.cs
@@ -189,9 +176,7 @@ backend/
 │   │       ├── InviteCleanupService.cs
 │   │       ├── InviteCleanupBackgroundService.cs
 │   │       ├── RiskScoringService.cs            (Task 013)
-│   │       ├── LoginPatternService.cs           (Task 013)
-│   │       ├── DeviceApprovalService.cs         (Task 013)
-│       └── TrustedDeviceService.cs          (Task 015)
+│   │       └── LoginPatternService.cs           (Task 013)
 │   │
 │   ├── ExoAuth.EmailWorker/                     (Separate Microservice)
 │   │   ├── Program.cs
@@ -428,21 +413,18 @@ public sealed class {Feature}Controller : ControllerBase
 | `SESSION_CANNOT_REVOKE_CURRENT` | 400 | Can't revoke current session |
 | `SESSION_REVOKED` | 401 | Session was revoked |
 
-### Device Trust Errors (Task 013)
+### Device Errors (Task 017 - consolidated)
 | Code | HTTP | Description |
 |------|------|-------------|
+| `DEVICE_NOT_FOUND` | 404 | Device not found |
+| `DEVICE_NOT_PENDING` | 400 | Device is not in PendingApproval status |
+| `CANNOT_REVOKE_CURRENT_DEVICE` | 400 | Can't revoke current device |
 | `DEVICE_APPROVAL_REQUIRED` | 200 | Login needs device approval |
 | `APPROVAL_TOKEN_INVALID` | 400 | Approval token invalid |
 | `APPROVAL_TOKEN_EXPIRED` | 400 | Approval token expired |
 | `APPROVAL_CODE_INVALID` | 400 | Wrong approval code |
 | `APPROVAL_MAX_ATTEMPTS` | 429 | Too many wrong codes |
 | `DEVICE_APPROVAL_DENIED` | 403 | Device was denied |
-
-### Trusted Device Errors (Task 015)
-| Code | HTTP | Description |
-|------|------|-------------|
-| `DEVICE_NOT_FOUND` | 404 | Trusted device not found |
-| `CANNOT_REMOVE_CURRENT_DEVICE` | 400 | Cannot remove current device |
 
 ### Account Errors
 | Code | HTTP | Description |
@@ -489,5 +471,12 @@ Every new endpoint MUST have:
 
 ## Last Updated
 - **Date:** 2026-01-04
-- **Tasks Completed:** 001-015 (350 Unit Tests)
-- **Task 015:** Device Trust Refactoring - TrustedDevice entity, trust decoupled from sessions
+- **Tasks Completed:** 001-017 (278 Unit Tests)
+- **Task 017:** Device Model Consolidation
+  - Consolidated DeviceSession, TrustedDevice, DeviceApprovalRequest → Device entity
+  - Consolidated IDeviceSessionService, ITrustedDeviceService, IDeviceApprovalService → IDeviceService
+  - Device.Id now serves as session ID
+  - DeviceStatus enum: PendingApproval, Trusted, Revoked
+  - Single /auth/devices endpoint (replaces /sessions + /trusted-devices)
+  - Auto-login after device approval (tokens returned)
+  - Approve device from existing trusted session

@@ -5,11 +5,11 @@
  * Extended from normal login response
  */
 export interface DeviceApprovalRequiredResponse {
-  requiresDeviceApproval: true
+  deviceApprovalRequired: true
   approvalToken: string
   riskScore: number
+  riskLevel: string
   riskFactors: string[]
-  message: string
 }
 
 /**
@@ -94,7 +94,7 @@ export function isDeviceApprovalRequired(
 ): response is DeviceApprovalRequiredResponse {
   return (
     response &&
-    response.requiresDeviceApproval === true &&
+    response.deviceApprovalRequired === true &&
     typeof response.approvalToken === 'string'
   )
 }

@@ -15,7 +15,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
     private readonly ITokenService _tokenService;
     private readonly ITokenBlacklistService _tokenBlacklist;
     private readonly IPermissionCacheService _permissionCache;
-    private readonly IDeviceSessionService _deviceSessionService;
+    private readonly IDeviceService _deviceService;
     private readonly IForceReauthService _forceReauthService;
     private readonly IAuditService _auditService;
 
@@ -25,7 +25,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
         ITokenService tokenService,
         ITokenBlacklistService tokenBlacklist,
         IPermissionCacheService permissionCache,
-        IDeviceSessionService deviceSessionService,
+        IDeviceService deviceService,
         IForceReauthService forceReauthService,
         IAuditService auditService)
     {
@@ -34,7 +34,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
         _tokenService = tokenService;
         _tokenBlacklist = tokenBlacklist;
         _permissionCache = permissionCache;
-        _deviceSessionService = deviceSessionService;
+        _deviceService = deviceService;
         _forceReauthService = forceReauthService;
         _auditService = auditService;
     }
@@ -83,13 +83,13 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
         storedToken.Revoke();
         await _tokenBlacklist.BlacklistAsync(storedToken.Id, storedToken.ExpiresAt, ct);
 
-        // Get the device session ID from the old token
-        var sessionId = storedToken.DeviceSessionId;
+        // Get the device ID from the old token
+        var deviceId = storedToken.DeviceId;
 
-        // Record activity on the device session if available
-        if (sessionId.HasValue)
+        // Record activity on the device if available
+        if (deviceId.HasValue)
         {
-            await _deviceSessionService.RecordActivityAsync(sessionId.Value, command.IpAddress, ct);
+            await _deviceService.RecordUsageAsync(deviceId.Value, command.IpAddress, null, null, ct);
         }
 
         // Get permissions
@@ -99,13 +99,13 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
             ct
         );
 
-        // Generate new tokens with session ID
+        // Generate new tokens with device ID as session ID
         var accessToken = _tokenService.GenerateAccessToken(
             user.Id,
             user.Email,
             UserType.System,
             permissions,
-            sessionId
+            deviceId
         );
 
         // Preserve RememberMe setting from old token
@@ -121,10 +121,10 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
             expirationDays: expirationDays
         );
 
-        // Link new refresh token to the same device session
-        if (sessionId.HasValue)
+        // Link new refresh token to the same device
+        if (deviceId.HasValue)
         {
-            newRefreshToken.LinkToSession(sessionId.Value);
+            newRefreshToken.LinkToDevice(deviceId.Value);
         }
 
         await _context.RefreshTokens.AddAsync(newRefreshToken, ct);
@@ -137,14 +137,14 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
             null, // targetUserId
             "SystemUser",
             user.Id,
-            new { SessionId = sessionId },
+            new { DeviceId = deviceId },
             ct
         );
 
         return new TokenResponse(
             AccessToken: accessToken,
             RefreshToken: newRefreshTokenString,
-            SessionId: sessionId
+            SessionId: deviceId
         );
     }
 }

@@ -21,8 +21,7 @@ public static class MockDbContext
         mockContext.Setup(x => x.SystemAuditLogs).Returns(CreateAsyncMockDbSet<SystemAuditLog>(new List<SystemAuditLog>()).Object);
         mockContext.Setup(x => x.SystemInvites).Returns(CreateAsyncMockDbSet<SystemInvite>(new List<SystemInvite>()).Object);
         mockContext.Setup(x => x.RefreshTokens).Returns(CreateAsyncMockDbSet<RefreshToken>(new List<RefreshToken>()).Object);
-        mockContext.Setup(x => x.TrustedDevices).Returns(CreateAsyncMockDbSet<TrustedDevice>(new List<TrustedDevice>()).Object);
-        mockContext.Setup(x => x.DeviceSessions).Returns(CreateAsyncMockDbSet<DeviceSession>(new List<DeviceSession>()).Object);
+        mockContext.Setup(x => x.Devices).Returns(CreateAsyncMockDbSet<Device>(new List<Device>()).Object);
 
         mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);

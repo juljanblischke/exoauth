@@ -6,16 +6,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExoAuth.Application.Features.SystemUsers.Queries.GetUserSessions;
 
-public sealed class GetUserSessionsHandler : IQueryHandler<GetUserSessionsQuery, List<DeviceSessionDto>>
+public sealed class GetUserSessionsHandler : IQueryHandler<GetUserSessionsQuery, List<DeviceDto>>
 {
     private readonly IAppDbContext _context;
+    private readonly IDeviceService _deviceService;
 
-    public GetUserSessionsHandler(IAppDbContext context)
+    public GetUserSessionsHandler(
+        IAppDbContext context,
+        IDeviceService deviceService)
     {
         _context = context;
+        _deviceService = deviceService;
     }
 
-    public async ValueTask<List<DeviceSessionDto>> Handle(GetUserSessionsQuery query, CancellationToken ct)
+    public async ValueTask<List<DeviceDto>> Handle(GetUserSessionsQuery query, CancellationToken ct)
     {
         // Verify user exists
         var userExists = await _context.SystemUsers
@@ -26,31 +30,12 @@ public sealed class GetUserSessionsHandler : IQueryHandler<GetUserSessionsQuery,
             throw new SystemUserNotFoundException(query.UserId);
         }
 
-        var sessions = await _context.DeviceSessions
-            .Where(s => s.UserId == query.UserId && !s.IsRevoked)
-            .OrderByDescending(s => s.LastActivityAt)
-            .Select(s => new DeviceSessionDto(
-                s.Id,
-                s.DeviceId,
-                s.DisplayName,
-                s.DeviceName,
-                s.Browser,
-                s.BrowserVersion,
-                s.OperatingSystem,
-                s.OsVersion,
-                s.DeviceType,
-                s.IpAddress,
-                s.Country,
-                s.CountryCode,
-                s.City,
-                s.LocationDisplay,
-                s.IsTrusted,
-                false, // IsCurrent is always false for admin view
-                s.LastActivityAt,
-                s.CreatedAt
-            ))
-            .ToListAsync(ct);
+        // Get all devices (which are now the sessions) for the user
+        var devices = await _deviceService.GetAllForUserAsync(query.UserId, ct);
 
-        return sessions;
+        return devices
+            .OrderByDescending(d => d.LastUsedAt)
+            .Select(d => DeviceDto.FromEntity(d))
+            .ToList();
     }
 }

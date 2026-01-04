@@ -15,9 +15,6 @@ using ExoAuth.Application.Features.SystemUsers.Models;
 using ExoAuth.Application.Features.SystemUsers.Queries.GetSystemUser;
 using ExoAuth.Application.Features.SystemUsers.Queries.GetSystemUsers;
 using ExoAuth.Application.Features.SystemUsers.Queries.GetUserSessions;
-using ExoAuth.Application.Features.SystemUsers.Queries.GetUserTrustedDevices;
-using ExoAuth.Application.Features.SystemUsers.Commands.RemoveUserTrustedDevice;
-using ExoAuth.Application.Features.SystemUsers.Commands.RemoveAllUserTrustedDevices;
 using ExoAuth.Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -256,7 +253,7 @@ public sealed class SystemUsersController : ApiControllerBase
     /// </summary>
     [HttpGet("{id:guid}/sessions")]
     [SystemPermission(SystemPermissions.UsersSessionsView)]
-    [ProducesResponseType(typeof(List<DeviceSessionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<DeviceDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -314,58 +311,6 @@ public sealed class SystemUsersController : ApiControllerBase
         var command = new AnonymizeUserCommand(id);
         var result = await Mediator.Send(command, ct);
         return ApiOk(result);
-    }
-
-    #endregion
-
-    #region Trusted Devices
-
-    /// <summary>
-    /// Get all trusted devices for a user.
-    /// </summary>
-    [HttpGet("{id:guid}/devices")]
-    [SystemPermission(SystemPermissions.UsersSessionsView)]
-    [ProducesResponseType(typeof(List<TrustedDeviceDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetTrustedDevices(Guid id, CancellationToken ct)
-    {
-        var query = new GetUserTrustedDevicesQuery(id);
-        var result = await Mediator.Send(query, ct);
-        return ApiOk(result);
-    }
-
-    /// <summary>
-    /// Remove a specific trusted device from a user.
-    /// </summary>
-    [HttpDelete("{id:guid}/devices/{deviceId:guid}")]
-    [SystemPermission(SystemPermissions.UsersSessionsRevoke)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RemoveTrustedDevice(Guid id, Guid deviceId, CancellationToken ct)
-    {
-        var command = new RemoveUserTrustedDeviceCommand(id, deviceId);
-        await Mediator.Send(command, ct);
-        return NoContent();
-    }
-
-    /// <summary>
-    /// Remove all trusted devices from a user.
-    /// </summary>
-    [HttpDelete("{id:guid}/devices")]
-    [SystemPermission(SystemPermissions.UsersSessionsRevoke)]
-    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RemoveAllTrustedDevices(Guid id, CancellationToken ct)
-    {
-        var command = new RemoveAllUserTrustedDevicesCommand(id);
-        var removedCount = await Mediator.Send(command, ct);
-        return ApiOk(new { RemovedCount = removedCount });
     }
 
     #endregion

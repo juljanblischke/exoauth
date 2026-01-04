@@ -1,5 +1,6 @@
 using ExoAuth.Application.Common.Exceptions;
 using ExoAuth.Application.Common.Interfaces;
+using ExoAuth.Application.Common.Models;
 using ExoAuth.Application.Features.Auth.Models;
 using ExoAuth.Domain.Entities;
 using ExoAuth.Domain.Enums;
@@ -17,7 +18,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
     private readonly IEncryptionService _encryptionService;
     private readonly IBackupCodeService _backupCodeService;
     private readonly ITokenService _tokenService;
-    private readonly IDeviceSessionService _deviceSessionService;
+    private readonly IDeviceService _deviceService;
     private readonly ISystemUserRepository _userRepository;
     private readonly IPermissionCacheService _permissionCache;
     private readonly IAuditService _auditService;
@@ -26,7 +27,6 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
     private readonly ILoginPatternService _loginPatternService;
     private readonly IGeoIpService _geoIpService;
     private readonly IDeviceDetectionService _deviceDetectionService;
-    private readonly ITrustedDeviceService _trustedDeviceService;
     private readonly int _backupCodeCount;
 
     public MfaConfirmHandler(
@@ -36,7 +36,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
         IEncryptionService encryptionService,
         IBackupCodeService backupCodeService,
         ITokenService tokenService,
-        IDeviceSessionService deviceSessionService,
+        IDeviceService deviceService,
         ISystemUserRepository userRepository,
         IPermissionCacheService permissionCache,
         IAuditService auditService,
@@ -45,7 +45,6 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
         ILoginPatternService loginPatternService,
         IGeoIpService geoIpService,
         IDeviceDetectionService deviceDetectionService,
-        ITrustedDeviceService trustedDeviceService,
         IConfiguration configuration)
     {
         _context = context;
@@ -54,7 +53,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
         _encryptionService = encryptionService;
         _backupCodeService = backupCodeService;
         _tokenService = tokenService;
-        _deviceSessionService = deviceSessionService;
+        _deviceService = deviceService;
         _userRepository = userRepository;
         _permissionCache = permissionCache;
         _auditService = auditService;
@@ -63,7 +62,6 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
         _loginPatternService = loginPatternService;
         _geoIpService = geoIpService;
         _deviceDetectionService = deviceDetectionService;
-        _trustedDeviceService = trustedDeviceService;
         _backupCodeCount = configuration.GetValue("Mfa:BackupCodeCount", 10);
     }
 
@@ -176,7 +174,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
             ct
         );
 
-        // For forced setup flow (registration/login), create session and return tokens
+        // For forced setup flow (registration/login), create device and return tokens
         if (isForcedSetupFlow)
         {
             // Get permissions
@@ -187,19 +185,19 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
             );
 
             // Get device info and geolocation
-            var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();
+            var deviceId = command.DeviceId ?? _deviceService.GenerateDeviceId();
             var geoLocation = _geoIpService.GetLocation(command.IpAddress);
             var deviceInfo = _deviceDetectionService.Parse(command.UserAgent);
 
-            // Task 015: Auto-trust first device for forced MFA setup (new user registration)
+            // Auto-trust first device for forced MFA setup (new user registration)
             // Check if user has any trusted devices - if not, this is their first device
-            var hasAnyTrustedDevices = await _trustedDeviceService.HasAnyAsync(userId, ct);
-            
-            TrustedDevice? trustedDevice = null;
+            var hasAnyTrustedDevices = await _deviceService.HasAnyTrustedDeviceAsync(userId, ct);
+
+            Device device;
             if (!hasAnyTrustedDevices)
             {
                 // First device ever → auto-trust
-                trustedDevice = await _trustedDeviceService.AddAsync(
+                device = await _deviceService.CreateTrustedDeviceAsync(
                     userId,
                     deviceId,
                     deviceInfo,
@@ -208,30 +206,36 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
                     ct
                 );
             }
-
-            // Create device session
-            var (session, _, _) = await _deviceSessionService.CreateOrUpdateSessionAsync(
-                userId,
-                deviceId,
-                command.UserAgent,
-                command.IpAddress,
-                command.DeviceFingerprint,
-                ct
-            );
-
-            // Link session to trusted device if we created one (Task 015)
-            if (trustedDevice is not null)
+            else
             {
-                await _deviceSessionService.LinkToTrustedDeviceAsync(session.Id, trustedDevice.Id, ct);
+                // Has existing devices - try to find this one or create pending
+                var existingDevice = await _deviceService.FindTrustedDeviceAsync(userId, deviceId, command.DeviceFingerprint, ct);
+                if (existingDevice != null)
+                {
+                    device = existingDevice;
+                    await _deviceService.RecordUsageAsync(device.Id, command.IpAddress, geoLocation.CountryCode, geoLocation.City, ct);
+                }
+                else
+                {
+                    // New device on existing account - auto-trust for MFA confirm flow
+                    device = await _deviceService.CreateTrustedDeviceAsync(
+                        userId,
+                        deviceId,
+                        deviceInfo,
+                        geoLocation,
+                        command.DeviceFingerprint,
+                        ct
+                    );
+                }
             }
 
-            // Generate tokens
+            // Generate tokens with device ID as session ID
             var accessToken = _tokenService.GenerateAccessToken(
                 userId,
                 user.Email,
                 UserType.System,
                 permissions,
-                session.Id
+                device.Id
             );
 
             var refreshTokenString = _tokenService.GenerateRefreshToken();
@@ -242,7 +246,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
                 expirationDays: (int)_tokenService.RefreshTokenExpiration.TotalDays
             );
 
-            refreshToken.LinkToSession(session.Id);
+            refreshToken.LinkToDevice(device.Id);
 
             await _context.RefreshTokens.AddAsync(refreshToken, ct);
             await _context.SaveChangesAsync(ct);
@@ -267,7 +271,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
                 null,
                 "SystemUser",
                 userId,
-                new { SessionId = session.Id, DeviceId = deviceId, TrustedDeviceId = trustedDevice?.Id },
+                new { DeviceId = device.Id },
                 ct
             );
 
@@ -290,7 +294,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
                 ),
                 AccessToken: accessToken,
                 RefreshToken: refreshTokenString,
-                SessionId: session.Id,
+                SessionId: device.Id,
                 DeviceId: deviceId
             );
         }

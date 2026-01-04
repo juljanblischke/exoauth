@@ -17,7 +17,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
     private readonly IBruteForceProtectionService _bruteForceService;
     private readonly IPermissionCacheService _permissionCache;
     private readonly IForceReauthService _forceReauthService;
-    private readonly IDeviceSessionService _deviceSessionService;
+    private readonly IDeviceService _deviceService;
     private readonly IAuditService _auditService;
     private readonly IMfaService _mfaService;
     private readonly IEmailService _emailService;
@@ -25,10 +25,8 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
     private readonly IConfiguration _configuration;
     private readonly IRiskScoringService _riskScoringService;
     private readonly ILoginPatternService _loginPatternService;
-    private readonly IDeviceApprovalService _deviceApprovalService;
     private readonly IGeoIpService _geoIpService;
     private readonly IDeviceDetectionService _deviceDetectionService;
-    private readonly ITrustedDeviceService _trustedDeviceService;
 
     public LoginHandler(
         IAppDbContext context,
@@ -38,7 +36,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         IBruteForceProtectionService bruteForceService,
         IPermissionCacheService permissionCache,
         IForceReauthService forceReauthService,
-        IDeviceSessionService deviceSessionService,
+        IDeviceService deviceService,
         IAuditService auditService,
         IMfaService mfaService,
         IEmailService emailService,
@@ -46,10 +44,8 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         IConfiguration configuration,
         IRiskScoringService riskScoringService,
         ILoginPatternService loginPatternService,
-        IDeviceApprovalService deviceApprovalService,
         IGeoIpService geoIpService,
-        IDeviceDetectionService deviceDetectionService,
-        ITrustedDeviceService trustedDeviceService)
+        IDeviceDetectionService deviceDetectionService)
     {
         _context = context;
         _userRepository = userRepository;
@@ -58,7 +54,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         _bruteForceService = bruteForceService;
         _permissionCache = permissionCache;
         _forceReauthService = forceReauthService;
-        _deviceSessionService = deviceSessionService;
+        _deviceService = deviceService;
         _auditService = auditService;
         _mfaService = mfaService;
         _emailService = emailService;
@@ -66,10 +62,8 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         _configuration = configuration;
         _riskScoringService = riskScoringService;
         _loginPatternService = loginPatternService;
-        _deviceApprovalService = deviceApprovalService;
         _geoIpService = geoIpService;
         _deviceDetectionService = deviceDetectionService;
-        _trustedDeviceService = trustedDeviceService;
     }
 
     public async ValueTask<AuthResponse> Handle(LoginCommand command, CancellationToken ct)
@@ -198,40 +192,23 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             return AuthResponse.RequiresMfaSetup(setupToken);
         }
 
-        // Get geo location and device info first (needed for trust check)
+        // Get geo location and device info (needed for trust check and device creation)
         var geoLocation = _geoIpService.GetLocation(command.IpAddress);
         var deviceInfo = _deviceDetectionService.Parse(command.UserAgent);
-        var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();
+        var deviceId = command.DeviceId ?? _deviceService.GenerateDeviceId();
 
-        // Check if this device is trusted (Task 015: Trust check before risk scoring)
-        var trustedDevice = await _trustedDeviceService.FindAsync(
+        // Check if this device is trusted
+        var device = await _deviceService.FindTrustedDeviceAsync(
             user.Id,
             deviceId,
             command.DeviceFingerprint,
             ct
         );
 
-        // Create or update device session
-        var (deviceSession, isNewDevice, isNewLocation) = await _deviceSessionService.CreateOrUpdateSessionAsync(
-            user.Id,
-            deviceId,
-            command.UserAgent,
-            command.IpAddress,
-            command.DeviceFingerprint,
-            ct
-        );
-
-        // If device is trusted, link the session to the trusted device
-        if (trustedDevice is not null)
+        // NEW DEVICE → Always require approval
+        if (device is null)
         {
-            await _deviceSessionService.LinkToTrustedDeviceAsync(deviceSession.Id, trustedDevice.Id, ct);
-            await _trustedDeviceService.RecordUsageAsync(trustedDevice.Id, command.IpAddress, geoLocation.CountryCode, geoLocation.City, ct);
-        }
-
-        // NEW DEVICE → Always require approval (Task 015)
-        if (trustedDevice is null)
-        {
-            // Calculate risk score for email/audit purposes (always requires approval for untrusted)
+            // Calculate risk score for email/audit purposes
             var riskScore = await _riskScoringService.CalculateAsync(
                 user.Id,
                 deviceInfo,
@@ -240,26 +217,31 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
                 ct
             );
 
-            // Create device approval request
-            var approvalResult = await _deviceApprovalService.CreateApprovalRequestAsync(
+            // Create pending device with approval credentials
+            var pendingResult = await _deviceService.CreatePendingDeviceAsync(
                 user.Id,
-                deviceSession.Id,
+                deviceId,
                 riskScore.Score,
                 riskScore.Factors,
+                deviceInfo,
+                geoLocation,
+                command.DeviceFingerprint,
                 ct
             );
+
+            var pendingDevice = pendingResult.Device;
 
             // Send device approval email
             await _emailService.SendDeviceApprovalRequiredAsync(
                 email: user.Email,
                 firstName: user.FirstName,
-                approvalToken: approvalResult.Token,
-                approvalCode: approvalResult.Code,
-                deviceName: deviceSession.DisplayName,
-                browser: deviceSession.Browser,
-                operatingSystem: deviceSession.OperatingSystem,
-                location: deviceSession.LocationDisplay,
-                ipAddress: deviceSession.IpAddress,
+                approvalToken: pendingResult.ApprovalToken,
+                approvalCode: pendingResult.ApprovalCode,
+                deviceName: pendingDevice.DisplayName,
+                browser: pendingDevice.Browser,
+                operatingSystem: pendingDevice.OperatingSystem,
+                location: pendingDevice.LocationDisplay,
+                ipAddress: pendingDevice.IpAddress,
                 riskScore: riskScore.Score,
                 language: user.PreferredLanguage,
                 cancellationToken: ct
@@ -270,24 +252,22 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
                 AuditActions.DeviceApprovalRequired,
                 user.Id,
                 null,
-                "DeviceSession",
-                deviceSession.Id,
+                "Device",
+                pendingDevice.Id,
                 new
                 {
                     riskScore.Score,
                     riskScore.Level,
                     riskScore.Factors,
                     DeviceId = deviceId,
-                    IsNewDevice = isNewDevice,
-                    IsNewLocation = isNewLocation,
                     Reason = "New device requires approval"
                 },
                 ct
             );
 
             return AuthResponse.RequiresDeviceApproval(
-                approvalToken: approvalResult.Token,
-                sessionId: deviceSession.Id,
+                approvalToken: pendingResult.ApprovalToken,
+                sessionId: pendingDevice.Id,
                 deviceId: deviceId,
                 riskScore: riskScore.Score,
                 riskLevel: riskScore.Level.ToString(),
@@ -295,10 +275,14 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             );
         }
 
-        // TRUSTED DEVICE → Check for spoofing (Task 015)
+        // Check if location has changed
+        var isNewLocation = !string.Equals(device.CountryCode, geoLocation.CountryCode, StringComparison.OrdinalIgnoreCase)
+                         || !string.Equals(device.City, geoLocation.City, StringComparison.OrdinalIgnoreCase);
+
+        // TRUSTED DEVICE → Check for spoofing
         var spoofingCheck = await _riskScoringService.CheckForSpoofingAsync(
             user.Id,
-            trustedDevice,
+            device,
             geoLocation,
             deviceInfo,
             ct
@@ -307,26 +291,31 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         // If suspicious activity detected on trusted device, require re-verification
         if (spoofingCheck.IsSuspicious)
         {
-            // Create device approval request (spoofing detected on trusted device)
-            var approvalResult = await _deviceApprovalService.CreateApprovalRequestAsync(
+            // Create a new pending device for re-approval
+            var pendingResult = await _deviceService.CreatePendingDeviceAsync(
                 user.Id,
-                deviceSession.Id,
+                deviceId,
                 spoofingCheck.RiskScore,
                 spoofingCheck.SuspiciousFactors,
+                deviceInfo,
+                geoLocation,
+                command.DeviceFingerprint,
                 ct
             );
+
+            var pendingDevice = pendingResult.Device;
 
             // Send device approval email
             await _emailService.SendDeviceApprovalRequiredAsync(
                 email: user.Email,
                 firstName: user.FirstName,
-                approvalToken: approvalResult.Token,
-                approvalCode: approvalResult.Code,
-                deviceName: deviceSession.DisplayName,
-                browser: deviceSession.Browser,
-                operatingSystem: deviceSession.OperatingSystem,
-                location: deviceSession.LocationDisplay,
-                ipAddress: deviceSession.IpAddress,
+                approvalToken: pendingResult.ApprovalToken,
+                approvalCode: pendingResult.ApprovalCode,
+                deviceName: pendingDevice.DisplayName,
+                browser: pendingDevice.Browser,
+                operatingSystem: pendingDevice.OperatingSystem,
+                location: pendingDevice.LocationDisplay,
+                ipAddress: pendingDevice.IpAddress,
                 riskScore: spoofingCheck.RiskScore,
                 language: user.PreferredLanguage,
                 cancellationToken: ct
@@ -337,15 +326,14 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
                 AuditActions.DeviceApprovalRequired,
                 user.Id,
                 null,
-                "DeviceSession",
-                deviceSession.Id,
+                "Device",
+                pendingDevice.Id,
                 new
                 {
                     Score = spoofingCheck.RiskScore,
                     Level = "Suspicious",
                     Factors = spoofingCheck.SuspiciousFactors,
                     DeviceId = deviceId,
-                    IsNewDevice = isNewDevice,
                     IsNewLocation = isNewLocation,
                     Reason = "Suspicious activity on trusted device"
                 },
@@ -353,8 +341,8 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             );
 
             return AuthResponse.RequiresDeviceApproval(
-                approvalToken: approvalResult.Token,
-                sessionId: deviceSession.Id,
+                approvalToken: pendingResult.ApprovalToken,
+                sessionId: pendingDevice.Id,
                 deviceId: deviceId,
                 riskScore: spoofingCheck.RiskScore,
                 riskLevel: "Suspicious",
@@ -362,16 +350,19 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             );
         }
 
-        // Clear force re-auth flag for this session (session-based, not user-based)
-        await _forceReauthService.ClearFlagAsync(deviceSession.Id, ct);
+        // Record device usage (updates last used timestamp and location)
+        await _deviceService.RecordUsageAsync(device.Id, command.IpAddress, geoLocation.CountryCode, geoLocation.City, ct);
 
-        // Generate tokens with session ID
+        // Clear force re-auth flag for this device session
+        await _forceReauthService.ClearFlagAsync(device.Id, ct);
+
+        // Generate tokens with device ID as session ID
         var accessToken = _tokenService.GenerateAccessToken(
             user.Id,
             user.Email,
             UserType.System,
             permissions,
-            deviceSession.Id
+            device.Id
         );
 
         var refreshTokenString = _tokenService.GenerateRefreshToken();
@@ -382,8 +373,8 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             expirationDays: command.RememberMe ? 30 : (int)_tokenService.RefreshTokenExpiration.TotalDays
         );
 
-        // Link refresh token to device session
-        refreshToken.LinkToSession(deviceSession.Id);
+        // Link refresh token to device
+        refreshToken.LinkToDevice(device.Id);
 
         await _context.RefreshTokens.AddAsync(refreshToken, ct);
         await _context.SaveChangesAsync(ct);
@@ -410,51 +401,29 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             user.Id,
             new
             {
-                SessionId = deviceSession.Id,
+                SessionId = device.Id,
                 DeviceId = deviceId,
-                IsNewDevice = isNewDevice,
                 IsNewLocation = isNewLocation,
                 RememberMe = command.RememberMe,
-                TrustedDeviceId = trustedDevice?.Id,
                 IsTrustedDevice = true
             },
             ct
         );
 
-        // Log new device/location events and send notification emails
-        if (isNewDevice)
-        {
-            await _auditService.LogWithContextAsync(
-                AuditActions.LoginNewDevice,
-                user.Id,
-                null,
-                "DeviceSession",
-                deviceSession.Id,
-                new { DeviceId = deviceId, Browser = deviceSession.Browser, Os = deviceSession.OperatingSystem },
-                ct
-            );
-
-            // Send new device notification email
-            await SendNewDeviceEmailAsync(user, deviceSession, ct);
-        }
-
+        // Send notification email for new location (only for trusted device logins)
         if (isNewLocation)
         {
             await _auditService.LogWithContextAsync(
                 AuditActions.LoginNewLocation,
                 user.Id,
                 null,
-                "DeviceSession",
-                deviceSession.Id,
-                new { Country = deviceSession.Country, City = deviceSession.City },
+                "Device",
+                device.Id,
+                new { Country = geoLocation.CountryCode, City = geoLocation.City },
                 ct
             );
 
-            // Send new location notification email (only if not already sent new device email)
-            if (!isNewDevice)
-            {
-                await SendNewLocationEmailAsync(user, deviceSession, ct);
-            }
+            await SendNewLocationEmailAsync(user, device, geoLocation, ct);
         }
 
         return new AuthResponse(
@@ -474,9 +443,9 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             ),
             AccessToken: accessToken,
             RefreshToken: refreshTokenString,
-            SessionId: deviceSession.Id,
+            SessionId: device.Id,
             DeviceId: deviceId,
-            IsNewDevice: isNewDevice,
+            IsNewDevice: false, // We found a trusted device, so not new
             IsNewLocation: isNewLocation
         );
     }
@@ -574,62 +543,25 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         );
     }
 
-    private async Task SendNewDeviceEmailAsync(
-        Domain.Entities.SystemUser user,
-        Domain.Entities.DeviceSession deviceSession,
-        CancellationToken ct)
-    {
-        var baseUrl = _configuration["SystemInvite:BaseUrl"] ?? "http://localhost:5173";
-        var deviceName = !string.IsNullOrEmpty(deviceSession.OperatingSystem)
-            ? $"{deviceSession.OperatingSystem}"
-            : "Unknown Device";
-        var location = !string.IsNullOrEmpty(deviceSession.City) && !string.IsNullOrEmpty(deviceSession.Country)
-            ? $"{deviceSession.City}, {deviceSession.Country}"
-            : deviceSession.Country ?? "Unknown Location";
-
-        var variables = new Dictionary<string, string>
-        {
-            ["firstName"] = user.FirstName,
-            ["deviceName"] = deviceName,
-            ["browser"] = deviceSession.Browser ?? "Unknown Browser",
-            ["location"] = location,
-            ["ipAddress"] = deviceSession.IpAddress ?? "Unknown",
-            ["loginTime"] = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm 'UTC'"),
-            ["sessionsUrl"] = $"{baseUrl}/settings/sessions",
-            ["changePasswordUrl"] = $"{baseUrl}/settings/security",
-            ["year"] = DateTime.UtcNow.Year.ToString()
-        };
-
-        await _emailService.SendAsync(
-            to: user.Email,
-            subject: _emailTemplateService.GetSubject("new-device-login", user.PreferredLanguage),
-            templateName: "new-device-login",
-            variables: variables,
-            language: user.PreferredLanguage,
-            cancellationToken: ct
-        );
-    }
-
     private async Task SendNewLocationEmailAsync(
         Domain.Entities.SystemUser user,
-        Domain.Entities.DeviceSession deviceSession,
+        Domain.Entities.Device device,
+        GeoLocation newLocation,
         CancellationToken ct)
     {
         var baseUrl = _configuration["SystemInvite:BaseUrl"] ?? "http://localhost:5173";
-        var deviceName = !string.IsNullOrEmpty(deviceSession.OperatingSystem)
-            ? $"{deviceSession.OperatingSystem}"
-            : "Unknown Device";
-        var newLocation = !string.IsNullOrEmpty(deviceSession.City) && !string.IsNullOrEmpty(deviceSession.Country)
-            ? $"{deviceSession.City}, {deviceSession.Country}"
-            : deviceSession.Country ?? "Unknown Location";
+        var deviceName = device.DisplayName;
+        var locationDisplay = !string.IsNullOrEmpty(newLocation.City) && !string.IsNullOrEmpty(newLocation.Country)
+            ? $"{newLocation.City}, {newLocation.Country}"
+            : newLocation.Country ?? "Unknown Location";
 
         var variables = new Dictionary<string, string>
         {
             ["firstName"] = user.FirstName,
-            ["newLocation"] = newLocation,
-            ["previousLocation"] = "Your usual location", // We don't track the previous location currently
+            ["newLocation"] = locationDisplay,
+            ["previousLocation"] = device.LocationDisplay ?? "Your usual location",
             ["deviceName"] = deviceName,
-            ["ipAddress"] = deviceSession.IpAddress ?? "Unknown",
+            ["ipAddress"] = device.IpAddress ?? "Unknown",
             ["loginTime"] = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm 'UTC'"),
             ["sessionsUrl"] = $"{baseUrl}/settings/sessions",
             ["changePasswordUrl"] = $"{baseUrl}/settings/security",

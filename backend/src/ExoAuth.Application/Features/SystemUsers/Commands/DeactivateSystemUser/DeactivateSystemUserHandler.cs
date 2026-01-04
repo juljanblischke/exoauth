@@ -13,6 +13,7 @@ public sealed class DeactivateSystemUserHandler : ICommandHandler<DeactivateSyst
     private readonly ICurrentUserService _currentUser;
     private readonly IAuditService _auditService;
     private readonly IRevokedSessionService _revokedSessionService;
+    private readonly IDeviceService _deviceService;
 
     public DeactivateSystemUserHandler(
         IAppDbContext context,
@@ -20,7 +21,8 @@ public sealed class DeactivateSystemUserHandler : ICommandHandler<DeactivateSyst
         IPermissionCacheService permissionCache,
         ICurrentUserService currentUser,
         IAuditService auditService,
-        IRevokedSessionService revokedSessionService)
+        IRevokedSessionService revokedSessionService,
+        IDeviceService deviceService)
     {
         _context = context;
         _userRepository = userRepository;
@@ -28,6 +30,7 @@ public sealed class DeactivateSystemUserHandler : ICommandHandler<DeactivateSyst
         _currentUser = currentUser;
         _auditService = auditService;
         _revokedSessionService = revokedSessionService;
+        _deviceService = deviceService;
     }
 
     public async ValueTask<bool> Handle(DeactivateSystemUserCommand command, CancellationToken ct)
@@ -79,17 +82,15 @@ public sealed class DeactivateSystemUserHandler : ICommandHandler<DeactivateSyst
         user.Deactivate();
         await _userRepository.UpdateAsync(user, ct);
 
-        // Revoke all sessions for immediate logout
-        var sessions = await _context.DeviceSessions
-            .Where(s => s.UserId == command.Id)
-            .ToListAsync(ct);
+        // Revoke all devices (sessions) for immediate logout
+        var devices = await _deviceService.GetAllForUserAsync(command.Id, ct);
 
-        foreach (var session in sessions)
+        foreach (var device in devices)
         {
-            await _revokedSessionService.RevokeSessionAsync(session.Id, ct);
+            await _revokedSessionService.RevokeSessionAsync(device.Id, ct);
         }
 
-        _context.DeviceSessions.RemoveRange(sessions);
+        await _deviceService.RemoveAllAsync(command.Id, ct);
 
         // Revoke all refresh tokens
         var refreshTokens = await _context.RefreshTokens

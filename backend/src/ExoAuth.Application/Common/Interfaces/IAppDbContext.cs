@@ -15,11 +15,9 @@ public interface IAppDbContext
     DbSet<SystemInvite> SystemInvites { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
-    DbSet<DeviceSession> DeviceSessions { get; }
     DbSet<MfaBackupCode> MfaBackupCodes { get; }
-    DbSet<DeviceApprovalRequest> DeviceApprovalRequests { get; }
     DbSet<LoginPattern> LoginPatterns { get; }
-    DbSet<TrustedDevice> TrustedDevices { get; }
+    DbSet<Device> Devices { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

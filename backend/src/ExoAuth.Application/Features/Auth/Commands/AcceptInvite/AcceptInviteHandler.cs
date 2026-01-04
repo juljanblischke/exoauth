@@ -13,41 +13,38 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
     private readonly ISystemUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
-    private readonly IDeviceSessionService _deviceSessionService;
+    private readonly IDeviceService _deviceService;
     private readonly IAuditService _auditService;
     private readonly ISystemInviteService _inviteService;
     private readonly IMfaService _mfaService;
     private readonly ILoginPatternService _loginPatternService;
     private readonly IGeoIpService _geoIpService;
     private readonly IDeviceDetectionService _deviceDetectionService;
-    private readonly ITrustedDeviceService _trustedDeviceService;
 
     public AcceptInviteHandler(
         IAppDbContext context,
         ISystemUserRepository userRepository,
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
-        IDeviceSessionService deviceSessionService,
+        IDeviceService deviceService,
         IAuditService auditService,
         ISystemInviteService inviteService,
         IMfaService mfaService,
         ILoginPatternService loginPatternService,
         IGeoIpService geoIpService,
-        IDeviceDetectionService deviceDetectionService,
-        ITrustedDeviceService trustedDeviceService)
+        IDeviceDetectionService deviceDetectionService)
     {
         _context = context;
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
-        _deviceSessionService = deviceSessionService;
+        _deviceService = deviceService;
         _auditService = auditService;
         _inviteService = inviteService;
         _mfaService = mfaService;
         _loginPatternService = loginPatternService;
         _geoIpService = geoIpService;
         _deviceDetectionService = deviceDetectionService;
-        _trustedDeviceService = trustedDeviceService;
     }
 
     public async ValueTask<AuthResponse> Handle(AcceptInviteCommand command, CancellationToken ct)
@@ -117,8 +114,8 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
         // Get permission names
         var permissions = await _userRepository.GetUserPermissionNamesAsync(user.Id, ct);
 
-        // Get device info and geolocation for trusted device creation
-        var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();
+        // Get device info and geolocation for device creation
+        var deviceId = command.DeviceId ?? _deviceService.GenerateDeviceId();
         var geoLocation = _geoIpService.GetLocation(command.IpAddress);
         var deviceInfo = _deviceDetectionService.Parse(command.UserAgent);
 
@@ -142,8 +139,9 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
             return AuthResponse.RequiresMfaSetup(setupToken);
         }
 
-        // Task 015: Auto-trust first device for new user registration
-        var trustedDevice = await _trustedDeviceService.AddAsync(
+        // Task 015/017: Auto-trust first device for new user registration
+        // Device.Id serves as the session ID
+        var device = await _deviceService.CreateTrustedDeviceAsync(
             user.Id,
             deviceId,
             deviceInfo,
@@ -152,26 +150,13 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
             ct
         );
 
-        // Create device session for the accept-invite device
-        var (session, _, _) = await _deviceSessionService.CreateOrUpdateSessionAsync(
-            user.Id,
-            deviceId,
-            command.UserAgent,
-            command.IpAddress,
-            command.DeviceFingerprint,
-            ct
-        );
-
-        // Link session to trusted device (Task 015)
-        await _deviceSessionService.LinkToTrustedDeviceAsync(session.Id, trustedDevice.Id, ct);
-
-        // Generate tokens with session ID
+        // Generate tokens with device.Id as session ID
         var accessToken = _tokenService.GenerateAccessToken(
             user.Id,
             user.Email,
             UserType.System,
             permissions,
-            session.Id
+            device.Id
         );
 
         var refreshTokenString = _tokenService.GenerateRefreshToken();
@@ -182,8 +167,8 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
             expirationDays: (int)_tokenService.RefreshTokenExpiration.TotalDays
         );
 
-        // Link refresh token to device session
-        refreshToken.LinkToSession(session.Id);
+        // Link refresh token to device
+        refreshToken.LinkToDevice(device.Id);
 
         await _context.RefreshTokens.AddAsync(refreshToken, ct);
         await _context.SaveChangesAsync(ct);
@@ -208,7 +193,7 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
             null, // targetUserId
             "SystemUser",
             user.Id,
-            new { InviteId = invite.Id, InvitedBy = invite.InvitedBy, SessionId = session.Id, TrustedDeviceId = trustedDevice.Id },
+            new { InviteId = invite.Id, InvitedBy = invite.InvitedBy, DeviceId = device.Id },
             ct
         );
 
@@ -229,7 +214,7 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
             ),
             AccessToken: accessToken,
             RefreshToken: refreshTokenString,
-            SessionId: session.Id,
+            SessionId: device.Id,
             DeviceId: deviceId
         );
     }

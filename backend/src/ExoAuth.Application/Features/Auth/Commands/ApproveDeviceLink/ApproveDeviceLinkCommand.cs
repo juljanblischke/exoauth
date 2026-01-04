@@ -11,10 +11,13 @@ public sealed record ApproveDeviceLinkCommand(
 ) : ICommand<ApproveDeviceLinkResponse>;
 
 /// <summary>
-/// Response for device link approval.
+/// Response for device link approval - includes auth tokens for immediate login.
 /// </summary>
 public sealed record ApproveDeviceLinkResponse(
     bool Success,
-    string Message,
-    string? RedirectUrl = null
+    string? AccessToken = null,
+    string? RefreshToken = null,
+    Guid? DeviceId = null,
+    string? RedirectUrl = null,
+    string? Message = null
 );

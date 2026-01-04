@@ -79,6 +79,11 @@ public static class ErrorCodes
     public const string AccountLockedPermanent = "ACCOUNT_LOCKED_PERMANENT";
     public const string AccountNotLocked = "ACCOUNT_NOT_LOCKED";
 
+    // Device Errors (400/404)
+    public const string DeviceNotFound = "DEVICE_NOT_FOUND";
+    public const string DeviceNotPending = "DEVICE_NOT_PENDING";
+    public const string CannotRevokeCurrentDevice = "CANNOT_REVOKE_CURRENT_DEVICE";
+
     // Device Approval Errors (400/403/429)
     public const string DeviceApprovalRequired = "DEVICE_APPROVAL_REQUIRED";
     public const string DeviceNotTrusted = "DEVICE_NOT_TRUSTED";

@@ -10,6 +10,7 @@ public sealed class RevokeUserSessionHandler : ICommandHandler<RevokeUserSession
 {
     private readonly IAppDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly IDeviceService _deviceService;
     private readonly IRevokedSessionService _revokedSessionService;
     private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
@@ -18,6 +19,7 @@ public sealed class RevokeUserSessionHandler : ICommandHandler<RevokeUserSession
     public RevokeUserSessionHandler(
         IAppDbContext context,
         ICurrentUserService currentUser,
+        IDeviceService deviceService,
         IRevokedSessionService revokedSessionService,
         IAuditService auditService,
         IEmailService emailService,
@@ -25,6 +27,7 @@ public sealed class RevokeUserSessionHandler : ICommandHandler<RevokeUserSession
     {
         _context = context;
         _currentUser = currentUser;
+        _deviceService = deviceService;
         _revokedSessionService = revokedSessionService;
         _auditService = auditService;
         _emailService = emailService;
@@ -41,25 +44,19 @@ public sealed class RevokeUserSessionHandler : ICommandHandler<RevokeUserSession
             .FirstOrDefaultAsync(u => u.Id == command.UserId, ct)
             ?? throw new SystemUserNotFoundException(command.UserId);
 
-        // Get the specific session - must exist AND belong to the user
-        var session = await _context.DeviceSessions
-            .FirstOrDefaultAsync(s => s.Id == command.SessionId && s.UserId == command.UserId, ct)
-            ?? throw new UserSessionNotFoundException(command.SessionId, command.UserId);
+        // Get the specific device (session) - must exist AND belong to the user
+        var device = await _deviceService.GetByIdAsync(command.SessionId, ct);
 
-        // Mark session as revoked for immediate invalidation
-        await _revokedSessionService.RevokeSessionAsync(session.Id, ct);
-
-        // Revoke refresh token for this session
-        var refreshToken = await _context.RefreshTokens
-            .FirstOrDefaultAsync(t => t.UserId == command.UserId && t.DeviceSessionId == command.SessionId && !t.IsRevoked, ct);
-
-        if (refreshToken is not null)
+        if (device is null || device.UserId != command.UserId)
         {
-            refreshToken.Revoke();
+            throw new UserSessionNotFoundException(command.SessionId, command.UserId);
         }
 
-        // Remove the session
-        _context.DeviceSessions.Remove(session);
+        // Mark session as revoked for immediate invalidation
+        await _revokedSessionService.RevokeSessionAsync(device.Id, ct);
+
+        // Revoke the device (which also revokes associated refresh tokens)
+        await _deviceService.RevokeAsync(device.Id, ct);
 
         await _context.SaveChangesAsync(ct);
 
@@ -68,13 +65,12 @@ public sealed class RevokeUserSessionHandler : ICommandHandler<RevokeUserSession
             AuditActions.SessionRevokedByAdmin,
             adminUserId,
             command.UserId,
-            "DeviceSession",
+            "Device",
             command.SessionId,
             new
             {
-                SessionId = command.SessionId,
-                DeviceId = session.DeviceId,
-                UserAgent = session.UserAgent
+                DeviceId = device.DeviceId,
+                DisplayName = device.DisplayName
             },
             ct
         );

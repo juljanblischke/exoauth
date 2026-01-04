@@ -23,6 +23,172 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ExoAuth.Domain.Entities.Device", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("ApprovalAttempts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("approval_attempts");
+
+                    b.Property<string>("ApprovalCodeHash")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("approval_code_hash");
+
+                    b.Property<DateTime?>("ApprovalExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("approval_expires_at");
+
+                    b.Property<string>("ApprovalTokenHash")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("approval_token_hash");
+
+                    b.Property<string>("Browser")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("browser");
+
+                    b.Property<string>("BrowserVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("browser_version");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("country");
+
+                    b.Property<string>("CountryCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("country_code");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("device_id");
+
+                    b.Property<string>("DeviceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("device_type");
+
+                    b.Property<string>("Fingerprint")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("fingerprint");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("ip_address");
+
+                    b.Property<DateTime>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("latitude");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("longitude");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("OperatingSystem")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("operating_system");
+
+                    b.Property<string>("OsVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("os_version");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("RiskFactors")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("risk_factors");
+
+                    b.Property<int?>("RiskScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("risk_score");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("TrustedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("trusted_at");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("user_agent");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_devices");
+
+                    b.HasIndex("ApprovalTokenHash")
+                        .HasDatabaseName("i_x_devices_approval_token_hash");
+
+                    b.HasIndex("DeviceId")
+                        .HasDatabaseName("i_x_devices_device_id");
+
+                    b.HasIndex("LastUsedAt")
+                        .HasDatabaseName("i_x_devices_last_used_at");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("i_x_devices_status");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("i_x_devices_user_id");
+
+                    b.HasIndex("UserId", "DeviceId")
+                        .IsUnique()
+                        .HasDatabaseName("i_x_devices_user_id_device_id");
+
+                    b.HasIndex("UserId", "Status")
+                        .HasDatabaseName("i_x_devices_user_id_status");
+
+                    b.ToTable("devices", (string)null);
+                });
+
             modelBuilder.Entity("ExoAuth.Domain.Entities.DeviceApprovalRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -468,14 +634,18 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid?>("DeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_id");
+
+                    b.Property<Guid?>("DeviceId1")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_id1");
+
                     b.Property<string>("DeviceInfo")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("device_info");
-
-                    b.Property<Guid?>("DeviceSessionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("device_session_id");
 
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone")
@@ -529,8 +699,11 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("p_k_refresh_tokens");
 
-                    b.HasIndex("DeviceSessionId")
-                        .HasDatabaseName("i_x_refresh_tokens_device_session_id");
+                    b.HasIndex("DeviceId")
+                        .HasDatabaseName("i_x_refresh_tokens_device_id");
+
+                    b.HasIndex("DeviceId1")
+                        .HasDatabaseName("i_x_refresh_tokens_device_id1");
 
                     b.HasIndex("ExpiresAt")
                         .HasDatabaseName("i_x_refresh_tokens_expires_at");
@@ -1025,6 +1198,18 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                     b.ToTable("trusted_devices", (string)null);
                 });
 
+            modelBuilder.Entity("ExoAuth.Domain.Entities.Device", b =>
+                {
+                    b.HasOne("ExoAuth.Domain.Entities.SystemUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("f_k_devices_system_users_user_id");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ExoAuth.Domain.Entities.DeviceApprovalRequest", b =>
                 {
                     b.HasOne("ExoAuth.Domain.Entities.DeviceSession", "DeviceSession")
@@ -1104,18 +1289,23 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ExoAuth.Domain.Entities.RefreshToken", b =>
                 {
-                    b.HasOne("ExoAuth.Domain.Entities.DeviceSession", "DeviceSession")
+                    b.HasOne("ExoAuth.Domain.Entities.Device", "Device")
                         .WithMany()
-                        .HasForeignKey("DeviceSessionId")
+                        .HasForeignKey("DeviceId")
                         .OnDelete(DeleteBehavior.SetNull)
-                        .HasConstraintName("f_k_refresh_tokens_device_sessions_device_session_id");
+                        .HasConstraintName("f_k_refresh_tokens_devices_device_id");
+
+                    b.HasOne("ExoAuth.Domain.Entities.Device", null)
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("DeviceId1")
+                        .HasConstraintName("f_k_refresh_tokens_devices_device_id1");
 
                     b.HasOne("ExoAuth.Domain.Entities.SystemUser", null)
                         .WithMany("RefreshTokens")
                         .HasForeignKey("SystemUserId")
                         .HasConstraintName("f_k_refresh_tokens_system_users_system_user_id");
 
-                    b.Navigation("DeviceSession");
+                    b.Navigation("Device");
                 });
 
             modelBuilder.Entity("ExoAuth.Domain.Entities.SystemAuditLog", b =>
@@ -1180,6 +1370,11 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasConstraintName("f_k_trusted_devices_system_users_user_id");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ExoAuth.Domain.Entities.Device", b =>
+                {
+                    b.Navigation("RefreshTokens");
                 });
 
             modelBuilder.Entity("ExoAuth.Domain.Entities.SystemPermission", b =>

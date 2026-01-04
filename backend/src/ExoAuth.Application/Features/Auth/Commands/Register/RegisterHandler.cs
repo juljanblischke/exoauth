@@ -13,7 +13,6 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
     private readonly ISystemUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
-    private readonly IDeviceSessionService _deviceSessionService;
     private readonly IMfaService _mfaService;
     private readonly IAuditService _auditService;
 
@@ -22,7 +21,6 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
         ISystemUserRepository userRepository,
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
-        IDeviceSessionService deviceSessionService,
         IMfaService mfaService,
         IAuditService auditService)
     {
@@ -30,7 +28,6 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
-        _deviceSessionService = deviceSessionService;
         _mfaService = mfaService;
         _auditService = auditService;
     }

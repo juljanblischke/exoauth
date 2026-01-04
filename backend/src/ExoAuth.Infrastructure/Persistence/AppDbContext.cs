@@ -18,11 +18,9 @@ public sealed class AppDbContext : DbContext, IAppDbContext
     public DbSet<SystemInvite> SystemInvites => Set<SystemInvite>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
-    public DbSet<DeviceSession> DeviceSessions => Set<DeviceSession>();
     public DbSet<MfaBackupCode> MfaBackupCodes => Set<MfaBackupCode>();
-    public DbSet<DeviceApprovalRequest> DeviceApprovalRequests => Set<DeviceApprovalRequest>();
     public DbSet<LoginPattern> LoginPatterns => Set<LoginPattern>();
-    public DbSet<TrustedDevice> TrustedDevices => Set<TrustedDevice>();
+    public DbSet<Device> Devices => Set<Device>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

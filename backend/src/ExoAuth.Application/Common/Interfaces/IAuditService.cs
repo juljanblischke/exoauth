@@ -122,4 +122,9 @@ public static class AuditActions
     public const string TrustedDeviceRenamed = "system.device.trusted_renamed";
     public const string TrustedDeviceRemovedByAdmin = "system.device.trusted_removed_by_admin";
     public const string TrustedDevicesRemovedByAdmin = "system.device.trusted_all_removed_by_admin";
+
+    // Device actions (consolidated)
+    public const string DeviceRevoked = "system.device.revoked";
+    public const string DeviceRenamed = "system.device.renamed";
+    public const string DeviceApprovedFromSession = "system.device.approved_from_session";
 }

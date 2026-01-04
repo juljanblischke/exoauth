@@ -191,7 +191,7 @@ public sealed class RiskScoringService : IRiskScoringService
 
     public async Task<SpoofingCheckResult> CheckForSpoofingAsync(
         Guid userId,
-        TrustedDevice trustedDevice,
+        Device device,
         GeoLocation currentLocation,
         DeviceInfo currentDeviceInfo,
         CancellationToken cancellationToken = default)
@@ -209,9 +209,9 @@ public sealed class RiskScoringService : IRiskScoringService
         // Get or create the user's login pattern
         var pattern = await _loginPatternService.GetOrCreatePatternAsync(userId, cancellationToken);
 
-        // Check 1: Impossible travel from trusted device's last known location
-        _logger.LogDebug("Checking impossible travel for trusted device: LastLocation={LastCountry}/{LastCity}, CurrentLocation={Country}/{City}",
-            trustedDevice.LastCountry, trustedDevice.LastCity, currentLocation.CountryCode, currentLocation.City);
+        // Check 1: Impossible travel from device's last known location
+        _logger.LogDebug("Checking impossible travel for device: LastLocation={Country}/{City}, CurrentLocation={CurrentCountry}/{CurrentCity}",
+            device.Country, device.City, currentLocation.CountryCode, currentLocation.City);
 
         if (_loginPatternService.IsImpossibleTravel(pattern, currentLocation, _impossibleTravelSpeedKmh))
         {
@@ -222,34 +222,34 @@ public sealed class RiskScoringService : IRiskScoringService
         }
 
         // Check 2: Device type mismatch (e.g., trusted device was Desktop, now claiming Mobile)
-        if (!string.IsNullOrEmpty(trustedDevice.DeviceType) &&
-            !string.Equals(trustedDevice.DeviceType, currentDeviceInfo.DeviceType, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(device.DeviceType) &&
+            !string.Equals(device.DeviceType, currentDeviceInfo.DeviceType, StringComparison.OrdinalIgnoreCase))
         {
             score += _differentDeviceTypeScore;
             suspiciousFactors.Add(RiskFactors.DifferentDeviceType);
             _logger.LogWarning("Device type mismatch on trusted device for user {UserId}: Expected={Expected}, Got={Got}",
-                userId, trustedDevice.DeviceType, currentDeviceInfo.DeviceType);
+                userId, device.DeviceType, currentDeviceInfo.DeviceType);
         }
 
         // Check 3: Different browser (potential spoofing indicator)
-        if (!string.IsNullOrEmpty(trustedDevice.Browser) &&
-            !string.Equals(trustedDevice.Browser, currentDeviceInfo.Browser, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(device.Browser) &&
+            !string.Equals(device.Browser, currentDeviceInfo.Browser, StringComparison.OrdinalIgnoreCase))
         {
             // Lower score for browser change as it's more common (updates, etc.)
             score += 5;
             suspiciousFactors.Add(RiskFactors.DifferentBrowser);
             _logger.LogDebug("Browser mismatch on trusted device for user {UserId}: Expected={Expected}, Got={Got}",
-                userId, trustedDevice.Browser, currentDeviceInfo.Browser);
+                userId, device.Browser, currentDeviceInfo.Browser);
         }
 
         // Check 4: Different OS (rare, indicates possible spoofing)
-        if (!string.IsNullOrEmpty(trustedDevice.OperatingSystem) &&
-            !string.Equals(trustedDevice.OperatingSystem, currentDeviceInfo.OperatingSystem, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(device.OperatingSystem) &&
+            !string.Equals(device.OperatingSystem, currentDeviceInfo.OperatingSystem, StringComparison.OrdinalIgnoreCase))
         {
             score += 15;
             suspiciousFactors.Add(RiskFactors.DifferentOS);
             _logger.LogWarning("OS mismatch on trusted device for user {UserId}: Expected={Expected}, Got={Got}",
-                userId, trustedDevice.OperatingSystem, currentDeviceInfo.OperatingSystem);
+                userId, device.OperatingSystem, currentDeviceInfo.OperatingSystem);
         }
 
         // Determine if this is suspicious based on score

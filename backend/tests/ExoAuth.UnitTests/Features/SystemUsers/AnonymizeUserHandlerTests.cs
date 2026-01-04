@@ -17,6 +17,7 @@ public sealed class AnonymizeUserHandlerTests
     private readonly Mock<IRevokedSessionService> _mockRevokedSessionService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly Mock<ISystemUserRepository> _mockUserRepository;
+    private readonly Mock<IDeviceService> _mockDeviceService;
 
     public AnonymizeUserHandlerTests()
     {
@@ -25,6 +26,7 @@ public sealed class AnonymizeUserHandlerTests
         _mockRevokedSessionService = new Mock<IRevokedSessionService>();
         _mockAuditService = new Mock<IAuditService>();
         _mockUserRepository = new Mock<ISystemUserRepository>();
+        _mockDeviceService = new Mock<IDeviceService>();
 
         _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -32,6 +34,10 @@ public sealed class AnonymizeUserHandlerTests
         // Default: user has no critical permissions
         _mockUserRepository.Setup(x => x.GetUserPermissionNamesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<string>());
+
+        // Default: user has no devices
+        _mockDeviceService.Setup(x => x.GetAllForUserAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Device>());
     }
 
     private AnonymizeUserHandler CreateHandler() => new(
@@ -39,7 +45,8 @@ public sealed class AnonymizeUserHandlerTests
         _mockCurrentUser.Object,
         _mockRevokedSessionService.Object,
         _mockAuditService.Object,
-        _mockUserRepository.Object);
+        _mockUserRepository.Object,
+        _mockDeviceService.Object);
 
     [Fact]
     public async Task Handle_WithValidUser_AnonymizesUser()
@@ -51,11 +58,10 @@ public sealed class AnonymizeUserHandlerTests
 
         var user = CreateUserWithPermissions(userId);
         var users = new List<SystemUser> { user };
-        var sessions = new List<DeviceSession>();
         var refreshTokens = new List<RefreshToken>();
         var backupCodes = new List<MfaBackupCode>();
 
-        SetupMockDbSets(users, sessions, refreshTokens, backupCodes);
+        SetupMockDbSets(users, refreshTokens, backupCodes);
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         var handler = CreateHandler();
@@ -121,7 +127,7 @@ public sealed class AnonymizeUserHandlerTests
 
         var users = new List<SystemUser>();
 
-        SetupMockDbSets(users, new List<DeviceSession>(), new List<RefreshToken>(), new List<MfaBackupCode>());
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         var handler = CreateHandler();
@@ -145,7 +151,7 @@ public sealed class AnonymizeUserHandlerTests
         user.Anonymize(); // Already anonymized
         var users = new List<SystemUser> { user };
 
-        SetupMockDbSets(users, new List<DeviceSession>(), new List<RefreshToken>(), new List<MfaBackupCode>());
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         var handler = CreateHandler();
@@ -170,23 +176,25 @@ public sealed class AnonymizeUserHandlerTests
     }
 
     [Fact]
-    public async Task Handle_RevokesSessions()
+    public async Task Handle_RevokesDevices()
     {
         // Arrange
         var userId = Guid.NewGuid();
         var adminUserId = Guid.NewGuid();
-        var sessionId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
         var command = new AnonymizeUserCommand(userId);
 
         var user = CreateUserWithPermissions(userId);
         var users = new List<SystemUser> { user };
-        var session = CreateDeviceSession(sessionId, userId);
-        var sessions = new List<DeviceSession> { session };
+        var device = TestDataFactory.CreateDeviceWithId(deviceId, userId);
+        var devices = new List<Device> { device };
         var refreshTokens = new List<RefreshToken>();
         var backupCodes = new List<MfaBackupCode>();
 
-        SetupMockDbSets(users, sessions, refreshTokens, backupCodes);
+        SetupMockDbSets(users, refreshTokens, backupCodes);
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+        _mockDeviceService.Setup(x => x.GetAllForUserAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(devices);
 
         var handler = CreateHandler();
 
@@ -194,7 +202,8 @@ public sealed class AnonymizeUserHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        _mockRevokedSessionService.Verify(x => x.RevokeSessionAsync(sessionId, It.IsAny<CancellationToken>()), Times.Once);
+        _mockRevokedSessionService.Verify(x => x.RevokeSessionAsync(deviceId, It.IsAny<CancellationToken>()), Times.Once);
+        _mockDeviceService.Verify(x => x.RemoveAllAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -207,12 +216,11 @@ public sealed class AnonymizeUserHandlerTests
 
         var user = CreateUserWithPermissions(userId);
         var users = new List<SystemUser> { user };
-        var sessions = new List<DeviceSession>();
         var refreshToken = RefreshToken.Create(userId, UserType.System, "token123", 30);
         var refreshTokens = new List<RefreshToken> { refreshToken };
         var backupCodes = new List<MfaBackupCode>();
 
-        SetupMockDbSets(users, sessions, refreshTokens, backupCodes);
+        SetupMockDbSets(users, refreshTokens, backupCodes);
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         var handler = CreateHandler();
@@ -235,7 +243,7 @@ public sealed class AnonymizeUserHandlerTests
         var user = CreateUserWithPermissions(userId);
         var users = new List<SystemUser> { user };
 
-        SetupMockDbSets(users, new List<DeviceSession>(), new List<RefreshToken>(), new List<MfaBackupCode>());
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         // User has system:users:update permission and is the only holder
@@ -262,7 +270,7 @@ public sealed class AnonymizeUserHandlerTests
         var user = CreateUserWithPermissions(userId);
         var users = new List<SystemUser> { user };
 
-        SetupMockDbSets(users, new List<DeviceSession>(), new List<RefreshToken>(), new List<MfaBackupCode>());
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         // User has system:users:update permission but there are 2 holders
@@ -292,7 +300,7 @@ public sealed class AnonymizeUserHandlerTests
         var user = CreateUserWithPermissions(userId);
         var users = new List<SystemUser> { user };
 
-        SetupMockDbSets(users, new List<DeviceSession>(), new List<RefreshToken>(), new List<MfaBackupCode>());
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         // User has system:users:read permission and is the only holder
@@ -321,7 +329,7 @@ public sealed class AnonymizeUserHandlerTests
         var user = CreateUserWithPermissions(userId);
         var users = new List<SystemUser> { user };
 
-        SetupMockDbSets(users, new List<DeviceSession>(), new List<RefreshToken>(), new List<MfaBackupCode>());
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         // User has system:users:read permission but there are 2 holders
@@ -359,7 +367,7 @@ public sealed class AnonymizeUserHandlerTests
             "other@example.com", "Other", "User", new List<Guid>(), adminUserId, "hash2");
         var invites = new List<SystemInvite> { inviteWithMatchingEmail, inviteWithDifferentEmail };
 
-        SetupMockDbSets(users, new List<DeviceSession>(), new List<RefreshToken>(), new List<MfaBackupCode>(), invites);
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>(), invites);
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         var handler = CreateHandler();
@@ -390,7 +398,7 @@ public sealed class AnonymizeUserHandlerTests
         var invite2 = SystemInvite.Create(userEmail, "Test", "User", new List<Guid>(), adminUserId, "hash2");
         var invites = new List<SystemInvite> { invite1, invite2 };
 
-        SetupMockDbSets(users, new List<DeviceSession>(), new List<RefreshToken>(), new List<MfaBackupCode>(), invites);
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>(), invites);
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         var handler = CreateHandler();
@@ -414,7 +422,7 @@ public sealed class AnonymizeUserHandlerTests
         var users = new List<SystemUser> { user };
         var invites = new List<SystemInvite>();
 
-        SetupMockDbSets(users, new List<DeviceSession>(), new List<RefreshToken>(), new List<MfaBackupCode>(), invites);
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>(), invites);
         _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
 
         var handler = CreateHandler();
@@ -429,20 +437,17 @@ public sealed class AnonymizeUserHandlerTests
 
     private void SetupMockDbSets(
         List<SystemUser> users,
-        List<DeviceSession> sessions,
         List<RefreshToken> refreshTokens,
         List<MfaBackupCode> backupCodes,
         List<SystemInvite>? invites = null)
     {
         var mockUsersDbSet = CreateAsyncMockDbSet(users);
-        var mockSessionsDbSet = CreateAsyncMockDbSet(sessions);
         var mockRefreshTokensDbSet = CreateAsyncMockDbSet(refreshTokens);
         var mockBackupCodesDbSet = CreateAsyncMockDbSet(backupCodes);
         var mockPermissionsDbSet = CreateAsyncMockDbSet(new List<SystemUserPermission>());
         var mockInvitesDbSet = CreateAsyncMockDbSet(invites ?? new List<SystemInvite>());
 
         _mockContext.Setup(x => x.SystemUsers).Returns(mockUsersDbSet.Object);
-        _mockContext.Setup(x => x.DeviceSessions).Returns(mockSessionsDbSet.Object);
         _mockContext.Setup(x => x.RefreshTokens).Returns(mockRefreshTokensDbSet.Object);
         _mockContext.Setup(x => x.MfaBackupCodes).Returns(mockBackupCodesDbSet.Object);
         _mockContext.Setup(x => x.SystemUserPermissions).Returns(mockPermissionsDbSet.Object);
@@ -454,15 +459,6 @@ public sealed class AnonymizeUserHandlerTests
         var user = SystemUser.Create(email, "hash", "Test", "User", true);
         SetUserId(user, userId);
         return user;
-    }
-
-    private static DeviceSession CreateDeviceSession(Guid sessionId, Guid userId)
-    {
-        var session = DeviceSession.Create(userId, "device123", null, null, "Mozilla/5.0", "127.0.0.1");
-        var idField = typeof(DeviceSession).BaseType?
-            .GetField("<Id>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        idField?.SetValue(session, sessionId);
-        return session;
     }
 
     private static void SetUserId(SystemUser user, Guid userId)

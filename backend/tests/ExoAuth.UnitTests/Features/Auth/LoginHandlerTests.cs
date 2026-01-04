@@ -20,7 +20,7 @@ public sealed class LoginHandlerTests
     private readonly Mock<IBruteForceProtectionService> _mockBruteForceService;
     private readonly Mock<IPermissionCacheService> _mockPermissionCache;
     private readonly Mock<IForceReauthService> _mockForceReauthService;
-    private readonly Mock<IDeviceSessionService> _mockDeviceSessionService;
+    private readonly Mock<IDeviceService> _mockDeviceService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly Mock<IMfaService> _mockMfaService;
     private readonly Mock<IEmailService> _mockEmailService;
@@ -28,10 +28,8 @@ public sealed class LoginHandlerTests
     private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly Mock<IRiskScoringService> _mockRiskScoringService;
     private readonly Mock<ILoginPatternService> _mockLoginPatternService;
-    private readonly Mock<IDeviceApprovalService> _mockDeviceApprovalService;
     private readonly Mock<IGeoIpService> _mockGeoIpService;
     private readonly Mock<IDeviceDetectionService> _mockDeviceDetectionService;
-    private readonly Mock<ITrustedDeviceService> _mockTrustedDeviceService;
     private readonly LoginHandler _handler;
 
     public LoginHandlerTests()
@@ -43,7 +41,7 @@ public sealed class LoginHandlerTests
         _mockBruteForceService = new Mock<IBruteForceProtectionService>();
         _mockPermissionCache = new Mock<IPermissionCacheService>();
         _mockForceReauthService = new Mock<IForceReauthService>();
-        _mockDeviceSessionService = new Mock<IDeviceSessionService>();
+        _mockDeviceService = new Mock<IDeviceService>();
         _mockAuditService = new Mock<IAuditService>();
         _mockMfaService = new Mock<IMfaService>();
         _mockEmailService = new Mock<IEmailService>();
@@ -51,10 +49,8 @@ public sealed class LoginHandlerTests
         _mockConfiguration = new Mock<IConfiguration>();
         _mockRiskScoringService = new Mock<IRiskScoringService>();
         _mockLoginPatternService = new Mock<ILoginPatternService>();
-        _mockDeviceApprovalService = new Mock<IDeviceApprovalService>();
         _mockGeoIpService = new Mock<IGeoIpService>();
         _mockDeviceDetectionService = new Mock<IDeviceDetectionService>();
-        _mockTrustedDeviceService = new Mock<ITrustedDeviceService>();
 
         // Default token service setup
         _mockTokenService.Setup(x => x.RefreshTokenExpiration).Returns(TimeSpan.FromDays(30));
@@ -66,17 +62,15 @@ public sealed class LoginHandlerTests
         _mockEmailTemplateService.Setup(x => x.GetSubject(It.IsAny<string>(), It.IsAny<string>()))
             .Returns((string template, string lang) => $"Subject for {template}");
 
-        // Default device session service setup
-        var mockSession = TestDataFactory.CreateDeviceSession(Guid.NewGuid());
-        _mockDeviceSessionService.Setup(x => x.GenerateDeviceId()).Returns("test-device-id");
-        _mockDeviceSessionService.Setup(x => x.CreateOrUpdateSessionAsync(
+        // Default device service setup - return a trusted device by default (allows login without approval)
+        var mockDevice = TestDataFactory.CreateDevice(Guid.NewGuid());
+        _mockDeviceService.Setup(x => x.GenerateDeviceId()).Returns("test-device-id");
+        _mockDeviceService.Setup(x => x.FindTrustedDeviceAsync(
                 It.IsAny<Guid>(),
                 It.IsAny<string>(),
                 It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((mockSession, false, false));
+            .ReturnsAsync(mockDevice);
 
         // Default risk scoring setup - low risk, no approval required
         _mockGeoIpService.Setup(x => x.GetLocation(It.IsAny<string?>()))
@@ -94,29 +88,11 @@ public sealed class LoginHandlerTests
             .Returns(false);
         _mockRiskScoringService.Setup(x => x.CheckForSpoofingAsync(
                 It.IsAny<Guid>(),
-                It.IsAny<TrustedDevice>(),
+                It.IsAny<Device>(),
                 It.IsAny<GeoLocation>(),
                 It.IsAny<DeviceInfo>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(SpoofingCheckResult.NotSuspicious());
-
-        // Default trusted device setup - return a trusted device by default (allows login without approval)
-        var mockTrustedDevice = TrustedDevice.Create(
-            userId: Guid.NewGuid(),
-            deviceId: "test-device-id",
-            deviceFingerprint: null,
-            name: "Test Device",
-            browser: "Chrome",
-            browserVersion: "120",
-            operatingSystem: "Windows",
-            osVersion: "10",
-            deviceType: "Desktop");
-        _mockTrustedDeviceService.Setup(x => x.FindAsync(
-                It.IsAny<Guid>(),
-                It.IsAny<string>(),
-                It.IsAny<string?>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(mockTrustedDevice);
 
         _handler = new LoginHandler(
             _mockContext.Object,
@@ -126,7 +102,7 @@ public sealed class LoginHandlerTests
             _mockBruteForceService.Object,
             _mockPermissionCache.Object,
             _mockForceReauthService.Object,
-            _mockDeviceSessionService.Object,
+            _mockDeviceService.Object,
             _mockAuditService.Object,
             _mockMfaService.Object,
             _mockEmailService.Object,
@@ -134,10 +110,8 @@ public sealed class LoginHandlerTests
             _mockConfiguration.Object,
             _mockRiskScoringService.Object,
             _mockLoginPatternService.Object,
-            _mockDeviceApprovalService.Object,
             _mockGeoIpService.Object,
-            _mockDeviceDetectionService.Object,
-            _mockTrustedDeviceService.Object);
+            _mockDeviceDetectionService.Object);
     }
 
     [Fact]

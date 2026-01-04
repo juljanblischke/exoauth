@@ -11,19 +11,16 @@ using ExoAuth.Application.Features.Auth.Commands.RefreshToken;
 using ExoAuth.Application.Features.Auth.Commands.RegenerateBackupCodes;
 using ExoAuth.Application.Features.Auth.Commands.Register;
 using ExoAuth.Application.Features.Auth.Commands.ResetPassword;
-using ExoAuth.Application.Features.Auth.Commands.RevokeAllSessions;
-using ExoAuth.Application.Features.Auth.Commands.RevokeSession;
 using ExoAuth.Application.Features.Auth.Commands.UpdatePreferences;
 using ExoAuth.Application.Features.Auth.Commands.ApproveDevice;
 using ExoAuth.Application.Features.Auth.Commands.ApproveDeviceLink;
 using ExoAuth.Application.Features.Auth.Commands.DenyDevice;
-using ExoAuth.Application.Features.Auth.Commands.UpdateSession;
-using ExoAuth.Application.Features.Auth.Commands.RemoveTrustedDevice;
-using ExoAuth.Application.Features.Auth.Commands.RenameTrustedDevice;
 using ExoAuth.Application.Features.Auth.Models;
 using ExoAuth.Application.Features.Auth.Queries.GetCurrentUser;
-using ExoAuth.Application.Features.Auth.Queries.GetSessions;
-using ExoAuth.Application.Features.Auth.Queries.GetTrustedDevices;
+using ExoAuth.Application.Features.Auth.Queries.GetDevices;
+using ExoAuth.Application.Features.Auth.Commands.RevokeDevice;
+using ExoAuth.Application.Features.Auth.Commands.RenameDevice;
+using ExoAuth.Application.Features.Auth.Commands.ApproveDeviceFromSession;
 using ExoAuth.Application.Features.SystemInvites.Models;
 using ExoAuth.Application.Features.SystemInvites.Queries.ValidateInvite;
 using Microsoft.AspNetCore.Authorization;
@@ -279,93 +276,26 @@ public sealed class AuthController : ApiControllerBase
         return ApiOk(result);
     }
 
-    #region Session Management
+    #region Devices
 
     /// <summary>
-    /// Get all active sessions for the current user.
-    /// </summary>
-    [HttpGet("sessions")]
-    [Authorize]
-    [RateLimit]
-    [ProducesResponseType(typeof(List<DeviceSessionDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetSessions(CancellationToken ct)
-    {
-        var query = new GetSessionsQuery();
-        var result = await Mediator.Send(query, ct);
-        return ApiOk(result);
-    }
-
-    /// <summary>
-    /// Revoke a specific session.
-    /// </summary>
-    [HttpDelete("sessions/{sessionId:guid}")]
-    [Authorize]
-    [RateLimit]
-    [ProducesResponseType(typeof(RevokeSessionResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RevokeSession(Guid sessionId, CancellationToken ct)
-    {
-        var command = new RevokeSessionCommand(sessionId);
-        var result = await Mediator.Send(command, ct);
-        return ApiOk(result);
-    }
-
-    /// <summary>
-    /// Revoke all sessions except the current one.
-    /// </summary>
-    [HttpDelete("sessions")]
-    [Authorize]
-    [RateLimit]
-    [ProducesResponseType(typeof(RevokeAllSessionsResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> RevokeAllSessions(CancellationToken ct)
-    {
-        var command = new RevokeAllSessionsCommand();
-        var result = await Mediator.Send(command, ct);
-        return ApiOk(result);
-    }
-
-    /// <summary>
-    /// Update a session (rename or set trust status).
-    /// </summary>
-    [HttpPatch("sessions/{sessionId:guid}")]
-    [Authorize]
-    [RateLimit]
-    [ProducesResponseType(typeof(DeviceSessionDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateSession(Guid sessionId, UpdateSessionRequest request, CancellationToken ct)
-    {
-        var command = new UpdateSessionCommand(sessionId, request.Name);
-        var result = await Mediator.Send(command, ct);
-        return ApiOk(result);
-    }
-
-    #endregion
-
-    #region Trusted Devices
-
-    /// <summary>
-    /// Get all trusted devices for the current user.
+    /// Get all devices for the current user (pending, trusted, and revoked).
     /// </summary>
     [HttpGet("devices")]
     [Authorize]
     [RateLimit]
-    [ProducesResponseType(typeof(List<TrustedDeviceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<DeviceDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetTrustedDevices(CancellationToken ct)
+    public async Task<IActionResult> GetDevices(CancellationToken ct)
     {
-        var query = new GetTrustedDevicesQuery();
+        var query = new GetDevicesQuery();
         var result = await Mediator.Send(query, ct);
         return ApiOk(result);
     }
 
     /// <summary>
-    /// Remove a trusted device.
-    /// Users cannot remove the device they are currently using.
+    /// Revoke a device.
+    /// Users cannot revoke the device they are currently using.
     /// </summary>
     [HttpDelete("devices/{deviceId:guid}")]
     [Authorize]
@@ -374,27 +304,44 @@ public sealed class AuthController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RemoveTrustedDevice(Guid deviceId, CancellationToken ct)
+    public async Task<IActionResult> RevokeDevice(Guid deviceId, CancellationToken ct)
     {
-        var command = new RemoveTrustedDeviceCommand(deviceId);
-        await Mediator.Send(command, ct);
-        return NoContent();
+        var command = new RevokeDeviceCommand(deviceId);
+        var result = await Mediator.Send(command, ct);
+        return result.Success ? NoContent() : BadRequest();
     }
 
     /// <summary>
-    /// Rename a trusted device.
+    /// Rename a device.
     /// </summary>
     [HttpPut("devices/{deviceId:guid}/name")]
     [Authorize]
     [RateLimit]
-    [ProducesResponseType(typeof(TrustedDeviceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(DeviceDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RenameTrustedDevice(Guid deviceId, RenameTrustedDeviceRequest request, CancellationToken ct)
+    public async Task<IActionResult> RenameDevice(Guid deviceId, RenameDeviceRequest request, CancellationToken ct)
     {
-        var command = new RenameTrustedDeviceCommand(deviceId, request.Name);
+        var command = new RenameDeviceCommand(deviceId, request.Name);
         var result = await Mediator.Send(command, ct);
-        return ApiOk(result);
+        return result is not null ? ApiOk(result) : NotFound();
+    }
+
+    /// <summary>
+    /// Approve a pending device from an existing trusted session.
+    /// </summary>
+    [HttpPost("devices/{deviceId:guid}/approve")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ApproveDeviceFromSession(Guid deviceId, CancellationToken ct)
+    {
+        var command = new ApproveDeviceFromSessionCommand(deviceId);
+        var result = await Mediator.Send(command, ct);
+        return result.Success ? Ok() : BadRequest(result.Error);
     }
 
     #endregion
@@ -668,10 +615,6 @@ public sealed record ResetPasswordRequest(
     string NewPassword
 );
 
-public sealed record UpdateSessionRequest(
-    string? Name = null
-);
-
 public sealed record MfaSetupRequest(
     string? SetupToken = null
 );
@@ -713,6 +656,6 @@ public sealed record DenyDeviceRequest(
     string ApprovalToken
 );
 
-public sealed record RenameTrustedDeviceRequest(
-    string Name
+public sealed record RenameDeviceRequest(
+    string? Name
 );

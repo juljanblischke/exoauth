@@ -10,6 +10,7 @@ public sealed class RevokeUserSessionsHandler : ICommandHandler<RevokeUserSessio
 {
     private readonly IAppDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly IDeviceService _deviceService;
     private readonly IRevokedSessionService _revokedSessionService;
     private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
@@ -18,6 +19,7 @@ public sealed class RevokeUserSessionsHandler : ICommandHandler<RevokeUserSessio
     public RevokeUserSessionsHandler(
         IAppDbContext context,
         ICurrentUserService currentUser,
+        IDeviceService deviceService,
         IRevokedSessionService revokedSessionService,
         IAuditService auditService,
         IEmailService emailService,
@@ -25,6 +27,7 @@ public sealed class RevokeUserSessionsHandler : ICommandHandler<RevokeUserSessio
     {
         _context = context;
         _currentUser = currentUser;
+        _deviceService = deviceService;
         _revokedSessionService = revokedSessionService;
         _auditService = auditService;
         _emailService = emailService;
@@ -40,12 +43,10 @@ public sealed class RevokeUserSessionsHandler : ICommandHandler<RevokeUserSessio
             .FirstOrDefaultAsync(u => u.Id == command.UserId, ct)
             ?? throw new SystemUserNotFoundException(command.UserId);
 
-        // Get all sessions for this user
-        var sessions = await _context.DeviceSessions
-            .Where(s => s.UserId == command.UserId)
-            .ToListAsync(ct);
+        // Get all devices (sessions) for this user
+        var devices = await _deviceService.GetAllForUserAsync(command.UserId, ct);
 
-        var revokedCount = sessions.Count;
+        var revokedCount = devices.Count;
 
         if (revokedCount == 0)
         {
@@ -53,23 +54,13 @@ public sealed class RevokeUserSessionsHandler : ICommandHandler<RevokeUserSessio
         }
 
         // Mark sessions as revoked for immediate invalidation
-        foreach (var session in sessions)
+        foreach (var device in devices)
         {
-            await _revokedSessionService.RevokeSessionAsync(session.Id, ct);
+            await _revokedSessionService.RevokeSessionAsync(device.Id, ct);
         }
 
-        // Revoke all refresh tokens for this user
-        var refreshTokens = await _context.RefreshTokens
-            .Where(t => t.UserId == command.UserId && !t.IsRevoked)
-            .ToListAsync(ct);
-
-        foreach (var token in refreshTokens)
-        {
-            token.Revoke();
-        }
-
-        // Remove all sessions
-        _context.DeviceSessions.RemoveRange(sessions);
+        // Remove all devices (which also revokes associated refresh tokens)
+        await _deviceService.RemoveAllAsync(command.UserId, ct);
 
         await _context.SaveChangesAsync(ct);
 

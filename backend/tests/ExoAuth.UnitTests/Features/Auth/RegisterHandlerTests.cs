@@ -17,7 +17,6 @@ public sealed class RegisterHandlerTests
     private readonly Mock<ISystemUserRepository> _mockUserRepository;
     private readonly Mock<IPasswordHasher> _mockPasswordHasher;
     private readonly Mock<ITokenService> _mockTokenService;
-    private readonly Mock<IDeviceSessionService> _mockDeviceSessionService;
     private readonly Mock<IMfaService> _mockMfaService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly RegisterHandler _handler;
@@ -28,24 +27,11 @@ public sealed class RegisterHandlerTests
         _mockUserRepository = new Mock<ISystemUserRepository>();
         _mockPasswordHasher = new Mock<IPasswordHasher>();
         _mockTokenService = new Mock<ITokenService>();
-        _mockDeviceSessionService = new Mock<IDeviceSessionService>();
         _mockMfaService = new Mock<IMfaService>();
         _mockAuditService = new Mock<IAuditService>();
 
         // Default token service setup
         _mockTokenService.Setup(x => x.RefreshTokenExpiration).Returns(TimeSpan.FromDays(30));
-
-        // Default device session service setup
-        var mockSession = TestDataFactory.CreateDeviceSession(Guid.NewGuid());
-        _mockDeviceSessionService.Setup(x => x.GenerateDeviceId()).Returns("test-device-id");
-        _mockDeviceSessionService.Setup(x => x.CreateOrUpdateSessionAsync(
-                It.IsAny<Guid>(),
-                It.IsAny<string>(),
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((mockSession, false, false));
 
         // Default MFA service setup
         _mockMfaService.Setup(x => x.GenerateMfaToken(It.IsAny<Guid>(), It.IsAny<Guid?>()))
@@ -56,7 +42,6 @@ public sealed class RegisterHandlerTests
             _mockUserRepository.Object,
             _mockPasswordHasher.Object,
             _mockTokenService.Object,
-            _mockDeviceSessionService.Object,
             _mockMfaService.Object,
             _mockAuditService.Object);
     }
@@ -240,13 +225,6 @@ public sealed class RegisterHandlerTests
 
         // Assert - No tokens or session until MFA setup completes
         result.MfaSetupRequired.Should().BeTrue();
-        _mockDeviceSessionService.Verify(x => x.CreateOrUpdateSessionAsync(
-            It.IsAny<Guid>(),
-            It.IsAny<string>(),
-            It.IsAny<string?>(),
-            It.IsAny<string?>(),
-            It.IsAny<string?>(),
-            It.IsAny<CancellationToken>()), Times.Never);
         _mockTokenService.Verify(x => x.GenerateAccessToken(
             It.IsAny<Guid>(),
             It.IsAny<string>(),

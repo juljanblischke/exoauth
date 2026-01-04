@@ -5,4 +5,4 @@ namespace ExoAuth.Application.Features.SystemUsers.Queries.GetUserSessions;
 
 public sealed record GetUserSessionsQuery(
     Guid UserId
-) : IQuery<List<DeviceSessionDto>>;
+) : IQuery<List<DeviceDto>>;

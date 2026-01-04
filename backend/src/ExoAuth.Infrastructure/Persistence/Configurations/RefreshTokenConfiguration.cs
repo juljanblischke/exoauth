@@ -39,7 +39,7 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
         builder.Property(x => x.IpAddress)
             .HasMaxLength(45);
 
-        builder.Property(x => x.DeviceSessionId);
+        builder.Property(x => x.DeviceId);
 
         builder.Property(x => x.RememberMe)
             .IsRequired()
@@ -57,12 +57,12 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
         builder.HasIndex(x => x.ExpiresAt);
         builder.HasIndex(x => x.IsRevoked);
         builder.HasIndex(x => new { x.UserId, x.UserType, x.IsRevoked });
-        builder.HasIndex(x => x.DeviceSessionId);
+        builder.HasIndex(x => x.DeviceId);
 
-        // Relationship with DeviceSession
-        builder.HasOne(x => x.DeviceSession)
+        // Relationship with Device
+        builder.HasOne(x => x.Device)
             .WithMany()
-            .HasForeignKey(x => x.DeviceSessionId)
+            .HasForeignKey(x => x.DeviceId)
             .OnDelete(DeleteBehavior.SetNull);
     }
 }

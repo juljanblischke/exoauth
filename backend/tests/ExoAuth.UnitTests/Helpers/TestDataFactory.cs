@@ -72,29 +72,7 @@ public static class TestDataFactory
         };
     }
 
-    public static DeviceSession CreateDeviceSession(
-        Guid userId,
-        string deviceId = "test-device-id",
-        string? deviceName = null,
-        string? browser = "Chrome",
-        string? operatingSystem = "Windows")
-    {
-        var session = DeviceSession.Create(
-            userId,
-            deviceId,
-            deviceName,
-            deviceFingerprint: null,
-            userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0",
-            ipAddress: "127.0.0.1"
-        );
-
-        session.SetDeviceInfo(browser, "120.0.0.0", operatingSystem, "10", "Desktop");
-        session.SetLocation("Germany", "DE", "Berlin", 52.52, 13.405);
-
-        return session;
-    }
-
-    public static TrustedDevice CreateTrustedDevice(
+    public static Device CreateDevice(
         Guid userId,
         string deviceId = "test-device-id",
         string? name = null,
@@ -105,25 +83,23 @@ public static class TestDataFactory
         string? deviceType = "Desktop",
         string? ipAddress = "127.0.0.1",
         string? country = "Germany",
+        string? countryCode = "DE",
         string? city = "Berlin")
     {
-        return TrustedDevice.Create(
+        var device = Device.CreateTrusted(
             userId,
             deviceId,
-            deviceFingerprint: "test-fingerprint",
+            fingerprint: "test-fingerprint",
             name: name,
-            browser: browser,
-            browserVersion: browserVersion,
-            operatingSystem: operatingSystem,
-            osVersion: osVersion,
-            deviceType: deviceType,
-            ipAddress: ipAddress,
-            country: country,
-            city: city
+            userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0",
+            ipAddress: ipAddress
         );
+        device.SetDeviceInfo(browser, browserVersion, operatingSystem, osVersion, deviceType);
+        device.SetLocation(country, countryCode, city, 52.52, 13.405);
+        return device;
     }
 
-    public static TrustedDevice CreateTrustedDeviceWithId(
+    public static Device CreateDeviceWithId(
         Guid id,
         Guid userId,
         string deviceId = "test-device-id",
@@ -131,7 +107,7 @@ public static class TestDataFactory
         string? browser = "Chrome",
         string? operatingSystem = "Windows")
     {
-        var device = CreateTrustedDevice(userId, deviceId, name, browser, operatingSystem: operatingSystem);
+        var device = CreateDevice(userId, deviceId, name, browser, operatingSystem: operatingSystem);
         SetEntityId(device, id);
         return device;
     }

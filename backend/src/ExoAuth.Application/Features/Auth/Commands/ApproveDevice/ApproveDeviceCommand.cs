@@ -11,9 +11,12 @@ public sealed record ApproveDeviceCommand(
 ) : ICommand<ApproveDeviceResponse>;
 
 /// <summary>
-/// Response for device approval.
+/// Response for device approval - includes auth tokens for immediate login.
 /// </summary>
 public sealed record ApproveDeviceResponse(
     bool Success,
-    string Message
+    string? AccessToken = null,
+    string? RefreshToken = null,
+    Guid? DeviceId = null,
+    string? Message = null
 );
