@@ -51,15 +51,4 @@ export const sessionsApi = {
     )
     return extractData(response)
   },
-
-  /**
-   * Mark a session as trusted
-   */
-  trustSession: async (sessionId: string): Promise<DeviceSessionDto> => {
-    const response = await apiClient.patch<ApiResponse<DeviceSessionDto>>(
-      `/auth/sessions/${sessionId}`,
-      { isTrusted: true }
-    )
-    return extractData(response)
-  },
 }

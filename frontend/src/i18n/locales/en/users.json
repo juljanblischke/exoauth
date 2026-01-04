@@ -210,5 +210,15 @@
     "mfaEnabled": "MFA Enabled",
     "mfaDisabled": "MFA Disabled",
     "showAnonymized": "Show Anonymized"
+  },
+  "trustedDevices": {
+    "sectionTitle": "Trusted Devices",
+    "title": "Trusted Devices",
+    "noDevices": "No trusted devices",
+    "removeAll": "Remove All",
+    "removeAllConfirm": "Remove all trusted devices for this user?",
+    "remove": "Remove device",
+    "removeSuccess": "Device removed",
+    "removeAllSuccess": "All devices removed"
   }
 }

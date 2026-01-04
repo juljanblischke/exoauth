@@ -15,7 +15,6 @@ export interface DeviceSessionDto {
   countryCode: string | null
   city: string | null
   locationDisplay: string | null
-  isTrusted: boolean
   isCurrent: boolean
   lastActivityAt: string
   createdAt: string

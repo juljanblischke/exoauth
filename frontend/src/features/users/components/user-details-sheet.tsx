@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Mail, Calendar, Clock, Shield, Edit, Check, AlertTriangle, Monitor } from 'lucide-react'
+import { Mail, Calendar, Clock, Shield, Edit, Check, AlertTriangle, Monitor, Laptop } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts'
 import { useSystemUser } from '../hooks'
 import { MfaBadge, LockedBadge, AnonymizedBadge } from './user-status-badges'
 import { UserSessionsSection } from './user-sessions-section'
+import { UserDevicesSection } from './user-devices-section'
 import type { SystemUserDto, PermissionDto } from '../types'
 
 interface UserDetailsSheetProps {
@@ -60,6 +61,7 @@ export function UserDetailsSheet({
 
   // Permission checks for admin sections
   const canViewSessions = hasPermission('system:users:sessions:view')
+  const canViewDevices = hasPermission('system:users:devices:view')
 
   const permissionGroups = useMemo(() => {
     if (!userDetails?.permissions) return []
@@ -241,6 +243,20 @@ export function UserDetailsSheet({
                   <h3 className="text-sm font-medium">{t('users:admin.sessions.sectionTitle')}</h3>
                 </div>
                 <UserSessionsSection userId={user.id} />
+              </div>
+            </>
+          )}
+
+          {/* Admin Trusted Devices Section */}
+          {canViewDevices && user && (
+            <>
+              <Separator className="my-6" />
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Laptop className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-medium">{t('users:trustedDevices.sectionTitle')}</h3>
+                </div>
+                <UserDevicesSection userId={user.id} />
               </div>
             </>
           )}

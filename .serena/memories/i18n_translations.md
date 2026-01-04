@@ -76,6 +76,7 @@ session.*          - expiring, expired, extend
 mfa.*              - title, code, verify, useBackupCode
 password.*         - requirements, minLength, uppercase, lowercase, digit, special
 deviceApproval.*   - title, description, codeLabel, submitButton, denyLink, etc.
+trustedDevices.*   - title, description, current, removeAll, remove, rename, noDevices, etc.
 ```
 
 ### users.json
@@ -92,6 +93,7 @@ messages.*         - createSuccess, updateSuccess, deleteSuccess, inviteSuccess
 empty.*            - title, message, action
 invites.*          - title, search, empty, status.*, fields.*, actions.*
 admin.*            - actions, sessions, mfa, unlock, deactivate, activate, anonymize
+trustedDevices.*   - title, loading, noDevices, removeAll, remove, errors.*
 ```
 
 ### sessions.json
@@ -227,5 +229,5 @@ function Component() {
 ---
 
 ## Last Updated
-- **Date:** 2026-01-03
-- **Latest Additions:** Device Approval keys (Task 014)
+- **Date:** 2026-01-04
+- **Latest Additions:** Trusted Devices keys in auth.json and users.json (Task 016)

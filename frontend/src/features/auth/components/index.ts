@@ -21,3 +21,8 @@ export { ForgotPasswordModal } from './forgot-password-modal'
 // Device approval components
 export { DeviceApprovalCodeInput } from './device-approval-code-input'
 export { DeviceApprovalModal } from './device-approval-modal'
+
+// Trusted devices components
+export { TrustedDeviceCard } from './trusted-device-card'
+export { TrustedDevicesSection } from './trusted-devices-section'
+export { RenameDeviceModal } from './rename-device-modal'

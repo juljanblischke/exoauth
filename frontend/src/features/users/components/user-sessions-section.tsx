@@ -5,7 +5,6 @@ import {
   Smartphone,
   Tablet,
   Globe,
-  ShieldCheck,
   Loader2,
   LogOut,
   X,
@@ -79,12 +78,6 @@ function SessionItem({ session, onRevoke, onClick, isRevoking, revokingSessionId
           {session.isCurrent && (
             <Badge variant="default" className="text-xs">
               {t('sessions:current')}
-            </Badge>
-          )}
-          {session.isTrusted && (
-            <Badge variant="secondary" className="text-xs">
-              <ShieldCheck className="h-3 w-3 mr-1" />
-              {t('sessions:trusted')}
             </Badge>
           )}
         </div>

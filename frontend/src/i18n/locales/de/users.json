@@ -210,5 +210,15 @@
     "mfaEnabled": "MFA aktiviert",
     "mfaDisabled": "MFA deaktiviert",
     "showAnonymized": "Anonymisierte anzeigen"
+  },
+  "trustedDevices": {
+    "sectionTitle": "Vertrauenswürdige Geräte",
+    "title": "Vertrauenswürdige Geräte",
+    "noDevices": "Keine vertrauenswürdigen Geräte",
+    "removeAll": "Alle entfernen",
+    "removeAllConfirm": "Alle vertrauenswürdigen Geräte für diesen Benutzer entfernen?",
+    "remove": "Gerät entfernen",
+    "removeSuccess": "Gerät entfernt",
+    "removeAllSuccess": "Alle Geräte entfernt"
   }
 }

@@ -135,3 +135,11 @@ export type {
 } from './device-approval'
 
 export { isDeviceApprovalRequired } from './device-approval'
+
+// Re-export Trusted Device types
+export type {
+  TrustedDeviceDto,
+  RenameDeviceRequest,
+  RemoveDeviceResponse,
+  RemoveAllDevicesResponse,
+} from './trusted-device'

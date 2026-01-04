@@ -20,3 +20,8 @@ export { useRevokeUserSessions } from './use-revoke-user-sessions'
 export { useDeactivateUser } from './use-deactivate-user'
 export { useActivateUser } from './use-activate-user'
 export { useAnonymizeUser } from './use-anonymize-user'
+
+// Trusted devices admin hooks
+export { useUserTrustedDevices, USER_TRUSTED_DEVICES_KEY } from './use-user-trusted-devices'
+export { useRemoveUserTrustedDevice } from './use-remove-user-trusted-device'
+export { useRemoveAllUserTrustedDevices } from './use-remove-all-user-trusted-devices'

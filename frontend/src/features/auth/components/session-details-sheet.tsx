@@ -5,8 +5,6 @@ import {
   Smartphone,
   Tablet,
   Globe,
-  Shield,
-  ShieldCheck,
   Clock,
   Cpu,
   Copy,
@@ -45,10 +43,8 @@ interface SessionDetailsSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onRevoke: (sessionId: string) => void
-  onTrust?: (sessionId: string) => void
   onRename?: (sessionId: string, name: string) => void
   isRevoking?: boolean
-  isTrusting?: boolean
   isRenaming?: boolean
 }
 
@@ -113,10 +109,8 @@ export function SessionDetailsSheet({
   open,
   onOpenChange,
   onRevoke,
-  onTrust,
   onRename,
   isRevoking,
-  isTrusting,
   isRenaming,
 }: SessionDetailsSheetProps) {
   const { t } = useTranslation()
@@ -126,7 +120,7 @@ export function SessionDetailsSheet({
 
   if (!session) return null
 
-  const isLoading = isRevoking || isTrusting || isRenaming
+  const isLoading = isRevoking || isRenaming
 
   const handleRename = () => {
     if (newName.trim() && onRename) {
@@ -167,7 +161,7 @@ export function SessionDetailsSheet({
     : null
 
   // Check if we have any actions to show
-  const hasActions = onRename || (onTrust && !session.isCurrent && !session.isTrusted) || !session.isCurrent
+  const hasActions = onRename || !session.isCurrent
 
   return (
     <>
@@ -200,12 +194,6 @@ export function SessionDetailsSheet({
                   {session.isCurrent && (
                     <Badge variant="default">
                       {t('sessions:current')}
-                    </Badge>
-                  )}
-                  {session.isTrusted && (
-                    <Badge variant="secondary">
-                      <ShieldCheck className="h-3 w-3 mr-1" />
-                      {t('sessions:trusted')}
                     </Badge>
                   )}
                 </div>
@@ -294,21 +282,6 @@ export function SessionDetailsSheet({
                 >
                   <Pencil className="h-4 w-4 mr-2" />
                   {t('sessions:rename.button')}
-                </Button>
-              )}
-
-              {onTrust && !session.isCurrent && !session.isTrusted && (
-                <Button
-                  variant="outline"
-                  onClick={() => onTrust(session.id)}
-                  disabled={isLoading}
-                >
-                  {isTrusting ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Shield className="h-4 w-4 mr-2" />
-                  )}
-                  {t('sessions:trust.button')}
                 </Button>
               )}
 

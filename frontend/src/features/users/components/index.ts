@@ -8,6 +8,7 @@ export { UserStatusBadges, MfaBadge, LockedBadge, AnonymizedBadge } from './user
 
 // Admin components
 export { UserSessionsSection } from './user-sessions-section'
+export { UserDevicesSection } from './user-devices-section'
 
 // Invitation management
 export { InvitationsTable } from './invitations-table'

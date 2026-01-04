@@ -114,7 +114,8 @@ frontend/
 │   │   │   │   ├── password-reset-api.ts
 │   │   │   │   ├── sessions-api.ts
 │   │   │   │   ├── preferences-api.ts
-│   │   │   │   └── device-approval-api.ts      (Task 014)
+│   │   │   │   ├── device-approval-api.ts      (Task 014)
+│   │   │   │   └── trusted-devices-api.ts      (Task 016)
 │   │   │   ├── hooks/
 │   │   │   │   ├── use-login.ts
 │   │   │   │   ├── use-logout.ts
@@ -133,8 +134,11 @@ frontend/
 │   │   │   │   ├── use-revoke-session.ts
 │   │   │   │   ├── use-revoke-all-sessions.ts
 │   │   │   │   ├── use-update-session.ts
-│   │   │   │   ├── use-trust-session.ts
 │   │   │   │   ├── use-update-preferences.ts
+│   │   │   │   ├── use-trusted-devices.ts         (Task 016)
+│   │   │   │   ├── use-remove-trusted-device.ts   (Task 016)
+│   │   │   │   ├── use-rename-trusted-device.ts   (Task 016)
+│   │   │   │   ├── use-remove-all-other-devices.ts (Task 016)
 │   │   │   │   ├── use-approve-device-by-code.ts  (Task 014)
 │   │   │   │   ├── use-approve-device-by-link.ts  (Task 014)
 │   │   │   │   ├── use-deny-device.ts             (Task 014)
@@ -155,20 +159,25 @@ frontend/
 │   │   │   │   ├── session-details-sheet.tsx
 │   │   │   │   ├── device-approval-modal.tsx      (Task 014)
 │   │   │   │   ├── device-approval-code-input.tsx (Task 014)
+│   │   │   │   ├── trusted-device-card.tsx        (Task 016)
+│   │   │   │   ├── rename-device-modal.tsx        (Task 016)
+│   │   │   │   ├── trusted-devices-section.tsx    (Task 016)
 │   │   │   │   └── index.ts
 │   │   │   ├── types/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── mfa.ts
 │   │   │   │   ├── password-reset.ts
 │   │   │   │   ├── sessions.ts
-│   │   │   │   └── device-approval.ts             (Task 014)
+│   │   │   │   ├── device-approval.ts             (Task 014)
+│   │   │   │   └── trusted-device.ts              (Task 016)
 │   │   │   └── index.ts
 │   │   │
 │   │   ├── users/
 │   │   │   ├── api/
 │   │   │   │   ├── users-api.ts
 │   │   │   │   ├── invites-api.ts
-│   │   │   │   └── user-admin-api.ts
+│   │   │   │   ├── user-admin-api.ts
+│   │   │   │   └── user-devices-api.ts         (Task 016)
 │   │   │   ├── hooks/
 │   │   │   │   ├── use-system-users.ts
 │   │   │   │   ├── use-system-user.ts
@@ -188,6 +197,9 @@ frontend/
 │   │   │   │   ├── use-activate-user.ts
 │   │   │   │   ├── use-anonymize-user.ts
 │   │   │   │   ├── use-update-invite.ts
+│   │   │   │   ├── use-user-trusted-devices.ts      (Task 016)
+│   │   │   │   ├── use-remove-user-trusted-device.ts (Task 016)
+│   │   │   │   ├── use-remove-all-user-trusted-devices.ts (Task 016)
 │   │   │   │   └── index.ts
 │   │   │   ├── components/
 │   │   │   │   ├── users-table.tsx
@@ -200,6 +212,7 @@ frontend/
 │   │   │   │   ├── invitations-table-columns.tsx
 │   │   │   │   ├── invite-details-sheet.tsx
 │   │   │   │   ├── user-sessions-section.tsx
+│   │   │   │   ├── user-devices-section.tsx       (Task 016)
 │   │   │   │   ├── user-status-badges.tsx
 │   │   │   │   ├── edit-invite-modal.tsx
 │   │   │   │   └── index.ts
@@ -585,5 +598,5 @@ import type { Feature } from '../types'
 ---
 
 ## Last Updated
-- **Date:** 2026-01-03
-- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014
+- **Date:** 2026-01-04
+- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016

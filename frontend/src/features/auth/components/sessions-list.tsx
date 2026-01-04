@@ -20,7 +20,6 @@ import {
   useSessions,
   useRevokeSession,
   useRevokeAllSessions,
-  useTrustSession,
   useUpdateSession,
 } from '../hooks'
 import type { DeviceSessionDto } from '../types'
@@ -33,7 +32,6 @@ export function SessionsList() {
   const { data: sessions, isLoading, error } = useSessions()
   const revokeSession = useRevokeSession()
   const revokeAllSessions = useRevokeAllSessions()
-  const trustSession = useTrustSession()
   const updateSession = useUpdateSession()
 
   // Derive selectedSession from sessions data at render time
@@ -88,11 +86,9 @@ export function SessionsList() {
             key={session.id}
             session={session}
             onRevoke={(id) => revokeSession.mutate(id)}
-            onTrust={(id) => trustSession.mutate(id)}
             onRename={(id, name) => updateSession.mutate({ sessionId: id, request: { name } })}
             onClick={handleSessionClick}
             isRevoking={revokeSession.isPending && revokeSession.variables === session.id}
-            isTrusting={trustSession.isPending && trustSession.variables === session.id}
             isRenaming={updateSession.isPending && updateSession.variables?.sessionId === session.id}
           />
         ))}
@@ -139,10 +135,8 @@ export function SessionsList() {
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         onRevoke={(id) => revokeSession.mutate(id)}
-        onTrust={(id) => trustSession.mutate(id)}
         onRename={(id, name) => updateSession.mutate({ sessionId: id, request: { name } })}
         isRevoking={revokeSession.isPending && revokeSession.variables === selectedSession?.id}
-        isTrusting={trustSession.isPending && trustSession.variables === selectedSession?.id}
         isRenaming={updateSession.isPending && updateSession.variables?.sessionId === selectedSession?.id}
       />
     </div>

@@ -5,8 +5,6 @@ import {
   Smartphone,
   Tablet,
   Globe,
-  Shield,
-  ShieldCheck,
   MoreVertical,
   LogOut,
   Pencil,
@@ -37,11 +35,9 @@ import type { DeviceSessionDto } from '../types'
 interface SessionCardProps {
   session: DeviceSessionDto
   onRevoke: (sessionId: string) => void
-  onTrust: (sessionId: string) => void
   onRename: (sessionId: string, name: string) => void
   onClick?: (session: DeviceSessionDto) => void
   isRevoking?: boolean
-  isTrusting?: boolean
   isRenaming?: boolean
 }
 
@@ -59,18 +55,16 @@ function DeviceIcon({ deviceType, className }: { deviceType: string | null; clas
 export function SessionCard({
   session,
   onRevoke,
-  onTrust,
   onRename,
   onClick,
   isRevoking,
-  isTrusting,
   isRenaming,
 }: SessionCardProps) {
   const { t } = useTranslation()
   const [showRenameDialog, setShowRenameDialog] = useState(false)
   const [newName, setNewName] = useState(session.deviceName || '')
 
-  const isLoading = isRevoking || isTrusting || isRenaming
+  const isLoading = isRevoking || isRenaming
 
   const handleRename = () => {
     if (newName.trim()) {
@@ -106,18 +100,6 @@ export function SessionCard({
             {session.isCurrent && (
               <Badge variant="default" className="text-xs">
                 {t('sessions:current')}
-              </Badge>
-            )}
-            {session.isTrusted && (
-              <Badge variant="secondary" className="text-xs">
-                <ShieldCheck className="h-3 w-3 mr-1" />
-                {t('sessions:trusted')}
-              </Badge>
-            )}
-            {!session.isTrusted && !session.isCurrent && (
-              <Badge variant="outline" className="text-xs border-amber-500 text-amber-600 dark:text-amber-400">
-                <Shield className="h-3 w-3 mr-1" />
-                {t('sessions:pendingApproval')}
               </Badge>
             )}
           </div>
@@ -156,12 +138,6 @@ export function SessionCard({
               <Pencil className="h-4 w-4 mr-2" />
               {t('sessions:rename.button')}
             </DropdownMenuItem>
-            {!session.isCurrent && !session.isTrusted && (
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onTrust(session.id) }}>
-                <Shield className="h-4 w-4 mr-2" />
-                {t('sessions:trust.button')}
-              </DropdownMenuItem>
-            )}
             {!session.isCurrent && (
               <DropdownMenuItem
                 onClick={(e) => { e.stopPropagation(); onRevoke(session.id) }}

@@ -18,7 +18,12 @@ export { useSessions, SESSIONS_QUERY_KEY } from './use-sessions'
 export { useRevokeSession } from './use-revoke-session'
 export { useRevokeAllSessions } from './use-revoke-all-sessions'
 export { useUpdateSession } from './use-update-session'
-export { useTrustSession } from './use-trust-session'
+
+// Trusted devices hooks
+export { useTrustedDevices, TRUSTED_DEVICES_QUERY_KEY } from './use-trusted-devices'
+export { useRemoveTrustedDevice } from './use-remove-trusted-device'
+export { useRenameTrustedDevice } from './use-rename-trusted-device'
+export { useRemoveAllOtherDevices } from './use-remove-all-other-devices'
 
 // Password reset hooks
 export { useForgotPassword } from './use-forgot-password'
