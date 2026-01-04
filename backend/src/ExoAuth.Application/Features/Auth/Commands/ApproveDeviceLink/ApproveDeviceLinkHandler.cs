@@ -1,5 +1,6 @@
 using ExoAuth.Application.Common.Exceptions;
 using ExoAuth.Application.Common.Interfaces;
+using ExoAuth.Application.Common.Models;
 using Mediator;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,7 @@ public sealed class ApproveDeviceLinkHandler : ICommandHandler<ApproveDeviceLink
 {
     private readonly IDeviceApprovalService _deviceApprovalService;
     private readonly IDeviceSessionService _deviceSessionService;
+    private readonly ITrustedDeviceService _trustedDeviceService;
     private readonly IAuditService _auditService;
     private readonly ILogger<ApproveDeviceLinkHandler> _logger;
     private readonly string _baseUrl;
@@ -17,12 +19,14 @@ public sealed class ApproveDeviceLinkHandler : ICommandHandler<ApproveDeviceLink
     public ApproveDeviceLinkHandler(
         IDeviceApprovalService deviceApprovalService,
         IDeviceSessionService deviceSessionService,
+        ITrustedDeviceService trustedDeviceService,
         IAuditService auditService,
         IConfiguration configuration,
         ILogger<ApproveDeviceLinkHandler> logger)
     {
         _deviceApprovalService = deviceApprovalService;
         _deviceSessionService = deviceSessionService;
+        _trustedDeviceService = trustedDeviceService;
         _auditService = auditService;
         _logger = logger;
         _baseUrl = configuration.GetValue<string>("SystemInvite:BaseUrl") ?? "http://localhost:5173";
@@ -42,8 +46,38 @@ public sealed class ApproveDeviceLinkHandler : ICommandHandler<ApproveDeviceLink
         // Approve the device
         await _deviceApprovalService.ApproveAsync(request, "email_link", ct);
 
-        // Trust the device session
-        await _deviceSessionService.SetTrustStatusAsync(request.DeviceSessionId, true, ct);
+        // Get the session to create a trusted device entry
+        var session = await _deviceSessionService.GetSessionByIdAsync(request.DeviceSessionId, ct);
+        if (session is not null)
+        {
+            // Get device info and location from the session
+            var deviceInfo = new DeviceInfo(
+                session.Browser,
+                session.BrowserVersion,
+                session.OperatingSystem,
+                session.OsVersion,
+                session.DeviceType);
+
+            var geoLocation = new GeoLocation(
+                session.IpAddress,
+                session.Country,
+                session.CountryCode,
+                session.City,
+                session.Latitude,
+                session.Longitude);
+
+            // Add to trusted devices
+            var trustedDevice = await _trustedDeviceService.AddAsync(
+                request.UserId,
+                session.DeviceId,
+                deviceInfo,
+                geoLocation,
+                session.DeviceFingerprint,
+                ct);
+
+            // Link session to trusted device
+            await _deviceSessionService.LinkToTrustedDeviceAsync(request.DeviceSessionId, trustedDevice.Id, ct);
+        }
 
         // Audit log
         await _auditService.LogAsync(

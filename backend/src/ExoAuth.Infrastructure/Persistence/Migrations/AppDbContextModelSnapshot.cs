@@ -190,12 +190,6 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_revoked");
 
-                    b.Property<bool>("IsTrusted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_trusted");
-
                     b.Property<DateTime>("LastActivityAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_activity_at");
@@ -222,6 +216,10 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("revoked_at");
 
+                    b.Property<Guid?>("TrustedDeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("trusted_device_id");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -246,6 +244,9 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("LastActivityAt")
                         .HasDatabaseName("i_x_device_sessions_last_activity_at");
+
+                    b.HasIndex("TrustedDeviceId")
+                        .HasDatabaseName("i_x_device_sessions_trusted_device_id");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("i_x_device_sessions_user_id");
@@ -920,6 +921,110 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                     b.ToTable("system_user_permissions", (string)null);
                 });
 
+            modelBuilder.Entity("ExoAuth.Domain.Entities.TrustedDevice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Browser")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("browser");
+
+                    b.Property<string>("BrowserVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("browser_version");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DeviceFingerprint")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("device_fingerprint");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("device_id");
+
+                    b.Property<string>("DeviceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("device_type");
+
+                    b.Property<string>("LastCity")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_city");
+
+                    b.Property<string>("LastCountry")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_country");
+
+                    b.Property<string>("LastIpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("last_ip_address");
+
+                    b.Property<DateTime>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("OperatingSystem")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("operating_system");
+
+                    b.Property<string>("OsVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("os_version");
+
+                    b.Property<DateTime>("TrustedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("trusted_at");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_trusted_devices");
+
+                    b.HasIndex("DeviceId")
+                        .HasDatabaseName("i_x_trusted_devices_device_id");
+
+                    b.HasIndex("LastUsedAt")
+                        .HasDatabaseName("i_x_trusted_devices_last_used_at");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("i_x_trusted_devices_user_id");
+
+                    b.HasIndex("UserId", "DeviceFingerprint")
+                        .HasDatabaseName("i_x_trusted_devices_user_id_device_fingerprint");
+
+                    b.HasIndex("UserId", "DeviceId")
+                        .HasDatabaseName("i_x_trusted_devices_user_id_device_id");
+
+                    b.ToTable("trusted_devices", (string)null);
+                });
+
             modelBuilder.Entity("ExoAuth.Domain.Entities.DeviceApprovalRequest", b =>
                 {
                     b.HasOne("ExoAuth.Domain.Entities.DeviceSession", "DeviceSession")
@@ -943,12 +1048,20 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ExoAuth.Domain.Entities.DeviceSession", b =>
                 {
+                    b.HasOne("ExoAuth.Domain.Entities.TrustedDevice", "TrustedDevice")
+                        .WithMany()
+                        .HasForeignKey("TrustedDeviceId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("f_k_device_sessions_trusted_devices_trusted_device_id");
+
                     b.HasOne("ExoAuth.Domain.Entities.SystemUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("f_k_device_sessions_system_users_user_id");
+
+                    b.Navigation("TrustedDevice");
 
                     b.Navigation("User");
                 });
@@ -1055,6 +1168,18 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                     b.Navigation("SystemPermission");
 
                     b.Navigation("SystemUser");
+                });
+
+            modelBuilder.Entity("ExoAuth.Domain.Entities.TrustedDevice", b =>
+                {
+                    b.HasOne("ExoAuth.Domain.Entities.SystemUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("f_k_trusted_devices_system_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ExoAuth.Domain.Entities.SystemPermission", b =>

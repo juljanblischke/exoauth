@@ -4,6 +4,7 @@ namespace ExoAuth.Application.Common.Models;
 /// Represents geographic location information from GeoIP lookup.
 /// </summary>
 public sealed record GeoLocation(
+    string? IpAddress,
     string? Country,
     string? CountryCode,
     string? City,
@@ -31,5 +32,5 @@ public sealed record GeoLocation(
     /// <summary>
     /// Returns an empty location (all values null).
     /// </summary>
-    public static GeoLocation Empty => new(null, null, null, null, null);
+    public static GeoLocation Empty => new(null, null, null, null, null, null);
 }

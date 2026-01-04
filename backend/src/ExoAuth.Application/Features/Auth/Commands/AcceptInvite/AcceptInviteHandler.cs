@@ -17,6 +17,10 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
     private readonly IAuditService _auditService;
     private readonly ISystemInviteService _inviteService;
     private readonly IMfaService _mfaService;
+    private readonly ILoginPatternService _loginPatternService;
+    private readonly IGeoIpService _geoIpService;
+    private readonly IDeviceDetectionService _deviceDetectionService;
+    private readonly ITrustedDeviceService _trustedDeviceService;
 
     public AcceptInviteHandler(
         IAppDbContext context,
@@ -26,7 +30,11 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
         IDeviceSessionService deviceSessionService,
         IAuditService auditService,
         ISystemInviteService inviteService,
-        IMfaService mfaService)
+        IMfaService mfaService,
+        ILoginPatternService loginPatternService,
+        IGeoIpService geoIpService,
+        IDeviceDetectionService deviceDetectionService,
+        ITrustedDeviceService trustedDeviceService)
     {
         _context = context;
         _userRepository = userRepository;
@@ -36,6 +44,10 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
         _auditService = auditService;
         _inviteService = inviteService;
         _mfaService = mfaService;
+        _loginPatternService = loginPatternService;
+        _geoIpService = geoIpService;
+        _deviceDetectionService = deviceDetectionService;
+        _trustedDeviceService = trustedDeviceService;
     }
 
     public async ValueTask<AuthResponse> Handle(AcceptInviteCommand command, CancellationToken ct)
@@ -105,6 +117,11 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
         // Get permission names
         var permissions = await _userRepository.GetUserPermissionNamesAsync(user.Id, ct);
 
+        // Get device info and geolocation for trusted device creation
+        var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();
+        var geoLocation = _geoIpService.GetLocation(command.IpAddress);
+        var deviceInfo = _deviceDetectionService.Parse(command.UserAgent);
+
         // Check if user has system permissions - they MUST set up MFA first
         var hasSystemPermissions = permissions.Any(p => p.StartsWith("system:"));
         if (hasSystemPermissions)
@@ -125,8 +142,17 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
             return AuthResponse.RequiresMfaSetup(setupToken);
         }
 
+        // Task 015: Auto-trust first device for new user registration
+        var trustedDevice = await _trustedDeviceService.AddAsync(
+            user.Id,
+            deviceId,
+            deviceInfo,
+            geoLocation,
+            command.DeviceFingerprint,
+            ct
+        );
+
         // Create device session for the accept-invite device
-        var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();
         var (session, _, _) = await _deviceSessionService.CreateOrUpdateSessionAsync(
             user.Id,
             deviceId,
@@ -135,6 +161,9 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
             command.DeviceFingerprint,
             ct
         );
+
+        // Link session to trusted device (Task 015)
+        await _deviceSessionService.LinkToTrustedDeviceAsync(session.Id, trustedDevice.Id, ct);
 
         // Generate tokens with session ID
         var accessToken = _tokenService.GenerateAccessToken(
@@ -163,6 +192,15 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
         user.RecordLogin();
         await _userRepository.UpdateAsync(user, ct);
 
+        // Record login pattern for future risk scoring
+        await _loginPatternService.RecordLoginAsync(
+            user.Id,
+            geoLocation,
+            deviceInfo.DeviceType,
+            command.IpAddress,
+            ct
+        );
+
         // Audit log
         await _auditService.LogWithContextAsync(
             AuditActions.UserInviteAccepted,
@@ -170,7 +208,7 @@ public sealed class AcceptInviteHandler : ICommandHandler<AcceptInviteCommand, A
             null, // targetUserId
             "SystemUser",
             user.Id,
-            new { InviteId = invite.Id, InvitedBy = invite.InvitedBy, SessionId = session.Id },
+            new { InviteId = invite.Id, InvitedBy = invite.InvitedBy, SessionId = session.Id, TrustedDeviceId = trustedDevice.Id },
             ct
         );
 

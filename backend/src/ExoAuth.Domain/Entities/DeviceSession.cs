@@ -22,13 +22,14 @@ public sealed class DeviceSession : BaseEntity
     public string? City { get; private set; }
     public double? Latitude { get; private set; }
     public double? Longitude { get; private set; }
-    public bool IsTrusted { get; private set; }
+    public Guid? TrustedDeviceId { get; private set; }
     public DateTime LastActivityAt { get; private set; }
     public bool IsRevoked { get; private set; }
     public DateTime? RevokedAt { get; private set; }
 
-    // Navigation property
+    // Navigation properties
     public SystemUser? User { get; set; }
+    public TrustedDevice? TrustedDevice { get; set; }
 
     private DeviceSession() { } // EF Core
 
@@ -51,7 +52,6 @@ public sealed class DeviceSession : BaseEntity
             DeviceFingerprint = deviceFingerprint,
             UserAgent = userAgent,
             IpAddress = ipAddress,
-            IsTrusted = false,
             IsRevoked = false,
             LastActivityAt = DateTime.UtcNow
         };
@@ -115,22 +115,27 @@ public sealed class DeviceSession : BaseEntity
     }
 
     /// <summary>
-    /// Marks this device as trusted.
+    /// Links this session to a trusted device.
     /// </summary>
-    public void Trust()
+    public void LinkToTrustedDevice(Guid trustedDeviceId)
     {
-        IsTrusted = true;
+        TrustedDeviceId = trustedDeviceId;
         SetUpdated();
     }
 
     /// <summary>
-    /// Removes trust from this device.
+    /// Unlinks this session from a trusted device.
     /// </summary>
-    public void Untrust()
+    public void UnlinkFromTrustedDevice()
     {
-        IsTrusted = false;
+        TrustedDeviceId = null;
         SetUpdated();
     }
+
+    /// <summary>
+    /// Checks if this session is linked to a trusted device.
+    /// </summary>
+    public bool IsTrusted => TrustedDeviceId.HasValue;
 
     /// <summary>
     /// Sets a custom name for this device.

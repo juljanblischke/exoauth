@@ -1,4 +1,5 @@
 using ExoAuth.Application.Common.Models;
+using ExoAuth.Domain.Entities;
 
 namespace ExoAuth.Application.Common.Interfaces;
 
@@ -29,4 +30,22 @@ public interface IRiskScoringService
     /// <param name="riskScore">The calculated risk score.</param>
     /// <returns>True if device approval is required, false otherwise.</returns>
     bool RequiresApproval(RiskScore riskScore);
+
+    /// <summary>
+    /// Checks if a login attempt from a trusted device appears to be a spoofing attempt.
+    /// This is used to detect impossible travel, unusual patterns, or other suspicious behavior
+    /// on devices that are already trusted.
+    /// </summary>
+    /// <param name="userId">The user attempting to login.</param>
+    /// <param name="trustedDevice">The trusted device being used.</param>
+    /// <param name="currentLocation">Current geographic location of the login attempt.</param>
+    /// <param name="currentDeviceInfo">Current device information.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Result indicating if the attempt appears suspicious.</returns>
+    Task<SpoofingCheckResult> CheckForSpoofingAsync(
+        Guid userId,
+        TrustedDevice trustedDevice,
+        GeoLocation currentLocation,
+        DeviceInfo currentDeviceInfo,
+        CancellationToken cancellationToken = default);
 }

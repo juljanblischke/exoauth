@@ -18,9 +18,12 @@ using ExoAuth.Application.Features.Auth.Commands.ApproveDevice;
 using ExoAuth.Application.Features.Auth.Commands.ApproveDeviceLink;
 using ExoAuth.Application.Features.Auth.Commands.DenyDevice;
 using ExoAuth.Application.Features.Auth.Commands.UpdateSession;
+using ExoAuth.Application.Features.Auth.Commands.RemoveTrustedDevice;
+using ExoAuth.Application.Features.Auth.Commands.RenameTrustedDevice;
 using ExoAuth.Application.Features.Auth.Models;
 using ExoAuth.Application.Features.Auth.Queries.GetCurrentUser;
 using ExoAuth.Application.Features.Auth.Queries.GetSessions;
+using ExoAuth.Application.Features.Auth.Queries.GetTrustedDevices;
 using ExoAuth.Application.Features.SystemInvites.Models;
 using ExoAuth.Application.Features.SystemInvites.Queries.ValidateInvite;
 using Microsoft.AspNetCore.Authorization;
@@ -336,7 +339,60 @@ public sealed class AuthController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateSession(Guid sessionId, UpdateSessionRequest request, CancellationToken ct)
     {
-        var command = new UpdateSessionCommand(sessionId, request.Name, request.IsTrusted);
+        var command = new UpdateSessionCommand(sessionId, request.Name);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    #endregion
+
+    #region Trusted Devices
+
+    /// <summary>
+    /// Get all trusted devices for the current user.
+    /// </summary>
+    [HttpGet("devices")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(typeof(List<TrustedDeviceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetTrustedDevices(CancellationToken ct)
+    {
+        var query = new GetTrustedDevicesQuery();
+        var result = await Mediator.Send(query, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Remove a trusted device.
+    /// Users cannot remove the device they are currently using.
+    /// </summary>
+    [HttpDelete("devices/{deviceId:guid}")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveTrustedDevice(Guid deviceId, CancellationToken ct)
+    {
+        var command = new RemoveTrustedDeviceCommand(deviceId);
+        await Mediator.Send(command, ct);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Rename a trusted device.
+    /// </summary>
+    [HttpPut("devices/{deviceId:guid}/name")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(typeof(TrustedDeviceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RenameTrustedDevice(Guid deviceId, RenameTrustedDeviceRequest request, CancellationToken ct)
+    {
+        var command = new RenameTrustedDeviceCommand(deviceId, request.Name);
         var result = await Mediator.Send(command, ct);
         return ApiOk(result);
     }
@@ -613,8 +669,7 @@ public sealed record ResetPasswordRequest(
 );
 
 public sealed record UpdateSessionRequest(
-    string? Name = null,
-    bool? IsTrusted = null
+    string? Name = null
 );
 
 public sealed record MfaSetupRequest(
@@ -656,4 +711,8 @@ public sealed record ApproveDeviceRequest(
 
 public sealed record DenyDeviceRequest(
     string ApprovalToken
+);
+
+public sealed record RenameTrustedDeviceRequest(
+    string Name
 );

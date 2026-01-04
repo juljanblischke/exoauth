@@ -31,6 +31,7 @@ public sealed class LoginHandlerTests
     private readonly Mock<IDeviceApprovalService> _mockDeviceApprovalService;
     private readonly Mock<IGeoIpService> _mockGeoIpService;
     private readonly Mock<IDeviceDetectionService> _mockDeviceDetectionService;
+    private readonly Mock<ITrustedDeviceService> _mockTrustedDeviceService;
     private readonly LoginHandler _handler;
 
     public LoginHandlerTests()
@@ -53,6 +54,7 @@ public sealed class LoginHandlerTests
         _mockDeviceApprovalService = new Mock<IDeviceApprovalService>();
         _mockGeoIpService = new Mock<IGeoIpService>();
         _mockDeviceDetectionService = new Mock<IDeviceDetectionService>();
+        _mockTrustedDeviceService = new Mock<ITrustedDeviceService>();
 
         // Default token service setup
         _mockTokenService.Setup(x => x.RefreshTokenExpiration).Returns(TimeSpan.FromDays(30));
@@ -90,6 +92,31 @@ public sealed class LoginHandlerTests
             .ReturnsAsync(RiskScore.Low());
         _mockRiskScoringService.Setup(x => x.RequiresApproval(It.IsAny<RiskScore>()))
             .Returns(false);
+        _mockRiskScoringService.Setup(x => x.CheckForSpoofingAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<TrustedDevice>(),
+                It.IsAny<GeoLocation>(),
+                It.IsAny<DeviceInfo>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SpoofingCheckResult.NotSuspicious());
+
+        // Default trusted device setup - return a trusted device by default (allows login without approval)
+        var mockTrustedDevice = TrustedDevice.Create(
+            userId: Guid.NewGuid(),
+            deviceId: "test-device-id",
+            deviceFingerprint: null,
+            name: "Test Device",
+            browser: "Chrome",
+            browserVersion: "120",
+            operatingSystem: "Windows",
+            osVersion: "10",
+            deviceType: "Desktop");
+        _mockTrustedDeviceService.Setup(x => x.FindAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mockTrustedDevice);
 
         _handler = new LoginHandler(
             _mockContext.Object,
@@ -109,7 +136,8 @@ public sealed class LoginHandlerTests
             _mockLoginPatternService.Object,
             _mockDeviceApprovalService.Object,
             _mockGeoIpService.Object,
-            _mockDeviceDetectionService.Object);
+            _mockDeviceDetectionService.Object,
+            _mockTrustedDeviceService.Object);
     }
 
     [Fact]

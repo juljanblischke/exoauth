@@ -74,4 +74,6 @@ public static class RiskFactors
     public const string TorExitNode = "tor_exit_node";
     public const string DifferentDeviceType = "different_device_type";
     public const string TrustedDevice = "trusted_device";
+    public const string DifferentBrowser = "different_browser";
+    public const string DifferentOS = "different_os";
 }

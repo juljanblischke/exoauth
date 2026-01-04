@@ -129,7 +129,8 @@ Examples:
 3. [ ] **Application**: Commands/Queries + Handlers + Validators
 4. [ ] **API**: Controller + Endpoints
 5. [ ] **Tests**: Unit Tests schreiben
-6. [ ] **Memory updaten**: backend_reference.md aktualisieren
+6. [ ] **Task File updaten**: Diese Taskfile aktualisieren
+7. [ ] **Memory updaten**: backend_reference.md aktualisieren
 
 ## 10. Tests
 

@@ -72,6 +72,7 @@ public sealed class GeoIpService : IGeoIpService, IDisposable
             if (_reader.TryCity(ip, out var response) && response is not null)
             {
                 return new GeoLocation(
+                    IpAddress: ipAddress,
                     Country: response.Country?.Name,
                     CountryCode: response.Country?.IsoCode,
                     City: response.City?.Name,

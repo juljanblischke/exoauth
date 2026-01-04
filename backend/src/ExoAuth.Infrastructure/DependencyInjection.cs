@@ -73,6 +73,7 @@ public static class DependencyInjection
         services.AddScoped<ILoginPatternService, LoginPatternService>();
         services.AddScoped<IRiskScoringService, RiskScoringService>();
         services.AddScoped<IDeviceApprovalService, DeviceApprovalService>();
+        services.AddScoped<ITrustedDeviceService, TrustedDeviceService>();
 
         // Invite Cleanup
         services.AddScoped<IInviteCleanupService, InviteCleanupService>();

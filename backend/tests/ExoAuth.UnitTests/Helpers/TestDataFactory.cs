@@ -1,3 +1,4 @@
+using System.Reflection;
 using ExoAuth.Domain.Entities;
 using ExoAuth.Domain.Enums;
 
@@ -91,5 +92,55 @@ public static class TestDataFactory
         session.SetLocation("Germany", "DE", "Berlin", 52.52, 13.405);
 
         return session;
+    }
+
+    public static TrustedDevice CreateTrustedDevice(
+        Guid userId,
+        string deviceId = "test-device-id",
+        string? name = null,
+        string? browser = "Chrome",
+        string? browserVersion = "120.0.0.0",
+        string? operatingSystem = "Windows",
+        string? osVersion = "10",
+        string? deviceType = "Desktop",
+        string? ipAddress = "127.0.0.1",
+        string? country = "Germany",
+        string? city = "Berlin")
+    {
+        return TrustedDevice.Create(
+            userId,
+            deviceId,
+            deviceFingerprint: "test-fingerprint",
+            name: name,
+            browser: browser,
+            browserVersion: browserVersion,
+            operatingSystem: operatingSystem,
+            osVersion: osVersion,
+            deviceType: deviceType,
+            ipAddress: ipAddress,
+            country: country,
+            city: city
+        );
+    }
+
+    public static TrustedDevice CreateTrustedDeviceWithId(
+        Guid id,
+        Guid userId,
+        string deviceId = "test-device-id",
+        string? name = null,
+        string? browser = "Chrome",
+        string? operatingSystem = "Windows")
+    {
+        var device = CreateTrustedDevice(userId, deviceId, name, browser, operatingSystem: operatingSystem);
+        SetEntityId(device, id);
+        return device;
+    }
+
+    public static void SetEntityId<T>(T entity, Guid id) where T : class
+    {
+        var property = typeof(T).GetProperty("Id");
+        var backingField = typeof(T).BaseType?.GetField("<Id>k__BackingField",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        backingField?.SetValue(entity, id);
     }
 }

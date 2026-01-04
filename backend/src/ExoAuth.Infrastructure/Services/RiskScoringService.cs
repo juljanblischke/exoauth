@@ -188,6 +188,88 @@ public sealed class RiskScoringService : IRiskScoringService
         return riskScore.Level == RiskLevel.Medium || riskScore.Level == RiskLevel.High;
     }
 
+
+    public async Task<SpoofingCheckResult> CheckForSpoofingAsync(
+        Guid userId,
+        TrustedDevice trustedDevice,
+        GeoLocation currentLocation,
+        DeviceInfo currentDeviceInfo,
+        CancellationToken cancellationToken = default)
+    {
+        // If feature is disabled, never flag as suspicious
+        if (!_isEnabled)
+        {
+            _logger.LogDebug("Device trust feature is disabled, returning not suspicious");
+            return SpoofingCheckResult.NotSuspicious();
+        }
+
+        var score = 0;
+        var suspiciousFactors = new List<string>();
+
+        // Get or create the user's login pattern
+        var pattern = await _loginPatternService.GetOrCreatePatternAsync(userId, cancellationToken);
+
+        // Check 1: Impossible travel from trusted device's last known location
+        _logger.LogDebug("Checking impossible travel for trusted device: LastLocation={LastCountry}/{LastCity}, CurrentLocation={Country}/{City}",
+            trustedDevice.LastCountry, trustedDevice.LastCity, currentLocation.CountryCode, currentLocation.City);
+
+        if (_loginPatternService.IsImpossibleTravel(pattern, currentLocation, _impossibleTravelSpeedKmh))
+        {
+            score += _impossibleTravelScore;
+            suspiciousFactors.Add(RiskFactors.ImpossibleTravel);
+            _logger.LogWarning("Impossible travel detected on trusted device for user {UserId}: +{Score} points",
+                userId, _impossibleTravelScore);
+        }
+
+        // Check 2: Device type mismatch (e.g., trusted device was Desktop, now claiming Mobile)
+        if (!string.IsNullOrEmpty(trustedDevice.DeviceType) &&
+            !string.Equals(trustedDevice.DeviceType, currentDeviceInfo.DeviceType, StringComparison.OrdinalIgnoreCase))
+        {
+            score += _differentDeviceTypeScore;
+            suspiciousFactors.Add(RiskFactors.DifferentDeviceType);
+            _logger.LogWarning("Device type mismatch on trusted device for user {UserId}: Expected={Expected}, Got={Got}",
+                userId, trustedDevice.DeviceType, currentDeviceInfo.DeviceType);
+        }
+
+        // Check 3: Different browser (potential spoofing indicator)
+        if (!string.IsNullOrEmpty(trustedDevice.Browser) &&
+            !string.Equals(trustedDevice.Browser, currentDeviceInfo.Browser, StringComparison.OrdinalIgnoreCase))
+        {
+            // Lower score for browser change as it's more common (updates, etc.)
+            score += 5;
+            suspiciousFactors.Add(RiskFactors.DifferentBrowser);
+            _logger.LogDebug("Browser mismatch on trusted device for user {UserId}: Expected={Expected}, Got={Got}",
+                userId, trustedDevice.Browser, currentDeviceInfo.Browser);
+        }
+
+        // Check 4: Different OS (rare, indicates possible spoofing)
+        if (!string.IsNullOrEmpty(trustedDevice.OperatingSystem) &&
+            !string.Equals(trustedDevice.OperatingSystem, currentDeviceInfo.OperatingSystem, StringComparison.OrdinalIgnoreCase))
+        {
+            score += 15;
+            suspiciousFactors.Add(RiskFactors.DifferentOS);
+            _logger.LogWarning("OS mismatch on trusted device for user {UserId}: Expected={Expected}, Got={Got}",
+                userId, trustedDevice.OperatingSystem, currentDeviceInfo.OperatingSystem);
+        }
+
+        // Determine if this is suspicious based on score
+        // Use a lower threshold than approval since this is about protecting an already-trusted device
+        var isSuspicious = score >= _mediumThreshold;
+
+        if (isSuspicious)
+        {
+            _logger.LogWarning(
+                "Suspicious login attempt detected on trusted device for user {UserId}: Score={Score}, Factors=[{Factors}]",
+                userId, score, string.Join(", ", suspiciousFactors));
+            return SpoofingCheckResult.Suspicious(score, suspiciousFactors);
+        }
+
+        _logger.LogDebug(
+            "Trusted device check passed for user {UserId}: Score={Score}, Factors=[{Factors}]",
+            userId, score, string.Join(", ", suspiciousFactors));
+        return SpoofingCheckResult.NotSuspicious();
+    }
+
     private RiskLevel DetermineRiskLevel(int score)
     {
         if (score >= _highThreshold)

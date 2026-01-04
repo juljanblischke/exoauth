@@ -23,6 +23,10 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
     private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
     private readonly IEmailTemplateService _emailTemplateService;
+    private readonly ILoginPatternService _loginPatternService;
+    private readonly IGeoIpService _geoIpService;
+    private readonly IDeviceDetectionService _deviceDetectionService;
+    private readonly ITrustedDeviceService _trustedDeviceService;
     private readonly int _backupCodeCount;
 
     public MfaConfirmHandler(
@@ -38,6 +42,10 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
         IAuditService auditService,
         IEmailService emailService,
         IEmailTemplateService emailTemplateService,
+        ILoginPatternService loginPatternService,
+        IGeoIpService geoIpService,
+        IDeviceDetectionService deviceDetectionService,
+        ITrustedDeviceService trustedDeviceService,
         IConfiguration configuration)
     {
         _context = context;
@@ -52,6 +60,10 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
         _auditService = auditService;
         _emailService = emailService;
         _emailTemplateService = emailTemplateService;
+        _loginPatternService = loginPatternService;
+        _geoIpService = geoIpService;
+        _deviceDetectionService = deviceDetectionService;
+        _trustedDeviceService = trustedDeviceService;
         _backupCodeCount = configuration.GetValue("Mfa:BackupCodeCount", 10);
     }
 
@@ -174,8 +186,30 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
                 ct
             );
 
-            // Create device session
+            // Get device info and geolocation
             var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();
+            var geoLocation = _geoIpService.GetLocation(command.IpAddress);
+            var deviceInfo = _deviceDetectionService.Parse(command.UserAgent);
+
+            // Task 015: Auto-trust first device for forced MFA setup (new user registration)
+            // Check if user has any trusted devices - if not, this is their first device
+            var hasAnyTrustedDevices = await _trustedDeviceService.HasAnyAsync(userId, ct);
+            
+            TrustedDevice? trustedDevice = null;
+            if (!hasAnyTrustedDevices)
+            {
+                // First device ever → auto-trust
+                trustedDevice = await _trustedDeviceService.AddAsync(
+                    userId,
+                    deviceId,
+                    deviceInfo,
+                    geoLocation,
+                    command.DeviceFingerprint,
+                    ct
+                );
+            }
+
+            // Create device session
             var (session, _, _) = await _deviceSessionService.CreateOrUpdateSessionAsync(
                 userId,
                 deviceId,
@@ -184,6 +218,12 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
                 command.DeviceFingerprint,
                 ct
             );
+
+            // Link session to trusted device if we created one (Task 015)
+            if (trustedDevice is not null)
+            {
+                await _deviceSessionService.LinkToTrustedDeviceAsync(session.Id, trustedDevice.Id, ct);
+            }
 
             // Generate tokens
             var accessToken = _tokenService.GenerateAccessToken(
@@ -211,6 +251,15 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
             user.RecordLogin();
             await _userRepository.UpdateAsync(user, ct);
 
+            // Record login pattern for future risk scoring
+            await _loginPatternService.RecordLoginAsync(
+                userId,
+                geoLocation,
+                deviceInfo.DeviceType,
+                command.IpAddress,
+                ct
+            );
+
             // Audit log for completed registration/login
             await _auditService.LogWithContextAsync(
                 AuditActions.MfaSetupCompleted,
@@ -218,7 +267,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
                 null,
                 "SystemUser",
                 userId,
-                new { SessionId = session.Id, DeviceId = deviceId },
+                new { SessionId = session.Id, DeviceId = deviceId, TrustedDeviceId = trustedDevice?.Id },
                 ct
             );
 

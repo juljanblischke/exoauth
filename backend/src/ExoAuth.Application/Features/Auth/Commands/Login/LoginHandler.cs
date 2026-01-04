@@ -28,6 +28,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
     private readonly IDeviceApprovalService _deviceApprovalService;
     private readonly IGeoIpService _geoIpService;
     private readonly IDeviceDetectionService _deviceDetectionService;
+    private readonly ITrustedDeviceService _trustedDeviceService;
 
     public LoginHandler(
         IAppDbContext context,
@@ -47,7 +48,8 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         ILoginPatternService loginPatternService,
         IDeviceApprovalService deviceApprovalService,
         IGeoIpService geoIpService,
-        IDeviceDetectionService deviceDetectionService)
+        IDeviceDetectionService deviceDetectionService,
+        ITrustedDeviceService trustedDeviceService)
     {
         _context = context;
         _userRepository = userRepository;
@@ -67,6 +69,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         _deviceApprovalService = deviceApprovalService;
         _geoIpService = geoIpService;
         _deviceDetectionService = deviceDetectionService;
+        _trustedDeviceService = trustedDeviceService;
     }
 
     public async ValueTask<AuthResponse> Handle(LoginCommand command, CancellationToken ct)
@@ -195,8 +198,20 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             return AuthResponse.RequiresMfaSetup(setupToken);
         }
 
-        // Create or update device session
+        // Get geo location and device info first (needed for trust check)
+        var geoLocation = _geoIpService.GetLocation(command.IpAddress);
+        var deviceInfo = _deviceDetectionService.Parse(command.UserAgent);
         var deviceId = command.DeviceId ?? _deviceSessionService.GenerateDeviceId();
+
+        // Check if this device is trusted (Task 015: Trust check before risk scoring)
+        var trustedDevice = await _trustedDeviceService.FindAsync(
+            user.Id,
+            deviceId,
+            command.DeviceFingerprint,
+            ct
+        );
+
+        // Create or update device session
         var (deviceSession, isNewDevice, isNewLocation) = await _deviceSessionService.CreateOrUpdateSessionAsync(
             user.Id,
             deviceId,
@@ -206,22 +221,25 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             ct
         );
 
-        // Get geo location and device info for risk scoring
-        var geoLocation = _geoIpService.GetLocation(command.IpAddress);
-        var deviceInfo = _deviceDetectionService.Parse(command.UserAgent);
-
-        // Calculate risk score
-        var riskScore = await _riskScoringService.CalculateAsync(
-            user.Id,
-            deviceInfo,
-            geoLocation,
-            deviceSession.IsTrusted,
-            ct
-        );
-
-        // Check if device approval is required
-        if (_riskScoringService.RequiresApproval(riskScore))
+        // If device is trusted, link the session to the trusted device
+        if (trustedDevice is not null)
         {
+            await _deviceSessionService.LinkToTrustedDeviceAsync(deviceSession.Id, trustedDevice.Id, ct);
+            await _trustedDeviceService.RecordUsageAsync(trustedDevice.Id, command.IpAddress, geoLocation.CountryCode, geoLocation.City, ct);
+        }
+
+        // NEW DEVICE → Always require approval (Task 015)
+        if (trustedDevice is null)
+        {
+            // Calculate risk score for email/audit purposes (always requires approval for untrusted)
+            var riskScore = await _riskScoringService.CalculateAsync(
+                user.Id,
+                deviceInfo,
+                geoLocation,
+                false, // Not trusted
+                ct
+            );
+
             // Create device approval request
             var approvalResult = await _deviceApprovalService.CreateApprovalRequestAsync(
                 user.Id,
@@ -261,7 +279,8 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
                     riskScore.Factors,
                     DeviceId = deviceId,
                     IsNewDevice = isNewDevice,
-                    IsNewLocation = isNewLocation
+                    IsNewLocation = isNewLocation,
+                    Reason = "New device requires approval"
                 },
                 ct
             );
@@ -273,6 +292,73 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
                 riskScore: riskScore.Score,
                 riskLevel: riskScore.Level.ToString(),
                 riskFactors: riskScore.Factors.ToList()
+            );
+        }
+
+        // TRUSTED DEVICE → Check for spoofing (Task 015)
+        var spoofingCheck = await _riskScoringService.CheckForSpoofingAsync(
+            user.Id,
+            trustedDevice,
+            geoLocation,
+            deviceInfo,
+            ct
+        );
+
+        // If suspicious activity detected on trusted device, require re-verification
+        if (spoofingCheck.IsSuspicious)
+        {
+            // Create device approval request (spoofing detected on trusted device)
+            var approvalResult = await _deviceApprovalService.CreateApprovalRequestAsync(
+                user.Id,
+                deviceSession.Id,
+                spoofingCheck.RiskScore,
+                spoofingCheck.SuspiciousFactors,
+                ct
+            );
+
+            // Send device approval email
+            await _emailService.SendDeviceApprovalRequiredAsync(
+                email: user.Email,
+                firstName: user.FirstName,
+                approvalToken: approvalResult.Token,
+                approvalCode: approvalResult.Code,
+                deviceName: deviceSession.DisplayName,
+                browser: deviceSession.Browser,
+                operatingSystem: deviceSession.OperatingSystem,
+                location: deviceSession.LocationDisplay,
+                ipAddress: deviceSession.IpAddress,
+                riskScore: spoofingCheck.RiskScore,
+                language: user.PreferredLanguage,
+                cancellationToken: ct
+            );
+
+            // Audit log
+            await _auditService.LogWithContextAsync(
+                AuditActions.DeviceApprovalRequired,
+                user.Id,
+                null,
+                "DeviceSession",
+                deviceSession.Id,
+                new
+                {
+                    Score = spoofingCheck.RiskScore,
+                    Level = "Suspicious",
+                    Factors = spoofingCheck.SuspiciousFactors,
+                    DeviceId = deviceId,
+                    IsNewDevice = isNewDevice,
+                    IsNewLocation = isNewLocation,
+                    Reason = "Suspicious activity on trusted device"
+                },
+                ct
+            );
+
+            return AuthResponse.RequiresDeviceApproval(
+                approvalToken: approvalResult.Token,
+                sessionId: deviceSession.Id,
+                deviceId: deviceId,
+                riskScore: spoofingCheck.RiskScore,
+                riskLevel: "Suspicious",
+                riskFactors: spoofingCheck.SuspiciousFactors.ToList()
             );
         }
 
@@ -329,8 +415,8 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
                 IsNewDevice = isNewDevice,
                 IsNewLocation = isNewLocation,
                 RememberMe = command.RememberMe,
-                RiskScore = riskScore.Score,
-                RiskLevel = riskScore.Level.ToString()
+                TrustedDeviceId = trustedDevice?.Id,
+                IsTrustedDevice = true
             },
             ct
         );

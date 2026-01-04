@@ -24,7 +24,8 @@ backend/
 │   │   │   ├── DeviceSession.cs
 │   │   │   ├── MfaBackupCode.cs
 │   │   │   ├── DeviceApprovalRequest.cs         (Task 013)
-│   │   │   └── LoginPattern.cs                  (Task 013)
+│   │   │   ├── LoginPattern.cs                  (Task 013)
+│   │   │   └── TrustedDevice.cs                 (Task 015)
 │   │   ├── Enums/
 │   │   │   ├── UserType.cs
 │   │   │   └── ApprovalStatus.cs                (Task 013)
@@ -62,7 +63,8 @@ backend/
 │   │   │   │   ├── IInviteCleanupService.cs
 │   │   │   │   ├── IRiskScoringService.cs       (Task 013)
 │   │   │   │   ├── ILoginPatternService.cs      (Task 013)
-│   │   │   │   └── IDeviceApprovalService.cs    (Task 013)
+│   │   │   │   ├── IDeviceApprovalService.cs    (Task 013)
+│   │   │   │   └── ITrustedDeviceService.cs     (Task 015)
 │   │   │   ├── Behaviors/
 │   │   │   │   └── ValidationBehavior.cs
 │   │   │   ├── Messages/
@@ -97,14 +99,18 @@ backend/
 │   │       │   │   ├── UpdatePreferences/
 │   │       │   │   ├── ApproveDevice/           (Task 013)
 │   │       │   │   ├── ApproveDeviceLink/       (Task 013)
-│   │       │   │   └── DenyDevice/              (Task 013)
+│   │       │   │   ├── DenyDevice/              (Task 013)
+│   │       │   │   ├── RemoveTrustedDevice/     (Task 015)
+│   │       │   │   └── RenameTrustedDevice/     (Task 015)
 │   │       │   ├── Queries/
 │   │       │   │   ├── GetCurrentUser/
-│   │       │   │   └── GetSessions/
+│   │       │   │   ├── GetSessions/
+│   │       │   │   └── GetTrustedDevices/       (Task 015)
 │   │       │   └── Models/
 │   │       │       ├── AuthResponse.cs
 │   │       │       ├── DeviceSessionDto.cs
-│   │       │       └── MfaModels.cs
+│   │       │       ├── MfaModels.cs
+│   │       │       └── TrustedDeviceDto.cs      (Task 015)
 │   │       ├── SystemUsers/
 │   │       │   ├── Commands/
 │   │       │   │   ├── InviteSystemUser/
@@ -117,11 +123,14 @@ backend/
 │   │       │   │   ├── RevokeUserSession/
 │   │       │   │   ├── AnonymizeUser/
 │   │       │   │   ├── DeactivateSystemUser/
-│   │       │   │   └── ActivateSystemUser/
+│   │       │   │   ├── ActivateSystemUser/
+│   │       │   │   ├── RemoveUserTrustedDevice/      (Task 015)
+│   │       │   │   └── RemoveAllUserTrustedDevices/  (Task 015)
 │   │       │   ├── Queries/
 │   │       │   │   ├── GetSystemUsers/
 │   │       │   │   ├── GetSystemUser/
-│   │       │   │   └── GetUserSessions/
+│   │       │   │   ├── GetUserSessions/
+│   │       │   │   └── GetUserTrustedDevices/        (Task 015)
 │   │       │   └── Models/
 │   │       │       └── SystemUserDto.cs
 │   │       ├── SystemPermissions/
@@ -143,7 +152,8 @@ backend/
 │   │   │   │   ├── DeviceSessionConfiguration.cs
 │   │   │   │   ├── MfaBackupCodeConfiguration.cs
 │   │   │   │   ├── DeviceApprovalRequestConfiguration.cs  (Task 013)
-│   │   │   │   └── LoginPatternConfiguration.cs           (Task 013)
+│   │   │   │   ├── LoginPatternConfiguration.cs           (Task 013)
+│   │   │   │   └── TrustedDeviceConfiguration.cs          (Task 015)
 │   │   │   ├── Migrations/
 │   │   │   └── Repositories/
 │   │   │       └── SystemUserRepository.cs
@@ -180,7 +190,8 @@ backend/
 │   │       ├── InviteCleanupBackgroundService.cs
 │   │       ├── RiskScoringService.cs            (Task 013)
 │   │       ├── LoginPatternService.cs           (Task 013)
-│   │       └── DeviceApprovalService.cs         (Task 013)
+│   │       ├── DeviceApprovalService.cs         (Task 013)
+│       └── TrustedDeviceService.cs          (Task 015)
 │   │
 │   ├── ExoAuth.EmailWorker/                     (Separate Microservice)
 │   │   ├── Program.cs
@@ -427,6 +438,12 @@ public sealed class {Feature}Controller : ControllerBase
 | `APPROVAL_MAX_ATTEMPTS` | 429 | Too many wrong codes |
 | `DEVICE_APPROVAL_DENIED` | 403 | Device was denied |
 
+### Trusted Device Errors (Task 015)
+| Code | HTTP | Description |
+|------|------|-------------|
+| `DEVICE_NOT_FOUND` | 404 | Trusted device not found |
+| `CANNOT_REMOVE_CURRENT_DEVICE` | 400 | Cannot remove current device |
+
 ### Account Errors
 | Code | HTTP | Description |
 |------|------|-------------|
@@ -471,5 +488,6 @@ Every new endpoint MUST have:
 ---
 
 ## Last Updated
-- **Date:** 2026-01-03
-- **Tasks Completed:** 001-014 (303+ Unit Tests)
+- **Date:** 2026-01-04
+- **Tasks Completed:** 001-015 (350 Unit Tests)
+- **Task 015:** Device Trust Refactoring - TrustedDevice entity, trust decoupled from sessions

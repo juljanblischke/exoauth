@@ -8,6 +8,5 @@ namespace ExoAuth.Application.Features.Auth.Commands.UpdateSession;
 /// </summary>
 public sealed record UpdateSessionCommand(
     Guid SessionId,
-    string? Name = null,
-    bool? IsTrusted = null
+    string? Name = null
 ) : ICommand<DeviceSessionDto>;

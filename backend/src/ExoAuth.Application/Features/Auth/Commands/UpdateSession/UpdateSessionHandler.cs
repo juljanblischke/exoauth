@@ -10,18 +10,15 @@ public sealed class UpdateSessionHandler : ICommandHandler<UpdateSessionCommand,
     private readonly IDeviceSessionService _sessionService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IAuditService _auditService;
-    private readonly IDeviceApprovalService _deviceApprovalService;
 
     public UpdateSessionHandler(
         IDeviceSessionService sessionService,
         ICurrentUserService currentUserService,
-        IAuditService auditService,
-        IDeviceApprovalService deviceApprovalService)
+        IAuditService auditService)
     {
         _sessionService = sessionService;
         _currentUserService = currentUserService;
         _auditService = auditService;
-        _deviceApprovalService = deviceApprovalService;
     }
 
     public async ValueTask<DeviceSessionDto> Handle(UpdateSessionCommand command, CancellationToken ct)
@@ -55,38 +52,8 @@ public sealed class UpdateSessionHandler : ICommandHandler<UpdateSessionCommand,
             );
         }
 
-        // Update trust status if provided
-        if (command.IsTrusted.HasValue)
-        {
-            await _sessionService.SetTrustStatusAsync(command.SessionId, command.IsTrusted.Value, ct);
-
-            await _auditService.LogWithContextAsync(
-                AuditActions.SessionTrusted,
-                userId,
-                null,
-                "DeviceSession",
-                command.SessionId,
-                new { IsTrusted = command.IsTrusted.Value },
-                ct
-            );
-
-            // If trusting, resolve any pending device approval requests for this session
-            // This allows users to approve new devices from an existing trusted session
-            if (command.IsTrusted.Value)
-            {
-                await _deviceApprovalService.ResolveBySessionTrustAsync(command.SessionId, ct);
-
-                await _auditService.LogWithContextAsync(
-                    AuditActions.DeviceApprovedViaSession,
-                    userId,
-                    null,
-                    "DeviceSession",
-                    command.SessionId,
-                    new { ApprovedVia = "session_trust" },
-                    ct
-                );
-            }
-        }
+        // Note: IsTrusted is now managed through TrustedDevices, not through session updates
+        // The IsTrusted parameter is kept for backward compatibility but no longer updates trust status
 
         // Reload session to get updated values
         session = await _sessionService.GetSessionByIdAsync(command.SessionId, ct);

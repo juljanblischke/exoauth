@@ -59,9 +59,7 @@ public sealed class DeviceSessionConfiguration : IEntityTypeConfiguration<Device
 
         builder.Property(x => x.Longitude);
 
-        builder.Property(x => x.IsTrusted)
-            .IsRequired()
-            .HasDefaultValue(false);
+        builder.Property(x => x.TrustedDeviceId);
 
         builder.Property(x => x.LastActivityAt)
             .IsRequired();
@@ -77,6 +75,9 @@ public sealed class DeviceSessionConfiguration : IEntityTypeConfiguration<Device
 
         builder.Property(x => x.UpdatedAt);
 
+        // Ignore computed property
+        builder.Ignore(x => x.IsTrusted);
+
         // Indexes
         builder.HasIndex(x => x.UserId);
         builder.HasIndex(x => x.DeviceId);
@@ -84,11 +85,18 @@ public sealed class DeviceSessionConfiguration : IEntityTypeConfiguration<Device
         builder.HasIndex(x => x.IsRevoked);
         builder.HasIndex(x => x.LastActivityAt);
         builder.HasIndex(x => new { x.UserId, x.IsRevoked });
+        builder.HasIndex(x => x.TrustedDeviceId);
 
         // Relationship with SystemUser
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Relationship with TrustedDevice
+        builder.HasOne(x => x.TrustedDevice)
+            .WithMany()
+            .HasForeignKey(x => x.TrustedDeviceId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

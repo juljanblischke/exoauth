@@ -115,4 +115,11 @@ public static class AuditActions
     public const string DeviceApprovedViaCode = "system.device.approved_via_code";
     public const string DeviceApprovedViaSession = "system.device.approved_via_session";
     public const string DeviceDenied = "system.device.denied";
+
+    // Trusted device actions
+    public const string TrustedDeviceAdded = "system.device.trusted_added";
+    public const string TrustedDeviceRemoved = "system.device.trusted_removed";
+    public const string TrustedDeviceRenamed = "system.device.trusted_renamed";
+    public const string TrustedDeviceRemovedByAdmin = "system.device.trusted_removed_by_admin";
+    public const string TrustedDevicesRemovedByAdmin = "system.device.trusted_all_removed_by_admin";
 }

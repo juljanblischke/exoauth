@@ -68,13 +68,13 @@ public interface IDeviceSessionService
     Task<int> RevokeAllSessionsExceptAsync(Guid userId, Guid? exceptSessionId, CancellationToken ct = default);
 
     /// <summary>
-    /// Updates the trust status of a session.
+    /// Links a session to a trusted device.
     /// </summary>
     /// <param name="sessionId">The session ID.</param>
-    /// <param name="trusted">Whether to trust the session.</param>
+    /// <param name="trustedDeviceId">The trusted device ID to link to.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>True if the session was updated, false if not found.</returns>
-    Task<bool> SetTrustStatusAsync(Guid sessionId, bool trusted, CancellationToken ct = default);
+    Task<bool> LinkToTrustedDeviceAsync(Guid sessionId, Guid trustedDeviceId, CancellationToken ct = default);
 
     /// <summary>
     /// Sets a custom name for a session.

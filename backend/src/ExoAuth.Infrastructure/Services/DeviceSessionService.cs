@@ -88,10 +88,6 @@ public sealed class DeviceSessionService : IDeviceSessionService
             }
         }
 
-        // Check if this is the user's FIRST session ever (registration)
-        var hasAnySessions = await _context.DeviceSessions
-            .AnyAsync(s => s.UserId == userId, ct);
-
         // Create new session
         var session = DeviceSession.Create(
             userId,
@@ -114,13 +110,6 @@ public sealed class DeviceSessionService : IDeviceSessionService
             location.City,
             location.Latitude,
             location.Longitude);
-
-        // Auto-trust first device (registration) - this is the baseline trusted device/location
-        if (!hasAnySessions)
-        {
-            session.Trust();
-            _logger.LogInformation("Auto-trusted first device session for user {UserId}", userId);
-        }
 
         await _context.DeviceSessions.AddAsync(session, ct);
         await _context.SaveChangesAsync(ct);
@@ -220,7 +209,7 @@ public sealed class DeviceSessionService : IDeviceSessionService
         return sessions.Count;
     }
 
-    public async Task<bool> SetTrustStatusAsync(Guid sessionId, bool trusted, CancellationToken ct = default)
+    public async Task<bool> LinkToTrustedDeviceAsync(Guid sessionId, Guid trustedDeviceId, CancellationToken ct = default)
     {
         var session = await _context.DeviceSessions
             .FirstOrDefaultAsync(s => s.Id == sessionId && !s.IsRevoked, ct);
@@ -228,14 +217,10 @@ public sealed class DeviceSessionService : IDeviceSessionService
         if (session is null)
             return false;
 
-        if (trusted)
-            session.Trust();
-        else
-            session.Untrust();
-
+        session.LinkToTrustedDevice(trustedDeviceId);
         await _context.SaveChangesAsync(ct);
 
-        _logger.LogInformation("Set trust status to {Trusted} for session {SessionId}", trusted, sessionId);
+        _logger.LogInformation("Linked session {SessionId} to trusted device {TrustedDeviceId}", sessionId, trustedDeviceId);
 
         return true;
     }
