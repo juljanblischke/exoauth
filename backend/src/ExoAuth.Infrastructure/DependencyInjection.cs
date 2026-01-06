@@ -82,6 +82,9 @@ public static class DependencyInjection
         services.AddSingleton<IMfaService, MfaService>();
         services.AddSingleton<IBackupCodeService, BackupCodeService>();
 
+        // Passkey Services
+        services.AddScoped<IPasskeyService, PasskeyService>();
+
         // Repositories
         services.AddScoped<ISystemUserRepository, SystemUserRepository>();
 

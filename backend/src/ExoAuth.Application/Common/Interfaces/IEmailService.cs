@@ -120,4 +120,34 @@ public interface IEmailService
         string? ipAddress,
         string language = "en-US",
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a confirmation email when a passkey is registered.
+    /// </summary>
+    /// <param name="email">The recipient email address.</param>
+    /// <param name="fullName">The recipient's full name.</param>
+    /// <param name="passkeyName">The name of the registered passkey.</param>
+    /// <param name="language">The language for the template (default: "en-US").</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task SendPasskeyRegisteredEmailAsync(
+        string email,
+        string fullName,
+        string passkeyName,
+        string language = "en-US",
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a security alert when a passkey is removed.
+    /// </summary>
+    /// <param name="email">The recipient email address.</param>
+    /// <param name="fullName">The recipient's full name.</param>
+    /// <param name="passkeyName">The name of the removed passkey.</param>
+    /// <param name="language">The language for the template (default: "en-US").</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task SendPasskeyRemovedEmailAsync(
+        string email,
+        string fullName,
+        string passkeyName,
+        string language = "en-US",
+        CancellationToken cancellationToken = default);
 }

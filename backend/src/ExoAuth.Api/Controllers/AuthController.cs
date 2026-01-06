@@ -21,6 +21,13 @@ using ExoAuth.Application.Features.Auth.Queries.GetDevices;
 using ExoAuth.Application.Features.Auth.Commands.RevokeDevice;
 using ExoAuth.Application.Features.Auth.Commands.RenameDevice;
 using ExoAuth.Application.Features.Auth.Commands.ApproveDeviceFromSession;
+using ExoAuth.Application.Features.Auth.Commands.PasskeyRegisterOptions;
+using ExoAuth.Application.Features.Auth.Commands.PasskeyRegister;
+using ExoAuth.Application.Features.Auth.Commands.PasskeyLoginOptions;
+using ExoAuth.Application.Features.Auth.Commands.PasskeyLogin;
+using ExoAuth.Application.Features.Auth.Commands.RenamePasskey;
+using ExoAuth.Application.Features.Auth.Commands.DeletePasskey;
+using ExoAuth.Application.Features.Auth.Queries.GetPasskeys;
 using ExoAuth.Application.Features.SystemInvites.Models;
 using ExoAuth.Application.Features.SystemInvites.Queries.ValidateInvite;
 using Microsoft.AspNetCore.Authorization;
@@ -515,6 +522,134 @@ public sealed class AuthController : ApiControllerBase
 
     #endregion
 
+    #region Passkeys
+
+    /// <summary>
+    /// Get WebAuthn registration options for creating a new passkey.
+    /// Requires authenticated user.
+    /// </summary>
+    [HttpPost("passkeys/register/options")]
+    [Authorize]
+    [RateLimit(10)]
+    [ProducesResponseType(typeof(PasskeyRegisterOptionsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> PasskeyRegisterOptions(CancellationToken ct)
+    {
+        var command = new PasskeyRegisterOptionsCommand();
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Complete passkey registration with the attestation response.
+    /// </summary>
+    [HttpPost("passkeys/register")]
+    [Authorize]
+    [RateLimit(5)]
+    [ProducesResponseType(typeof(PasskeyDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> PasskeyRegister(PasskeyRegisterRequest request, CancellationToken ct)
+    {
+        var command = new PasskeyRegisterCommand(
+            request.ChallengeId,
+            request.AttestationResponse,
+            request.Name
+        );
+        var result = await Mediator.Send(command, ct);
+        return ApiCreated(result);
+    }
+
+    /// <summary>
+    /// Get WebAuthn assertion options for passkey login.
+    /// </summary>
+    [HttpPost("passkeys/login/options")]
+    [RateLimit(10)]
+    [ProducesResponseType(typeof(PasskeyLoginOptionsResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> PasskeyLoginOptions(PasskeyLoginOptionsRequest? request, CancellationToken ct)
+    {
+        var command = new PasskeyLoginOptionsCommand(request?.Email);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Login with passkey using the assertion response.
+    /// </summary>
+    [HttpPost("passkeys/login")]
+    [RateLimit(5)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> PasskeyLogin(PasskeyLoginRequest request, CancellationToken ct)
+    {
+        var command = new PasskeyLoginCommand(
+            request.ChallengeId,
+            request.AssertionResponse,
+            request.DeviceId,
+            request.DeviceFingerprint,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            Request.Headers.UserAgent.ToString(),
+            request.RememberMe
+        );
+        var result = await Mediator.Send(command, ct);
+
+        SetAuthCookies(result.AccessToken!, result.RefreshToken!);
+
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Get all passkeys for the current user.
+    /// </summary>
+    [HttpGet("passkeys")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(typeof(GetPasskeysResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetPasskeys(CancellationToken ct)
+    {
+        var query = new GetPasskeysQuery();
+        var result = await Mediator.Send(query, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Rename a passkey.
+    /// </summary>
+    [HttpPatch("passkeys/{passkeyId:guid}")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(typeof(PasskeyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RenamePasskey(Guid passkeyId, RenamePasskeyRequest request, CancellationToken ct)
+    {
+        var command = new RenamePasskeyCommand(passkeyId, request.Name);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Delete a passkey.
+    /// </summary>
+    [HttpDelete("passkeys/{passkeyId:guid}")]
+    [Authorize]
+    [RateLimit]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeletePasskey(Guid passkeyId, CancellationToken ct)
+    {
+        var command = new DeletePasskeyCommand(passkeyId);
+        await Mediator.Send(command, ct);
+        return NoContent();
+    }
+
+    #endregion
+
     private void SetAuthCookies(string accessToken, string refreshToken)
     {
         var secureCookies = _configuration.GetValue("Cookies:Secure", true);
@@ -658,4 +793,27 @@ public sealed record DenyDeviceRequest(
 
 public sealed record RenameDeviceRequest(
     string? Name
+);
+
+// Passkey Request DTOs
+public sealed record PasskeyRegisterRequest(
+    string ChallengeId,
+    Fido2NetLib.AuthenticatorAttestationRawResponse AttestationResponse,
+    string? Name = null
+);
+
+public sealed record PasskeyLoginOptionsRequest(
+    string? Email = null
+);
+
+public sealed record PasskeyLoginRequest(
+    string ChallengeId,
+    Fido2NetLib.AuthenticatorAssertionRawResponse AssertionResponse,
+    string? DeviceId = null,
+    string? DeviceFingerprint = null,
+    bool RememberMe = false
+);
+
+public sealed record RenamePasskeyRequest(
+    string Name
 );

@@ -209,4 +209,54 @@ public sealed class EmailService : IEmailService
             cancellationToken: cancellationToken
         );
     }
+
+    public async Task SendPasskeyRegisteredEmailAsync(
+        string email,
+        string fullName,
+        string passkeyName,
+        string language = "en-US",
+        CancellationToken cancellationToken = default)
+    {
+        var variables = new Dictionary<string, string>
+        {
+            ["fullName"] = fullName,
+            ["passkeyName"] = passkeyName,
+            ["registeredAt"] = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+            ["year"] = DateTime.UtcNow.Year.ToString()
+        };
+
+        await SendAsync(
+            to: email,
+            subject: _templateService.GetSubject("passkey-registered", language),
+            templateName: "passkey-registered",
+            variables: variables,
+            language: language,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    public async Task SendPasskeyRemovedEmailAsync(
+        string email,
+        string fullName,
+        string passkeyName,
+        string language = "en-US",
+        CancellationToken cancellationToken = default)
+    {
+        var variables = new Dictionary<string, string>
+        {
+            ["fullName"] = fullName,
+            ["passkeyName"] = passkeyName,
+            ["removedAt"] = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+            ["year"] = DateTime.UtcNow.Year.ToString()
+        };
+
+        await SendAsync(
+            to: email,
+            subject: _templateService.GetSubject("passkey-removed", language),
+            templateName: "passkey-removed",
+            variables: variables,
+            language: language,
+            cancellationToken: cancellationToken
+        );
+    }
 }

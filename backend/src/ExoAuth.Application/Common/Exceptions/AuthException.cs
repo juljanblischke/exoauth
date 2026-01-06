@@ -372,3 +372,91 @@ public sealed class DeviceApprovalDeniedException : AuthException
     {
     }
 }
+
+/// <summary>
+/// Exception when passkey is not found.
+/// </summary>
+public sealed class PasskeyNotFoundException : AuthException
+{
+    public PasskeyNotFoundException()
+        : base("PASSKEY_NOT_FOUND", "Passkey not found", 404)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when passkey credential is invalid.
+/// </summary>
+public sealed class PasskeyInvalidCredentialException : AuthException
+{
+    public PasskeyInvalidCredentialException()
+        : base("PASSKEY_INVALID_CREDENTIAL", "Invalid passkey credential", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when passkey challenge is expired.
+/// </summary>
+public sealed class PasskeyChallengeExpiredException : AuthException
+{
+    public PasskeyChallengeExpiredException()
+        : base("PASSKEY_CHALLENGE_EXPIRED", "Passkey challenge has expired", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when passkey challenge is invalid.
+/// </summary>
+public sealed class PasskeyChallengeInvalidException : AuthException
+{
+    public PasskeyChallengeInvalidException()
+        : base("PASSKEY_CHALLENGE_INVALID", "Invalid passkey challenge", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when passkey is already registered.
+/// </summary>
+public sealed class PasskeyAlreadyRegisteredException : AuthException
+{
+    public PasskeyAlreadyRegisteredException()
+        : base("PASSKEY_ALREADY_REGISTERED", "This passkey is already registered", 409)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when passkey registration fails.
+/// </summary>
+public sealed class PasskeyRegistrationFailedException : AuthException
+{
+    public PasskeyRegistrationFailedException()
+        : base("PASSKEY_REGISTRATION_FAILED", "Passkey registration failed", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when user for passkey login is not found.
+/// </summary>
+public sealed class PasskeyUserNotFoundException : AuthException
+{
+    public PasskeyUserNotFoundException()
+        : base("PASSKEY_USER_NOT_FOUND", "User for passkey login not found", 404)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when trying to delete the last passkey without a password.
+/// </summary>
+public sealed class PasskeyCannotDeleteLastException : AuthException
+{
+    public PasskeyCannotDeleteLastException()
+        : base("PASSKEY_CANNOT_DELETE_LAST", "Cannot delete the last passkey. Please set a password first or add another passkey.", 400)
+    {
+    }
+}

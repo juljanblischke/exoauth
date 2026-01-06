@@ -12,5 +12,7 @@
   "account-unlocked": "Your Account Has Been Unlocked",
   "sessions-revoked-admin": "All Your Sessions Have Been Revoked",
   "device-approval-required": "Device Approval Required",
-  "device-denied-alert": "Security Alert: Device Access Denied"
+  "device-denied-alert": "Security Alert: Device Access Denied",
+  "passkey-registered": "Passkey Registered to Your Account",
+  "passkey-removed": "Passkey Removed from Your Account"
 }

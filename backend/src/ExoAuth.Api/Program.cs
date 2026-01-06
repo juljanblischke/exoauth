@@ -2,6 +2,7 @@ using ExoAuth.Api.Extensions;
 using ExoAuth.Api.Middleware;
 using ExoAuth.Api.Services;
 using ExoAuth.Application;
+using Fido2NetLib;
 using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Infrastructure;
 using ExoAuth.Infrastructure.Persistence;
@@ -37,6 +38,16 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddMediator(options =>
 {
     options.ServiceLifetime = ServiceLifetime.Scoped;
+});
+
+// Add Fido2/WebAuthn for passkeys
+builder.Services.AddFido2(options =>
+{
+    var fido2Config = builder.Configuration.GetSection("Fido2");
+    options.ServerDomain = fido2Config["ServerDomain"] ?? "localhost";
+    options.ServerName = fido2Config["ServerName"] ?? "ExoAuth";
+    options.Origins = fido2Config.GetSection("Origins").Get<HashSet<string>>() ?? new HashSet<string> { "http://localhost:5173" };
+    options.TimestampDriftTolerance = fido2Config.GetValue<int?>("TimestampDriftTolerance") ?? 300000;
 });
 
 // Add API services

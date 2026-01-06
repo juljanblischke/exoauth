@@ -12,5 +12,7 @@
   "account-unlocked": "Ihr Konto wurde entsperrt",
   "sessions-revoked-admin": "Alle Ihre Sitzungen wurden widerrufen",
   "device-approval-required": "Gerätebestätigung erforderlich",
-  "device-denied-alert": "Sicherheitswarnung: Gerätezugriff verweigert"
+  "device-denied-alert": "Sicherheitswarnung: Gerätezugriff verweigert",
+  "passkey-registered": "Passkey zu Ihrem Konto hinzugefügt",
+  "passkey-removed": "Passkey aus Ihrem Konto entfernt"
 }

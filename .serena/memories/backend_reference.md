@@ -23,7 +23,8 @@ backend/
 │   │   │   ├── PasswordResetToken.cs
 │   │   │   ├── MfaBackupCode.cs
 │   │   │   ├── Device.cs                        (Task 017 - consolidated from DeviceSession, TrustedDevice, DeviceApprovalRequest)
-│   │   │   └── LoginPattern.cs                  (Task 013)
+│   │   │   ├── LoginPattern.cs                  (Task 013)
+│   │   │   └── Passkey.cs                       (Task 019 - WebAuthn credentials)
 │   │   ├── Enums/
 │   │   │   ├── UserType.cs
 │   │   │   └── DeviceStatus.cs                  (Task 017 - PendingApproval, Trusted, Revoked)
@@ -60,7 +61,8 @@ backend/
 │   │   │   │   ├── IBackupCodeService.cs
 │   │   │   │   ├── IInviteCleanupService.cs
 │   │   │   │   ├── IRiskScoringService.cs       (Task 013)
-│   │   │   │   └── ILoginPatternService.cs      (Task 013)
+│   │   │   │   ├── ILoginPatternService.cs      (Task 013)
+│   │   │   │   └── IPasskeyService.cs           (Task 019)
 │   │   │   ├── Behaviors/
 │   │   │   │   └── ValidationBehavior.cs
 │   │   │   ├── Messages/
@@ -73,7 +75,8 @@ backend/
 │   │   │       ├── CursorPagedList.cs
 │   │   │       ├── GeoLocation.cs
 │   │   │       ├── DeviceInfo.cs
-│   │   │       └── RiskScore.cs                 (Task 013)
+│   │   │       ├── RiskScore.cs                 (Task 013)
+│   │   │       └── PasskeyCredentialResult.cs   (Task 019)
 │   │   └── Features/
 │   │       ├── Auth/
 │   │       │   ├── Commands/
@@ -95,14 +98,22 @@ backend/
 │   │       │   │   ├── ApproveDeviceFromSession/(Task 017)
 │   │       │   │   ├── DenyDevice/              (Task 013/017)
 │   │       │   │   ├── RevokeDevice/            (Task 017)
-│   │       │   │   └── RenameDevice/            (Task 017)
+│   │       │   │   ├── RenameDevice/            (Task 017)
+│   │       │   │   ├── PasskeyRegisterOptions/  (Task 019)
+│   │       │   │   ├── PasskeyRegister/         (Task 019)
+│   │       │   │   ├── PasskeyLoginOptions/     (Task 019)
+│   │       │   │   ├── PasskeyLogin/            (Task 019)
+│   │       │   │   ├── RenamePasskey/           (Task 019)
+│   │       │   │   └── DeletePasskey/           (Task 019)
 │   │       │   ├── Queries/
 │   │       │   │   ├── GetCurrentUser/
-│   │       │   │   └── GetDevices/              (Task 017)
+│   │       │   │   ├── GetDevices/              (Task 017)
+│   │       │   │   └── GetPasskeys/             (Task 019)
 │   │       │   └── Models/
 │   │       │       ├── AuthResponse.cs
 │   │       │       ├── DeviceDto.cs             (Task 017)
-│   │       │       └── MfaModels.cs
+│   │       │       ├── MfaModels.cs
+│   │       │       └── PasskeyDto.cs            (Task 019)
 │   │       ├── SystemUsers/
 │   │       │   ├── Commands/
 │   │       │   │   ├── InviteSystemUser/
@@ -140,7 +151,8 @@ backend/
 │   │   │   │   ├── PasswordResetTokenConfiguration.cs
 │   │   │   │   ├── MfaBackupCodeConfiguration.cs
 │   │   │   │   ├── DeviceConfiguration.cs                 (Task 017)
-│   │   │   │   └── LoginPatternConfiguration.cs           (Task 013)
+│   │   │   │   ├── LoginPatternConfiguration.cs           (Task 013)
+│   │   │   │   └── PasskeyConfiguration.cs                (Task 019)
 │   │   │   ├── Migrations/
 │   │   │   └── Repositories/
 │   │   │       └── SystemUserRepository.cs
@@ -176,7 +188,8 @@ backend/
 │   │       ├── InviteCleanupService.cs
 │   │       ├── InviteCleanupBackgroundService.cs
 │   │       ├── RiskScoringService.cs            (Task 013)
-│   │       └── LoginPatternService.cs           (Task 013)
+│   │       ├── LoginPatternService.cs           (Task 013)
+│       └── PasskeyService.cs                (Task 019)
 │   │
 │   ├── ExoAuth.EmailWorker/                     (Separate Microservice)
 │   │   ├── Program.cs
@@ -226,6 +239,8 @@ backend/
 │   │   ├── sessions-revoked-admin.html
 │   │   ├── device-approval-required.html        (Task 013)
 │   │   ├── device-denied-alert.html             (Task 013)
+│   │   ├── passkey-registered.html          (Task 019)
+│   │   ├── passkey-removed.html             (Task 019)
 │   │   └── subjects.json
 │   └── de-DE/
 │       └── (same files as en-US)
@@ -233,6 +248,7 @@ backend/
 └── tests/ExoAuth.UnitTests/
     ├── Features/
     │   ├── Auth/
+    │   │   └── Passkeys/                        (Task 019 - 41 tests)
     │   ├── SystemUsers/
     │   ├── SystemAuditLogs/
     │   └── SystemInvites/
@@ -274,6 +290,9 @@ backend/
 | UnitTests | xunit | default |
 | UnitTests | Moq | default |
 | UnitTests | FluentAssertions | default |
+| Application | Fido2.Models | 3.0.1 |
+| Infrastructure | Fido2 | 3.0.1 |
+| Api | Fido2.AspNet | 3.0.1 |
 
 ---
 
@@ -426,6 +445,15 @@ public sealed class {Feature}Controller : ControllerBase
 | `APPROVAL_MAX_ATTEMPTS` | 429 | Too many wrong codes |
 | `DEVICE_APPROVAL_DENIED` | 403 | Device was denied |
 
+### Passkey Errors (Task 019)
+| Code | HTTP | Description |
+|------|------|-------------|
+| `PASSKEY_NOT_FOUND` | 404 | Passkey not found |
+| `PASSKEY_INVALID_CREDENTIAL` | 401 | Invalid passkey credential |
+| `PASSKEY_REGISTRATION_FAILED` | 400 | Passkey registration failed |
+| `PASSKEY_ALREADY_REGISTERED` | 409 | Passkey already registered |
+| `PASSKEY_CANNOT_DELETE_LAST` | 400 | Can't delete last passkey without password |
+
 ### Account Errors
 | Code | HTTP | Description |
 |------|------|-------------|
@@ -470,8 +498,26 @@ Every new endpoint MUST have:
 ---
 
 ## Last Updated
-- **Date:** 2026-01-05
-- **Tasks Completed:** 001-017 (315 Unit Tests)
+- **Date:** 2026-01-06
+- **Tasks Completed:** 001-019 (356 Unit Tests)
+- **Task 019:** Passkeys (WebAuthn/FIDO2)
+  - New entity: Passkey (CredentialId, PublicKey, Counter, CredType, AaGuid, Name, LastUsedAt)
+  - SystemUser extended with Passkeys collection
+  - IPasskeyService interface with Fido2NetLib integration
+  - PasskeyService with Redis challenge storage (5-minute TTL)
+  - Auth API endpoints:
+    - POST /auth/passkeys/register/options (get registration challenge)
+    - POST /auth/passkeys/register (complete registration)
+    - POST /auth/passkeys/login/options (get authentication challenge)
+    - POST /auth/passkeys/login (passwordless login)
+    - GET /auth/passkeys (list user's passkeys)
+    - PATCH /auth/passkeys/{id} (rename passkey)
+    - DELETE /auth/passkeys/{id} (remove passkey)
+  - Passkey login creates trusted device automatically
+  - Email notifications: passkey-registered, passkey-removed
+  - Error codes: PASSKEY_NOT_FOUND, PASSKEY_INVALID_CREDENTIAL, PASSKEY_REGISTRATION_FAILED, 
+    PASSKEY_ALREADY_REGISTERED, PASSKEY_CANNOT_DELETE_LAST
+  - 41 new unit tests for passkey handlers
 - **Task 017:** Device Model Consolidation
   - Consolidated DeviceSession, TrustedDevice, DeviceApprovalRequest → Device entity
   - Consolidated IDeviceSessionService, ITrustedDeviceService, IDeviceApprovalService → IDeviceService

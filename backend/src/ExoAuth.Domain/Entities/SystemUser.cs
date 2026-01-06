@@ -36,6 +36,10 @@ public sealed class SystemUser : BaseEntity
     private readonly List<MfaBackupCode> _mfaBackupCodes = new();
     public IReadOnlyCollection<MfaBackupCode> MfaBackupCodes => _mfaBackupCodes.AsReadOnly();
 
+    private readonly List<Passkey> _passkeys = new();
+    public IReadOnlyCollection<Passkey> Passkeys => _passkeys.AsReadOnly();
+    public bool HasPasskeys => _passkeys.Count > 0;
+
     private SystemUser() { } // EF Core
 
     public static SystemUser Create(

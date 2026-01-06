@@ -21,6 +21,7 @@ public sealed class AppDbContext : DbContext, IAppDbContext
     public DbSet<MfaBackupCode> MfaBackupCodes => Set<MfaBackupCode>();
     public DbSet<LoginPattern> LoginPatterns => Set<LoginPattern>();
     public DbSet<Device> Devices => Set<Device>();
+    public DbSet<Passkey> Passkeys => Set<Passkey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

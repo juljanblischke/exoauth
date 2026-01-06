@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passkey Registered</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #0a0a0a; background-color: #f8fafc;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+        <tr>
+            <td style="padding: 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 40px 40px 24px 40px; text-align: center;">
+                            <div style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); border-radius: 8px; margin-bottom: 24px;">
+                                <span style="color: #ffffff; font-size: 20px; font-weight: 700; letter-spacing: -0.5px;">ExoAuth</span>
+                            </div>
+                            <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #0f172a; letter-spacing: -0.5px;">Passkey Registered</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 0 40px 40px 40px;">
+                            <p style="margin: 0 0 20px 0; font-size: 16px; color: #334155;">Hello {{fullName}},</p>
+
+                            <p style="margin: 0 0 20px 0; font-size: 16px; color: #334155;">
+                                A new passkey has been successfully registered to your account. You can now use this passkey to sign in securely without a password.
+                            </p>
+
+                            <!-- Success Box -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0; margin-bottom: 24px;">
+                                <tr>
+                                    <td style="padding: 16px 20px;">
+                                        <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #166534;">Passkey Details:</p>
+                                        <p style="margin: 0; font-size: 14px; color: #166534;">
+                                            Name: <strong>{{passkeyName}}</strong><br>
+                                            Registered: {{registeredAt}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Info Box -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe; margin-bottom: 24px;">
+                                <tr>
+                                    <td style="padding: 16px 20px;">
+                                        <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #1e40af;">What is a Passkey?</p>
+                                        <p style="margin: 0; font-size: 14px; color: #1e40af;">
+                                            Passkeys use biometrics (fingerprint, face recognition) or a hardware security key for passwordless authentication. They're more secure and convenient than passwords.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Warning Box -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #fffbeb; border-radius: 8px; border: 1px solid #fde68a;">
+                                <tr>
+                                    <td style="padding: 16px 20px;">
+                                        <p style="margin: 0; font-size: 14px; color: #92400e;">
+                                            ⚠️ If you didn't register this passkey, please remove it from your account settings immediately and contact support.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 40px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                            <p style="margin: 0; font-size: 12px; color: #94a3b8; text-align: center;">
+                                &copy; {{year}} ExoAuth. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

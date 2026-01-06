@@ -93,6 +93,17 @@ public static class ErrorCodes
     public const string ApprovalMaxAttempts = "APPROVAL_MAX_ATTEMPTS";
     public const string DeviceApprovalDenied = "DEVICE_APPROVAL_DENIED";
 
+    // Passkey Errors (400/404/409)
+    public const string PasskeyNotFound = "PASSKEY_NOT_FOUND";
+    public const string PasskeyInvalidCredential = "PASSKEY_INVALID_CREDENTIAL";
+    public const string PasskeyChallengeExpired = "PASSKEY_CHALLENGE_EXPIRED";
+    public const string PasskeyChallengeInvalid = "PASSKEY_CHALLENGE_INVALID";
+    public const string PasskeyAlreadyRegistered = "PASSKEY_ALREADY_REGISTERED";
+    public const string PasskeyRegistrationFailed = "PASSKEY_REGISTRATION_FAILED";
+    public const string PasskeyUserNotFound = "PASSKEY_USER_NOT_FOUND";
+    public const string PasskeyCannotDeleteLast = "PASSKEY_CANNOT_DELETE_LAST";
+    public const string WebAuthnNotSupported = "WEBAUTHN_NOT_SUPPORTED";
+
     // User Errors (400)
     public const string UserAlreadyAnonymized = "USER_ALREADY_ANONYMIZED";
     public const string CannotAnonymizeSelf = "CANNOT_ANONYMIZE_SELF";

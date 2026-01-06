@@ -127,4 +127,11 @@ public static class AuditActions
     public const string DeviceRevoked = "system.device.revoked";
     public const string DeviceRenamed = "system.device.renamed";
     public const string DeviceApprovedFromSession = "system.device.approved_from_session";
+
+    // Passkey actions
+    public const string PasskeyRegistered = "system.passkey.registered";
+    public const string PasskeyLogin = "system.passkey.login";
+    public const string PasskeyLoginFailed = "system.passkey.login_failed";
+    public const string PasskeyRenamed = "system.passkey.renamed";
+    public const string PasskeyDeleted = "system.passkey.deleted";
 }

@@ -18,6 +18,7 @@ public interface IAppDbContext
     DbSet<MfaBackupCode> MfaBackupCodes { get; }
     DbSet<LoginPattern> LoginPatterns { get; }
     DbSet<Device> Devices { get; }
+    DbSet<Passkey> Passkeys { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
