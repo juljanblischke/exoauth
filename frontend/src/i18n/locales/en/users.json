@@ -220,5 +220,11 @@
     "remove": "Remove device",
     "removeSuccess": "Device removed",
     "removeAllSuccess": "All devices removed"
+  },
+  "devices": {
+    "revokeSuccess": "Device revoked successfully",
+    "revokeAllSuccess": "All devices revoked successfully",
+    "revokeAllTitle": "Revoke all devices?",
+    "revokeAllDescription": "This will log the user out of all devices and remove their trusted status. They will need to verify devices again."
   }
 }

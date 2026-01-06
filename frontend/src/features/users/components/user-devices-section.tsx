@@ -19,16 +19,18 @@ import {
 } from '@/components/ui/tooltip'
 import { RelativeTime } from '@/components/shared'
 import { ConfirmDialog } from '@/components/shared/feedback'
+import { DeviceStatusBadge } from '@/features/auth/components/device-status-badge'
+import { DeviceDetailsSheet } from '@/features/auth/components/device-details-sheet'
 import {
-  useUserTrustedDevices,
-  useRemoveUserTrustedDevice,
-  useRemoveAllUserTrustedDevices,
+  useUserDevices,
+  useRevokeUserDevice,
+  useRevokeAllUserDevices,
 } from '../hooks'
-import type { TrustedDeviceDto } from '@/features/auth/types/trusted-device'
+import { normalizeDeviceStatus, type DeviceDto } from '@/features/auth/types/device'
 
 interface UserDevicesSectionProps {
   userId: string
-  onDevicesRemoved?: () => void
+  onDevicesRevoked?: () => void
 }
 
 function DeviceIcon({
@@ -49,20 +51,22 @@ function DeviceIcon({
 }
 
 interface DeviceItemProps {
-  device: TrustedDeviceDto
-  onRemove: (deviceId: string) => void
-  isRemoving: boolean
-  removingDeviceId: string | null
+  device: DeviceDto
+  onClick: (device: DeviceDto) => void
+  onRevoke: (deviceId: string) => void
+  isRevoking: boolean
+  revokingDeviceId: string | null
 }
 
 function DeviceItem({
   device,
-  onRemove,
-  isRemoving,
-  removingDeviceId,
+  onClick,
+  onRevoke,
+  isRevoking,
+  revokingDeviceId,
 }: DeviceItemProps) {
   const { t } = useTranslation()
-  const isThisRemoving = isRemoving && removingDeviceId === device.id
+  const isThisRevoking = isRevoking && revokingDeviceId === device.id
 
   const browserInfo = [device.browser, device.browserVersion]
     .filter(Boolean)
@@ -72,8 +76,26 @@ function DeviceItem({
     .join(' ')
   const deviceInfo = [browserInfo, osInfo].filter(Boolean).join(' · ')
 
+  const locationDisplay = device.locationDisplay || [device.city, device.country]
+    .filter(Boolean)
+    .join(', ')
+
+  const normalizedStatus = normalizeDeviceStatus(device.status)
+  const isRevoked = normalizedStatus === 'Revoked'
+
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg border bg-card">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onClick(device)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClick(device)
+        }
+      }}
+      className="w-full text-left flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+    >
       <div className="flex-shrink-0 p-2 rounded-full bg-muted">
         <DeviceIcon
           deviceType={device.deviceType}
@@ -84,80 +106,85 @@ function DeviceItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium text-sm truncate">
-            {device.name || t('auth:trustedDevices.unknownDevice')}
+            {device.name || device.displayName || t('auth:devices.unknownDevice')}
           </span>
+          <DeviceStatusBadge status={device.status} />
         </div>
 
         <div className="mt-1 text-xs text-muted-foreground space-y-0.5">
           {deviceInfo && <div>{deviceInfo}</div>}
-          {device.locationDisplay && (
+          {locationDisplay && (
             <div className="flex items-center gap-1.5">
               <Globe className="h-3 w-3" />
-              <span>{device.locationDisplay}</span>
+              <span>{locationDisplay}</span>
             </div>
           )}
-          {device.lastUsedAt && (
-            <div className="flex items-center gap-1.5">
-              <span>{t('auth:trustedDevices.lastUsed')}:</span>
-              <RelativeTime date={device.lastUsedAt} />
-            </div>
-          )}
+          <div className="flex items-center gap-1.5">
+            <span>{t('auth:devices.info.lastUsed')}:</span>
+            <RelativeTime date={device.lastUsedAt} />
+          </div>
         </div>
       </div>
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-            onClick={() => onRemove(device.id)}
-            disabled={isRemoving}
-          >
-            {isThisRemoving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <X className="h-4 w-4" />
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>{t('users:trustedDevices.remove')}</TooltipContent>
-      </Tooltip>
+      {!isRevoked && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation()
+                onRevoke(device.id)
+              }}
+              disabled={isRevoking}
+            >
+              {isThisRevoking ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <X className="h-4 w-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{t('auth:devices.actions.revoke')}</TooltipContent>
+        </Tooltip>
+      )}
     </div>
   )
 }
 
 export function UserDevicesSection({
   userId,
-  onDevicesRemoved,
+  onDevicesRevoked,
 }: UserDevicesSectionProps) {
   const { t } = useTranslation()
-  const [showRemoveAllDialog, setShowRemoveAllDialog] = useState(false)
-  const [removingDeviceId, setRemovingDeviceId] = useState<string | null>(null)
+  const [showRevokeAllDialog, setShowRevokeAllDialog] = useState(false)
+  const [revokingDeviceId, setRevokingDeviceId] = useState<string | null>(null)
+  const [selectedDevice, setSelectedDevice] = useState<DeviceDto | null>(null)
 
-  const { data: devices, isLoading } = useUserTrustedDevices(userId)
-  const { mutate: removeDevice, isPending: isRemovingSingle } =
-    useRemoveUserTrustedDevice()
-  const { mutate: removeAllDevices, isPending: isRemovingAll } =
-    useRemoveAllUserTrustedDevices()
+  const { data: devices, isLoading } = useUserDevices(userId)
+  const { mutate: revokeDevice, isPending: isRevokingSingle } =
+    useRevokeUserDevice()
+  const { mutate: revokeAllDevices, isPending: isRevokingAll } =
+    useRevokeAllUserDevices()
 
-  const handleRemoveSingle = (deviceId: string) => {
-    setRemovingDeviceId(deviceId)
-    removeDevice(
+  const handleRevokeSingle = (deviceId: string) => {
+    setRevokingDeviceId(deviceId)
+    revokeDevice(
       { userId, deviceId },
       {
         onSettled: () => {
-          setRemovingDeviceId(null)
+          setRevokingDeviceId(null)
         },
       }
     )
   }
 
-  const handleRemoveAll = () => {
-    removeAllDevices(userId, {
+  const handleRevokeAll = () => {
+    revokeAllDevices(userId, {
       onSuccess: () => {
-        setShowRemoveAllDialog(false)
-        onDevicesRemoved?.()
+        setShowRevokeAllDialog(false)
+        onDevicesRevoked?.()
       },
     })
   }
@@ -177,58 +204,80 @@ export function UserDevicesSection({
     )
   }
 
+  // Filter out revoked devices for count and actions
+  const activeDevices = devices?.filter((d) => normalizeDeviceStatus(d.status) !== 'Revoked') ?? []
   const deviceCount = devices?.length ?? 0
+  const activeCount = activeDevices.length
+
+  // Sort: trusted first, then pending, then revoked
+  const sortedDevices = [...(devices ?? [])].sort((a, b) => {
+    const statusOrder = { Trusted: 0, PendingApproval: 1, Revoked: 2 }
+    const aStatus = normalizeDeviceStatus(a.status)
+    const bStatus = normalizeDeviceStatus(b.status)
+    return statusOrder[aStatus] - statusOrder[bStatus]
+  })
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium">
-          {t('users:trustedDevices.title')} ({deviceCount})
+          {t('auth:devices.title')} ({deviceCount})
         </h4>
-        {deviceCount > 0 && (
+        {activeCount > 0 && (
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowRemoveAllDialog(true)}
-            disabled={isRemovingAll}
+            onClick={() => setShowRevokeAllDialog(true)}
+            disabled={isRevokingAll}
           >
-            {isRemovingAll ? (
+            {isRevokingAll ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <Trash2 className="h-4 w-4 mr-2" />
             )}
-            {t('users:trustedDevices.removeAll')}
+            {t('auth:devices.actions.revokeAll')}
           </Button>
         )}
       </div>
 
       {deviceCount === 0 ? (
         <p className="text-sm text-muted-foreground py-4 text-center">
-          {t('users:trustedDevices.noDevices')}
+          {t('auth:devices.empty.title')}
         </p>
       ) : (
         <div className="space-y-2 max-h-64 overflow-y-auto">
-          {devices?.map((device) => (
+          {sortedDevices.map((device) => (
             <DeviceItem
               key={device.id}
               device={device}
-              onRemove={handleRemoveSingle}
-              isRemoving={isRemovingSingle}
-              removingDeviceId={removingDeviceId}
+              onClick={setSelectedDevice}
+              onRevoke={handleRevokeSingle}
+              isRevoking={isRevokingSingle}
+              revokingDeviceId={revokingDeviceId}
             />
           ))}
         </div>
       )}
 
       <ConfirmDialog
-        open={showRemoveAllDialog}
-        onOpenChange={setShowRemoveAllDialog}
-        title={t('users:trustedDevices.removeAll')}
-        description={t('users:trustedDevices.removeAllConfirm')}
-        confirmLabel={t('users:trustedDevices.removeAll')}
+        open={showRevokeAllDialog}
+        onOpenChange={setShowRevokeAllDialog}
+        title={t('users:devices.revokeAllTitle')}
+        description={t('users:devices.revokeAllDescription')}
+        confirmLabel={t('auth:devices.actions.revokeAll')}
         variant="destructive"
-        onConfirm={handleRemoveAll}
-        isLoading={isRemovingAll}
+        onConfirm={handleRevokeAll}
+        isLoading={isRevokingAll}
+      />
+
+      <DeviceDetailsSheet
+        device={selectedDevice}
+        open={!!selectedDevice}
+        onOpenChange={(open) => !open && setSelectedDevice(null)}
+        onRevoke={(device) => {
+          setSelectedDevice(null)
+          handleRevokeSingle(device.id)
+        }}
       />
     </div>
   )

@@ -23,11 +23,11 @@ Zusammenführung von `DeviceSession`, `TrustedDevice` und `DeviceApprovalRequest
 ### Akzeptanzkriterien
 - [x] Eine `Device` Entity ersetzt `DeviceSession`, `TrustedDevice`, `DeviceApprovalRequest`
 - [x] Device hat Status: `PendingApproval`, `Trusted`, `Revoked`
-- [x] Nach Device-Approval wird Login automatisch abgeschlossen (Tokens zurückgegeben)
+- [x] Nach Device-Approval kann User Login erneut versuchen (Device ist jetzt trusted)
 - [x] Device wird erst erstellt wenn Approval-Flow startet, nicht vorher
 - [x] User kann von bestehendem Device aus pending Devices genehmigen
 - [x] Eine API-Liste `/auth/devices` statt zwei getrennte
-- [x] Alle bestehenden Unit Tests angepasst und grün (314/314 pass inkl. 36 neue DeviceService Tests)
+- [x] Alle bestehenden Unit Tests angepasst und grün (315/315 pass inkl. 37 DeviceService Tests)
 
 ### Edge Cases / Error Handling
 - Was passiert mit bestehenden Sessions/TrustedDevices? → Migration konvertiert sie
@@ -267,8 +267,8 @@ Keine neuen Packages erforderlich.
 11. [x] **Application**: `ApproveDeviceFromSessionCommand` + Handler erstellen
 12. [x] **Application**: `LoginHandler.cs` aktualisieren (uses IDeviceService)
 13. [x] **Application**: `MfaVerifyHandler.cs` aktualisieren (uses IDeviceService)
-14. [x] **Application**: `ApproveDeviceHandler.cs` aktualisieren (return tokens!)
-15. [x] **Application**: `ApproveDeviceLinkHandler.cs` aktualisieren (return tokens!)
+14. [x] **Application**: `ApproveDeviceHandler.cs` aktualisieren (marks device trusted, no tokens)
+15. [x] **Application**: `ApproveDeviceLinkHandler.cs` aktualisieren (marks device trusted, no tokens)
 16. [x] **Application**: `DenyDeviceHandler.cs` aktualisieren
 17. [x] **Application**: `RefreshTokenHandler.cs` aktualisieren (DeviceId)
 18. [x] **Application**: `LogoutHandler.cs` aktualisieren (DeviceId)
@@ -289,8 +289,8 @@ Keine neuen Packages erforderlich.
 ### Phase 4: Migration + Cleanup ✅
 25. [x] **Infrastructure**: Migration erstellen (create table, migrate data, drop old)
 26. [x] **Delete**: Alte Entities, Services, Handlers, Configs (siehe Liste oben)
-27. [x] **Tests**: Alle Unit Tests anpassen (278/278 pass)
-28. [x] **Tests**: 36 Tests für DeviceService geschrieben (`DeviceServiceTests.cs`)
+27. [x] **Tests**: Alle Unit Tests anpassen (315/315 pass)
+28. [x] **Tests**: 37 Tests für DeviceService geschrieben (`DeviceServiceTests.cs`)
 
 ### Phase 5: Frontend
 29. [ ] **Types**: `device.ts` - DeviceDto type erstellen
@@ -361,7 +361,7 @@ User logged in on Device A (trusted)
 
 ## 13. Nach Completion
 
-- [x] Alle Unit Tests grün (278/278)
+- [x] Alle Unit Tests grün (315/315)
 - [ ] Migration getestet (lokale DB)
 - [x] `backend_reference.md` Memory aktualisiert
 - [x] Alte Backend Files gelöscht (all old entities, services, handlers, configs, DTOs)
@@ -371,15 +371,49 @@ User logged in on Device A (trusted)
 
 ## 14. Letzte Änderung
 
-- **Datum:** 2026-01-04
-- **Status:** ✅ Phase 4 COMPLETE - Backend Consolidation Done
+- **Datum:** 2026-01-06
+- **Status:** ✅ Phase 4 COMPLETE - Backend Consolidation Done (+ Bugfixes)
 - **Build:** ✅ Successful (0 errors, 8 warnings)
-- **Tests:** ✅ 278/278 pass
+- **Tests:** ✅ 315/315 pass
+- **Bugfixes (2026-01-05):**
+  - ✅ **FIX**: Duplicate key constraint `i_x_devices_user_id_device_id` - Device now reuses existing records instead of creating new ones
+    - Added `Device.ResetToPending()` method to reset existing device to pending status
+    - Modified `DeviceService.CreatePendingDeviceAsync()` to find and reuse existing devices
+    - Removed unused `InvalidateExistingDevicesAsync()` method
+  - ✅ **FIX**: Column `device_id1` not found in `refresh_tokens` - EF Core navigation property misconfiguration
+    - Fixed `RefreshTokenConfiguration.cs`: `.WithMany()` → `.WithMany(d => d.RefreshTokens)`
+  - ✅ Added 2 new tests for device reuse scenarios
+  - ✅ **API**: Renamed admin endpoints in `SystemUsersController`:
+    - `GET /system-users/{id}/sessions` → `GET /system-users/{id}/devices`
+    - `DELETE /system-users/{id}/sessions` → `DELETE /system-users/{id}/devices`
+    - `DELETE /system-users/{userId}/sessions/{sessionId}` → `DELETE /system-users/{userId}/devices/{deviceId}`
+  - ✅ **FIX**: SESSION_REVOKED error when approving device after admin revocation
+    - Root cause: Redis revoked session key not cleared when device reset to pending
+    - Added `IRevokedSessionService.ClearRevokedSessionAsync()` method
+    - `DeviceService.CreatePendingDeviceAsync()` now clears Redis key when reusing existing device
+  - ✅ **CHANGE**: Approve device no longer returns tokens
+    - `ApproveDeviceHandler` simplified - just marks device as trusted
+    - `ApproveDeviceLinkHandler` simplified - just marks device as trusted  
+    - User retries login on original device after approval (tokens issued then)
+    - Prevents tokens being sent to wrong device (e.g., mobile when approving for desktop)
+- **Bugfixes (2026-01-06):**
+  - ✅ **FIX**: Logout no longer revokes device trust
+    - Logout should end session, not device trust
+    - Removed `_deviceService.RevokeAsync()` from `LogoutHandler`
+    - User can log back in on same device without re-approval
+  - ✅ **FIX**: Device approval/deny link format changed to path parameter
+    - Email URLs: `/approve-device/{token}` and `/deny-device/{token}` (was query param)
+    - API endpoint: `GET /api/auth/approve-device-link/{token}` (was query param)
+  - ✅ **FEATURE**: RememberMe expiration now configurable
+    - Added `Jwt:RememberMeExpirationDays` config (default: 30)
+    - Changed `Jwt:RefreshTokenExpirationDays` default from 30 to 7
+    - Added `ITokenService.RememberMeExpirationDays` property
+    - Updated `LoginHandler`, `MfaVerifyHandler`, `RefreshTokenHandler` to use config
 - **Completed:**
   - ✅ New Device entity, DeviceStatus enum, DeviceConfiguration
   - ✅ New IDeviceService interface and DeviceService implementation
   - ✅ RefreshToken uses DeviceId (migrated from DeviceSessionId)
-  - ✅ ApproveDeviceHandler and ApproveDeviceLinkHandler return tokens (auto-login after approval!)
+  - ✅ ApproveDeviceHandler and ApproveDeviceLinkHandler mark device as trusted (user retries login after)
   - ✅ DenyDeviceHandler uses IDeviceService
   - ✅ AuthController new endpoints: GET/DELETE/PUT/POST /devices
   - ✅ New commands: GetDevices, RevokeDevice, RenameDevice, ApproveDeviceFromSession

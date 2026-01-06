@@ -252,6 +252,28 @@ public sealed class Device : BaseEntity
     }
 
     /// <summary>
+    /// Resets a device back to pending approval status (for re-verification scenarios like spoofing detection).
+    /// </summary>
+    public void ResetToPending(
+        string approvalToken,
+        string approvalCode,
+        int riskScore,
+        string riskFactors,
+        int expirationMinutes = 30)
+    {
+        Status = DeviceStatus.PendingApproval;
+        TrustedAt = null;
+        RevokedAt = null;
+        ApprovalTokenHash = HashValue(approvalToken);
+        ApprovalCodeHash = HashValue(NormalizeCode(approvalCode));
+        ApprovalExpiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
+        ApprovalAttempts = 0;
+        RiskScore = riskScore;
+        RiskFactors = riskFactors;
+        SetUpdated();
+    }
+
+    /// <summary>
     /// Clears approval-related data after approval/denial.
     /// </summary>
     private void ClearApprovalData()

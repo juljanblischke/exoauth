@@ -112,10 +112,9 @@ frontend/
 │   │   │   │   ├── auth-api.ts
 │   │   │   │   ├── mfa-api.ts
 │   │   │   │   ├── password-reset-api.ts
-│   │   │   │   ├── sessions-api.ts
 │   │   │   │   ├── preferences-api.ts
-│   │   │   │   ├── device-approval-api.ts      (Task 014)
-│   │   │   │   └── trusted-devices-api.ts      (Task 016)
+│   │   │   ├── device-approval-api.ts      (Task 014)
+│   │   │   │   └── devices-api.ts              (Task 018)
 │   │   │   ├── hooks/
 │   │   │   │   ├── use-login.ts
 │   │   │   │   ├── use-logout.ts
@@ -130,15 +129,11 @@ frontend/
 │   │   │   │   ├── use-regenerate-backup-codes.ts
 │   │   │   │   ├── use-forgot-password.ts
 │   │   │   │   ├── use-reset-password.ts
-│   │   │   │   ├── use-sessions.ts
-│   │   │   │   ├── use-revoke-session.ts
-│   │   │   │   ├── use-revoke-all-sessions.ts
-│   │   │   │   ├── use-update-session.ts
 │   │   │   │   ├── use-update-preferences.ts
-│   │   │   │   ├── use-trusted-devices.ts         (Task 016)
-│   │   │   │   ├── use-remove-trusted-device.ts   (Task 016)
-│   │   │   │   ├── use-rename-trusted-device.ts   (Task 016)
-│   │   │   │   ├── use-remove-all-other-devices.ts (Task 016)
+│   │   │   │   ├── use-devices.ts                 (Task 018)
+│   │   │   │   ├── use-revoke-device.ts           (Task 018)
+│   │   │   │   ├── use-rename-device.ts           (Task 018)
+│   │   │   │   ├── use-approve-device-from-session.ts (Task 018)
 │   │   │   │   ├── use-approve-device-by-code.ts  (Task 014)
 │   │   │   │   ├── use-approve-device-by-link.ts  (Task 014)
 │   │   │   │   ├── use-deny-device.ts             (Task 014)
@@ -154,22 +149,20 @@ frontend/
 │   │   │   │   ├── mfa-disable-modal.tsx
 │   │   │   │   ├── backup-codes-display.tsx
 │   │   │   │   ├── forgot-password-modal.tsx
-│   │   │   │   ├── session-card.tsx
-│   │   │   │   ├── sessions-list.tsx
-│   │   │   │   ├── session-details-sheet.tsx
 │   │   │   │   ├── device-approval-modal.tsx      (Task 014)
 │   │   │   │   ├── device-approval-code-input.tsx (Task 014)
-│   │   │   │   ├── trusted-device-card.tsx        (Task 016)
-│   │   │   │   ├── rename-device-modal.tsx        (Task 016)
-│   │   │   │   ├── trusted-devices-section.tsx    (Task 016)
+│   │   │   │   ├── device-status-badge.tsx        (Task 018)
+│   │   │   │   ├── device-card.tsx                (Task 018)
+│   │   │   │   ├── devices-list.tsx               (Task 018)
+│   │   │   │   ├── device-details-sheet.tsx       (Task 018)
+│   │   │   │   ├── rename-device-modal.tsx        (Task 018)
 │   │   │   │   └── index.ts
 │   │   │   ├── types/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── mfa.ts
 │   │   │   │   ├── password-reset.ts
-│   │   │   │   ├── sessions.ts
 │   │   │   │   ├── device-approval.ts             (Task 014)
-│   │   │   │   └── trusted-device.ts              (Task 016)
+│   │   │   │   └── device.ts                      (Task 018)
 │   │   │   └── index.ts
 │   │   │
 │   │   ├── users/
@@ -197,9 +190,9 @@ frontend/
 │   │   │   │   ├── use-activate-user.ts
 │   │   │   │   ├── use-anonymize-user.ts
 │   │   │   │   ├── use-update-invite.ts
-│   │   │   │   ├── use-user-trusted-devices.ts      (Task 016)
-│   │   │   │   ├── use-remove-user-trusted-device.ts (Task 016)
-│   │   │   │   ├── use-remove-all-user-trusted-devices.ts (Task 016)
+│   │   │   │   ├── use-user-devices.ts              (Task 018)
+│   │   │   │   ├── use-revoke-user-device.ts       (Task 018)
+│   │   │   │   ├── use-revoke-all-user-devices.ts  (Task 018)
 │   │   │   │   └── index.ts
 │   │   │   ├── components/
 │   │   │   │   ├── users-table.tsx
@@ -212,7 +205,7 @@ frontend/
 │   │   │   │   ├── invitations-table-columns.tsx
 │   │   │   │   ├── invite-details-sheet.tsx
 │   │   │   │   ├── user-sessions-section.tsx
-│   │   │   │   ├── user-devices-section.tsx       (Task 016)
+│   │   │   │   ├── user-devices-section.tsx       (Task 018)
 │   │   │   │   ├── user-status-badges.tsx
 │   │   │   │   ├── edit-invite-modal.tsx
 │   │   │   │   └── index.ts
@@ -223,10 +216,9 @@ frontend/
 │   │   │
 │   │   ├── settings/
 │   │   │   ├── components/
-│   │   │   │   ├── security-settings.tsx
 │   │   │   │   ├── language-settings.tsx
 │   │   │   │   ├── mfa-section.tsx
-│   │   │   │   ├── sessions-section.tsx
+│   │   │   │   ├── devices-section.tsx            (Task 018)
 │   │   │   │   └── index.ts
 │   │   │   └── index.ts
 │   │   │
@@ -598,5 +590,5 @@ import type { Feature } from '../types'
 ---
 
 ## Last Updated
-- **Date:** 2026-01-04
-- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016
+- **Date:** 2026-01-06
+- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016, 018

@@ -40,6 +40,11 @@ public interface ITokenService
     /// Gets the expiration time for refresh tokens.
     /// </summary>
     TimeSpan RefreshTokenExpiration { get; }
+
+    /// <summary>
+    /// Gets the expiration time in days for refresh tokens when "Remember Me" is enabled.
+    /// </summary>
+    int RememberMeExpirationDays { get; }
 }
 
 /// <summary>

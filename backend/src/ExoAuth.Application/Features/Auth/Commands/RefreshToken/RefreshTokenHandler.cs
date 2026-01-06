@@ -110,7 +110,7 @@ public sealed class RefreshTokenHandler : ICommandHandler<RefreshTokenCommand, T
 
         // Preserve RememberMe setting from old token
         var expirationDays = storedToken.RememberMe
-            ? 30
+            ? _tokenService.RememberMeExpirationDays
             : (int)_tokenService.RefreshTokenExpiration.TotalDays;
 
         var newRefreshTokenString = _tokenService.GenerateRefreshToken();

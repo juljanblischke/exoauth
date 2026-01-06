@@ -13,17 +13,11 @@ export { useMfaVerify } from './use-mfa-verify'
 export { useMfaDisable } from './use-mfa-disable'
 export { useRegenerateBackupCodes } from './use-regenerate-backup-codes'
 
-// Session hooks
-export { useSessions, SESSIONS_QUERY_KEY } from './use-sessions'
-export { useRevokeSession } from './use-revoke-session'
-export { useRevokeAllSessions } from './use-revoke-all-sessions'
-export { useUpdateSession } from './use-update-session'
-
-// Trusted devices hooks
-export { useTrustedDevices, TRUSTED_DEVICES_QUERY_KEY } from './use-trusted-devices'
-export { useRemoveTrustedDevice } from './use-remove-trusted-device'
-export { useRenameTrustedDevice } from './use-rename-trusted-device'
-export { useRemoveAllOtherDevices } from './use-remove-all-other-devices'
+// Device hooks
+export { useDevices, DEVICES_QUERY_KEY } from './use-devices'
+export { useRevokeDevice } from './use-revoke-device'
+export { useRenameDevice } from './use-rename-device'
+export { useApproveDeviceFromSession } from './use-approve-device-from-session'
 
 // Password reset hooks
 export { useForgotPassword } from './use-forgot-password'

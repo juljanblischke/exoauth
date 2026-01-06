@@ -63,8 +63,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Listen for session expired events from axios interceptor
   useEffect(() => {
     const handleSessionExpired = () => {
-      queryClient.setQueryData(AUTH_QUERY_KEY, null)
-      queryClient.clear()
+      // Redirect immediately to avoid re-render race conditions
       window.location.href = '/login'
     }
 

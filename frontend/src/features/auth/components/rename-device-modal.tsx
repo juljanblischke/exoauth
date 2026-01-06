@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { TrustedDeviceDto } from '../types/trusted-device'
+import type { DeviceDto } from '../types/device'
 
 function createRenameSchema(t: (key: string) => string) {
   return z.object({
@@ -30,19 +30,19 @@ function createRenameSchema(t: (key: string) => string) {
 type RenameFormData = z.infer<ReturnType<typeof createRenameSchema>>
 
 interface RenameDeviceModalProps {
-  device: TrustedDeviceDto | null
+  device: DeviceDto | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onRename: (deviceId: string, name: string) => void
-  isRenaming?: boolean
+  onConfirm: (name: string) => void
+  isLoading?: boolean
 }
 
 export function RenameDeviceModal({
   device,
   open,
   onOpenChange,
-  onRename,
-  isRenaming,
+  onConfirm,
+  isLoading,
 }: RenameDeviceModalProps) {
   const { t } = useTranslation()
   const renameSchema = useMemo(() => createRenameSchema(t), [t])
@@ -55,9 +55,7 @@ export function RenameDeviceModal({
   })
 
   const handleSubmit = form.handleSubmit((data) => {
-    if (device) {
-      onRename(device.id, data.name.trim())
-    }
+    onConfirm(data.name.trim())
   })
 
   if (!device) return null
@@ -67,20 +65,20 @@ export function RenameDeviceModal({
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{t('auth:trustedDevices.renameTitle')}</DialogTitle>
+            <DialogTitle>{t('auth:devices.rename.title')}</DialogTitle>
             <DialogDescription>
-              {device.browser} · {device.operatingSystem}
+              {t('auth:devices.rename.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="device-name">
-                {t('auth:trustedDevices.renameLabel')}
+                {t('auth:devices.rename.label')}
               </Label>
               <Input
                 id="device-name"
                 {...form.register('name')}
-                placeholder={t('auth:trustedDevices.renamePlaceholder')}
+                placeholder={t('auth:devices.rename.placeholder')}
                 autoFocus
               />
               {form.formState.errors.name && (
@@ -98,8 +96,8 @@ export function RenameDeviceModal({
             >
               {t('common:actions.cancel')}
             </Button>
-            <Button type="submit" disabled={!form.formState.isValid || isRenaming}>
-              {isRenaming && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            <Button type="submit" disabled={!form.formState.isValid || isLoading}>
+              {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {t('common:actions.save')}
             </Button>
           </DialogFooter>

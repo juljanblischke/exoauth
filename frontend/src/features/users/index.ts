@@ -27,15 +27,16 @@ export {
   // Admin hooks
   useResetUserMfa,
   useUnlockUser,
-  useUserSessions,
-  useRevokeUserSessions,
+  useUserDevices,
+  useRevokeUserDevice,
+  useRevokeAllUserDevices,
   useDeactivateUser,
   useActivateUser,
   useAnonymizeUser,
   SYSTEM_USERS_KEY,
   SYSTEM_USER_KEY,
   SYSTEM_INVITES_KEY,
-  USER_SESSIONS_KEY,
+  USER_DEVICES_KEY,
 } from './hooks'
 
 // Types

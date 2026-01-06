@@ -1,40 +1,40 @@
 import apiClient from '@/lib/axios'
 import type { ApiResponse } from '@/types'
 import type {
-  TrustedDeviceDto,
-  RemoveDeviceResponse,
-  RemoveAllDevicesResponse,
-} from '@/features/auth/types/trusted-device'
+  DeviceDto,
+  RevokeDeviceResponse,
+  RevokeAllDevicesResponse,
+} from '@/features/auth/types/device'
 
 export const userDevicesApi = {
   /**
-   * Get user's trusted devices (admin view)
+   * Get user's devices (admin view)
    */
-  getDevices: async (userId: string): Promise<TrustedDeviceDto[]> => {
-    const { data } = await apiClient.get<ApiResponse<TrustedDeviceDto[]>>(
+  getDevices: async (userId: string): Promise<DeviceDto[]> => {
+    const { data } = await apiClient.get<ApiResponse<DeviceDto[]>>(
       `/system/users/${userId}/devices`
     )
     return data.data
   },
 
   /**
-   * Remove a specific trusted device for a user
+   * Revoke a specific device for a user
    */
-  removeDevice: async (
+  revokeDevice: async (
     userId: string,
     deviceId: string
-  ): Promise<RemoveDeviceResponse> => {
-    const { data } = await apiClient.delete<ApiResponse<RemoveDeviceResponse>>(
+  ): Promise<RevokeDeviceResponse> => {
+    const { data } = await apiClient.delete<ApiResponse<RevokeDeviceResponse>>(
       `/system/users/${userId}/devices/${deviceId}`
     )
     return data.data
   },
 
   /**
-   * Remove all trusted devices for a user
+   * Revoke all devices for a user
    */
-  removeAllDevices: async (userId: string): Promise<RemoveAllDevicesResponse> => {
-    const { data } = await apiClient.delete<ApiResponse<RemoveAllDevicesResponse>>(
+  revokeAllDevices: async (userId: string): Promise<RevokeAllDevicesResponse> => {
+    const { data } = await apiClient.delete<ApiResponse<RevokeAllDevicesResponse>>(
       `/system/users/${userId}/devices`
     )
     return data.data

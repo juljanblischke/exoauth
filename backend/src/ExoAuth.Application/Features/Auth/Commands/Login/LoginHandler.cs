@@ -370,7 +370,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             userId: user.Id,
             userType: UserType.System,
             token: refreshTokenString,
-            expirationDays: command.RememberMe ? 30 : (int)_tokenService.RefreshTokenExpiration.TotalDays
+            expirationDays: command.RememberMe ? _tokenService.RememberMeExpirationDays : (int)_tokenService.RefreshTokenExpiration.TotalDays
         );
 
         // Link refresh token to device

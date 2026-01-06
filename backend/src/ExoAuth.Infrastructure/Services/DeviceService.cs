@@ -18,6 +18,7 @@ public sealed class DeviceService : IDeviceService
     private readonly IAppDbContext _context;
     private readonly IGeoIpService _geoIpService;
     private readonly IDeviceDetectionService _deviceDetectionService;
+    private readonly IRevokedSessionService _revokedSessionService;
     private readonly ILogger<DeviceService> _logger;
     private readonly int _expirationMinutes;
     private readonly int _maxCodeAttempts;
@@ -27,12 +28,14 @@ public sealed class DeviceService : IDeviceService
         IAppDbContext context,
         IGeoIpService geoIpService,
         IDeviceDetectionService deviceDetectionService,
+        IRevokedSessionService revokedSessionService,
         IConfiguration configuration,
         ILogger<DeviceService> logger)
     {
         _context = context;
         _geoIpService = geoIpService;
         _deviceDetectionService = deviceDetectionService;
+        _revokedSessionService = revokedSessionService;
         _logger = logger;
 
         var deviceTrust = configuration.GetSection("DeviceTrust");
@@ -120,13 +123,72 @@ public sealed class DeviceService : IDeviceService
         string? fingerprint = null,
         CancellationToken ct = default)
     {
-        // Invalidate any existing pending devices for this deviceId
-        await InvalidatePendingDevicesAsync(userId, deviceId, ct);
-
         // Serialize risk factors to JSON
         var riskFactorsJson = JsonSerializer.Serialize(riskFactors.ToList());
 
-        // Generate with collision prevention
+        // Check if any device already exists for this user + deviceId (regardless of status)
+        var existingDevice = await _context.Devices
+            .FirstOrDefaultAsync(d => d.UserId == userId && d.DeviceId == deviceId, ct);
+
+        if (existingDevice is not null)
+        {
+            // Reuse existing device - reset to pending with new approval credentials
+            for (var attempt = 0; attempt < MaxRetries; attempt++)
+            {
+                var token = Device.GenerateApprovalToken();
+                var code = Device.GenerateApprovalCode();
+
+                // Check for token hash collision
+                var tokenHash = Device.HashForCheck(token);
+                var exists = await _context.Devices
+                    .AnyAsync(x => x.ApprovalTokenHash == tokenHash && x.Id != existingDevice.Id, ct);
+
+                if (exists)
+                {
+                    _logger.LogWarning("Device approval token collision detected on attempt {Attempt}, regenerating", attempt + 1);
+                    continue;
+                }
+
+                existingDevice.ResetToPending(token, code, riskScore, riskFactorsJson, _expirationMinutes);
+                
+                // Update device info and location
+                existingDevice.SetDeviceInfo(
+                    deviceInfo.Browser,
+                    deviceInfo.BrowserVersion,
+                    deviceInfo.OperatingSystem,
+                    deviceInfo.OsVersion,
+                    deviceInfo.DeviceType);
+
+                existingDevice.SetLocation(
+                    geoLocation.Country,
+                    geoLocation.CountryCode,
+                    geoLocation.City,
+                    geoLocation.Latitude,
+                    geoLocation.Longitude);
+
+                if (!string.IsNullOrEmpty(fingerprint))
+                {
+                    existingDevice.UpdateFingerprint(fingerprint);
+                }
+
+                existingDevice.UpdateIpAddress(geoLocation.IpAddress);
+
+                await _context.SaveChangesAsync(ct);
+
+                // Clear any revoked session status in Redis (important for re-login after admin revocation)
+                await _revokedSessionService.ClearRevokedSessionAsync(existingDevice.Id, ct);
+
+                _logger.LogInformation(
+                    "Reset existing device {DeviceId} (Id: {DeviceDbId}) to pending for user {UserId}, risk score {RiskScore}",
+                    deviceId, existingDevice.Id, userId, riskScore);
+
+                return new PendingDeviceResult(existingDevice, token, code);
+            }
+
+            throw new InvalidOperationException("Failed to generate unique device approval token after maximum retries");
+        }
+
+        // No existing device - create new one
         for (var attempt = 0; attempt < MaxRetries; attempt++)
         {
             var token = Device.GenerateApprovalToken();
@@ -174,8 +236,8 @@ public sealed class DeviceService : IDeviceService
             await _context.SaveChangesAsync(ct);
 
             _logger.LogInformation(
-                "Created pending device {DeviceId} for user {UserId}, risk score {RiskScore}",
-                device.Id, userId, riskScore);
+                "Created pending device {DeviceId} (Id: {DeviceDbId}) for user {UserId}, risk score {RiskScore}",
+                deviceId, device.Id, userId, riskScore);
 
             return new PendingDeviceResult(device, token, code);
         }
@@ -480,23 +542,5 @@ public sealed class DeviceService : IDeviceService
 
     // ============ Private Helpers ============
 
-    private async Task InvalidatePendingDevicesAsync(Guid userId, string deviceId, CancellationToken ct)
-    {
-        var pendingDevices = await _context.Devices
-            .Where(d => d.UserId == userId && d.DeviceId == deviceId && d.Status == DeviceStatus.PendingApproval)
-            .ToListAsync(ct);
-
-        foreach (var device in pendingDevices)
-        {
-            device.Revoke();
-        }
-
-        if (pendingDevices.Count > 0)
-        {
-            await _context.SaveChangesAsync(ct);
-            _logger.LogDebug(
-                "Invalidated {Count} pending device(s) for device {DeviceId}",
-                pendingDevices.Count, deviceId);
-        }
-    }
+    
 }

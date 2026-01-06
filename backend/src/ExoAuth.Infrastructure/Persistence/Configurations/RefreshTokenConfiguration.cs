@@ -61,7 +61,7 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
 
         // Relationship with Device
         builder.HasOne(x => x.Device)
-            .WithMany()
+            .WithMany(d => d.RefreshTokens)
             .HasForeignKey(x => x.DeviceId)
             .OnDelete(DeleteBehavior.SetNull);
     }

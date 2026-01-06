@@ -47,7 +47,8 @@
     "continue": "Continue",
     "retry": "Retry",
     "account": "Account",
-    "logout": "Logout"
+    "logout": "Logout",
+    "rename": "Rename"
   },
   "search": {
     "placeholder": "Search...",
@@ -175,5 +176,12 @@
   "forceReauth": {
     "title": "Session Expired",
     "description": "Your permissions were changed. Please log in again."
+  },
+  "labels": {
+    "type": "Type",
+    "activity": "Activity",
+    "created": "Created",
+    "security": "Security",
+    "riskScore": "Risk Score"
   }
 }

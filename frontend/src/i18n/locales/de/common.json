@@ -47,7 +47,8 @@
     "continue": "Fortfahren",
     "retry": "Erneut versuchen",
     "account": "Konto",
-    "logout": "Abmelden"
+    "logout": "Abmelden",
+    "rename": "Umbenennen"
   },
   "search": {
     "placeholder": "Suchen...",
@@ -175,5 +176,12 @@
   "forceReauth": {
     "title": "Sitzung abgelaufen",
     "description": "Ihre Berechtigungen wurden geändert. Bitte melden Sie sich erneut an."
+  },
+  "labels": {
+    "type": "Typ",
+    "activity": "Aktivität",
+    "created": "Erstellt",
+    "security": "Sicherheit",
+    "riskScore": "Risikobewertung"
   }
 }

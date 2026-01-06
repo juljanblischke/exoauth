@@ -55,7 +55,8 @@
     "backupCodeTitle": "Backup-Code eingeben",
     "backupCodeDescription": "Geben Sie einen Ihrer Backup-Codes ein",
     "backupCodePlaceholder": "XXXXXXXX",
-    "backToCode": "Authenticator-Code verwenden"
+    "backToCode": "Authenticator-Code verwenden",
+    "startNewLogin": "Neuen Login starten"
   },
   "disable": {
     "title": "Zwei-Faktor-Authentifizierung deaktivieren",

@@ -350,7 +350,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
             userId: userId,
             userType: UserType.System,
             token: refreshTokenString,
-            expirationDays: command.RememberMe ? 30 : (int)_tokenService.RefreshTokenExpiration.TotalDays
+            expirationDays: command.RememberMe ? _tokenService.RememberMeExpirationDays : (int)_tokenService.RefreshTokenExpiration.TotalDays
         );
 
         refreshToken.LinkToDevice(device.Id);

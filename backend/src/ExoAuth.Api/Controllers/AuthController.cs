@@ -369,11 +369,11 @@ public sealed class AuthController : ApiControllerBase
     /// Called when user clicks the approval link in the email.
     /// Returns a redirect URL to the login page.
     /// </summary>
-    [HttpGet("approve-device-link")]
+    [HttpGet("approve-device-link/{token}")]
     [RateLimit(10)]
     [ProducesResponseType(typeof(ApproveDeviceLinkResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ApproveDeviceLink([FromQuery] string token, CancellationToken ct)
+    public async Task<IActionResult> ApproveDeviceLink([FromRoute] string token, CancellationToken ct)
     {
         var command = new ApproveDeviceLinkCommand(token);
         var result = await Mediator.Send(command, ct);

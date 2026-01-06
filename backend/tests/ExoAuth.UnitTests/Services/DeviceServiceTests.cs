@@ -1,4 +1,5 @@
 using ExoAuth.Application.Common.Interfaces;
+using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Application.Common.Models;
 using ExoAuth.Domain.Entities;
 using ExoAuth.Domain.Enums;
@@ -17,6 +18,7 @@ public sealed class DeviceServiceTests
     private readonly Mock<IAppDbContext> _mockContext;
     private readonly Mock<IGeoIpService> _mockGeoIpService;
     private readonly Mock<IDeviceDetectionService> _mockDeviceDetectionService;
+    private readonly Mock<IRevokedSessionService> _mockRevokedSessionService;
     private readonly Mock<ILogger<DeviceService>> _mockLogger;
     private readonly IConfiguration _configuration;
     private readonly List<Device> _devices;
@@ -27,6 +29,7 @@ public sealed class DeviceServiceTests
         _mockContext = new Mock<IAppDbContext>();
         _mockGeoIpService = new Mock<IGeoIpService>();
         _mockDeviceDetectionService = new Mock<IDeviceDetectionService>();
+        _mockRevokedSessionService = new Mock<IRevokedSessionService>();
         _mockLogger = new Mock<ILogger<DeviceService>>();
 
         var configValues = new Dictionary<string, string?>
@@ -48,6 +51,7 @@ public sealed class DeviceServiceTests
         _mockContext.Object,
         _mockGeoIpService.Object,
         _mockDeviceDetectionService.Object,
+        _mockRevokedSessionService.Object,
         _configuration,
         _mockLogger.Object);
 
@@ -328,11 +332,12 @@ public sealed class DeviceServiceTests
     }
 
     [Fact]
-    public async Task CreatePendingDeviceAsync_InvalidatesExistingPendingDevices()
+    public async Task CreatePendingDeviceAsync_ReusesExistingDeviceForSameDeviceId()
     {
         // Arrange
         var userId = Guid.NewGuid();
         var existingPending = CreatePendingDeviceForTest(userId, "device-id");
+        var originalId = existingPending.Id;
         _devices.Add(existingPending);
         SetupMockDbSets();
 
@@ -342,11 +347,43 @@ public sealed class DeviceServiceTests
         var service = CreateService();
 
         // Act
-        await service.CreatePendingDeviceAsync(
-            userId, "device-id", 50, Array.Empty<string>(), deviceInfo, geoLocation);
+        var result = await service.CreatePendingDeviceAsync(
+            userId, "device-id", 75, new[] { "new_factor" }, deviceInfo, geoLocation);
 
-        // Assert - existing pending should be revoked
-        existingPending.Status.Should().Be(DeviceStatus.Revoked);
+        // Assert - existing device should be reused and reset to pending
+        result.Device.Id.Should().Be(originalId); // Same device record
+        result.Device.Status.Should().Be(DeviceStatus.PendingApproval);
+        result.Device.RiskScore.Should().Be(75); // Updated risk score
+        result.ApprovalToken.Should().NotBeNullOrEmpty();
+        result.ApprovalCode.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task CreatePendingDeviceAsync_ResetsTrustedDeviceToPending_ForSpoofingScenario()
+    {
+        // Arrange - Trusted device exists (spoofing detection should reset it to pending)
+        var userId = Guid.NewGuid();
+        var trustedDevice = Device.CreateTrusted(userId, "device-id", null, "My Device", null, "192.168.1.1");
+        var originalId = trustedDevice.Id;
+        _devices.Add(trustedDevice);
+        SetupMockDbSets();
+
+        var deviceInfo = new DeviceInfo("Chrome", "120.0", "Windows", "10", "Desktop");
+        var geoLocation = new GeoLocation("10.0.0.1", "Germany", "DE", "Berlin", 52.52, 13.405);
+
+        var service = CreateService();
+
+        // Act - Create pending device for same deviceId (simulates spoofing detection)
+        var result = await service.CreatePendingDeviceAsync(
+            userId, "device-id", 90, new[] { "location_change", "impossible_travel" }, deviceInfo, geoLocation);
+
+        // Assert - existing trusted device should be reset to pending
+        result.Device.Id.Should().Be(originalId); // Same device record reused
+        result.Device.Status.Should().Be(DeviceStatus.PendingApproval);
+        result.Device.TrustedAt.Should().BeNull(); // Trust cleared
+        result.Device.RiskScore.Should().Be(90);
+        result.ApprovalToken.Should().NotBeNullOrEmpty();
+        result.ApprovalCode.Should().NotBeNullOrEmpty();
     }
 
     // ============ Device Approval Tests ============

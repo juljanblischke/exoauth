@@ -148,8 +148,8 @@ public sealed class EmailService : IEmailService
         string language = "en-US",
         CancellationToken cancellationToken = default)
     {
-        var approvalUrl = $"{_baseUrl}/approve-device?token={approvalToken}";
-        var denyUrl = $"{_baseUrl}/deny-device?token={approvalToken}";
+        var approvalUrl = $"{_baseUrl}/approve-device/{approvalToken}";
+        var denyUrl = $"{_baseUrl}/deny-device/{approvalToken}";
 
         var variables = new Dictionary<string, string>
         {

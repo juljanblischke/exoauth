@@ -91,4 +91,25 @@ public sealed class RevokedSessionService : IRevokedSessionService
             return false;
         }
     }
+
+    public async Task ClearRevokedSessionAsync(Guid sessionId, CancellationToken ct = default)
+    {
+        try
+        {
+            var db = await _redisFactory.GetDatabaseAsync(ct);
+            var key = $"{KeyPrefix}{sessionId}";
+
+            var deleted = await db.KeyDeleteAsync(key);
+
+            if (deleted)
+            {
+                _logger.LogDebug("Cleared revoked session status for {SessionId}", sessionId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to clear revoked session {SessionId}", sessionId);
+            // Don't throw - best effort cleanup
+        }
+    }
 }

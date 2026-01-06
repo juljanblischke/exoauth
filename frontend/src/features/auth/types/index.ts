@@ -102,13 +102,14 @@ export interface InviteValidationDto {
   errorMessage: string | null
 }
 
-// Re-export session types
+// Re-export device types
 export type {
-  DeviceSessionDto,
-  UpdateSessionRequest,
-  RevokeSessionResponse,
-  RevokeAllSessionsResponse,
-} from './sessions'
+  DeviceDto,
+  DeviceStatus,
+  RenameDeviceRequest,
+  RevokeDeviceResponse,
+  RevokeAllDevicesResponse,
+} from './device'
 
 // Re-export MFA types
 export type {
@@ -136,10 +137,4 @@ export type {
 
 export { isDeviceApprovalRequired } from './device-approval'
 
-// Re-export Trusted Device types
-export type {
-  TrustedDeviceDto,
-  RenameDeviceRequest,
-  RemoveDeviceResponse,
-  RemoveAllDevicesResponse,
-} from './trusted-device'
+

@@ -49,7 +49,7 @@ frontend/src/i18n/
 ### common.json
 
 ```
-actions.*          - save, cancel, delete, edit, create, add, close, confirm, etc.
+actions.*          - save, cancel, delete, edit, create, add, close, confirm, rename, etc.
 status.*           - active, inactive, pending, suspended, enabled, disabled
 states.*           - deleting, saving, processing
 table.*            - noResults, noData, loading, selected, columns
@@ -75,8 +75,9 @@ logout.*           - title, message, confirm
 session.*          - expiring, expired, extend
 mfa.*              - title, code, verify, useBackupCode
 password.*         - requirements, minLength, uppercase, lowercase, digit, special
-deviceApproval.*   - title, description, codeLabel, submitButton, denyLink, etc.
+deviceApproval.*   - title, description, codeLabel, submitButton, riskFactors.*, linkApproval.*, etc.
 trustedDevices.*   - title, description, current, removeAll, remove, rename, noDevices, etc.
+devices.*          - title, details, description, unknownDevice, current, empty.*, status.*, info.*, actions.*, rename.*, revoke.*, approve.*
 ```
 
 ### users.json
@@ -94,6 +95,7 @@ empty.*            - title, message, action
 invites.*          - title, search, empty, status.*, fields.*, actions.*
 admin.*            - actions, sessions, mfa, unlock, deactivate, activate, anonymize
 trustedDevices.*   - title, loading, noDevices, removeAll, remove, errors.*
+devices.*          - revokeSuccess, revokeAllSuccess, revokeAllTitle, revokeAllDescription
 ```
 
 ### sessions.json
@@ -117,7 +119,7 @@ status.*           - enabled, disabled
 enable.*           - button, description
 setup.*            - title, step1.title, step2.title, step3.title, cancel
 confirm.*          - title, description, warning, downloadButton, copyButton
-verify.*           - title, description, button, useBackupCode
+verify.*           - title, description, button, useBackupCode, startNewLogin
 disable.*          - title, description, button, success
 backupCodes.*      - title, regenerate
 errors.*           - codeInvalid, tokenInvalid, tokenExpired, setupFailed
@@ -229,5 +231,5 @@ function Component() {
 ---
 
 ## Last Updated
-- **Date:** 2026-01-04
-- **Latest Additions:** Trusted Devices keys in auth.json and users.json (Task 016)
+- **Date:** 2026-01-06
+- **Latest Additions:** Added riskFactors translations, mfa:verify.startNewLogin, auth:devices.details (Task 018 bug fixes)

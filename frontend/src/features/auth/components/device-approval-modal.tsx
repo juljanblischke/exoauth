@@ -10,11 +10,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
-import { getErrorMessage } from '@/lib/error-utils'
 
 import { DeviceApprovalCodeInput } from './device-approval-code-input'
-import { useApproveDeviceByCode, useDenyDevice } from '../hooks'
+import { useApproveDeviceByCode } from '../hooks'
 import type { DeviceApprovalModalState, DeviceApprovalModalProps } from '../types'
 
 export function DeviceApprovalModal({
@@ -23,8 +21,7 @@ export function DeviceApprovalModal({
   approvalToken,
   riskFactors,
   onSuccess,
-  onDeny,
-}: DeviceApprovalModalProps) {
+}: Omit<DeviceApprovalModalProps, 'onDeny'>) {
   const { t } = useTranslation()
 
   const [code, setCode] = useState('')
@@ -32,7 +29,6 @@ export function DeviceApprovalModal({
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null)
 
   const approveByCode = useApproveDeviceByCode()
-  const denyDevice = useDenyDevice()
 
   const resetModal = useCallback(() => {
     setCode('')
@@ -75,23 +71,6 @@ export function DeviceApprovalModal({
     )
   }
 
-  const handleDeny = () => {
-    denyDevice.mutate(
-      { approvalToken },
-      {
-        onSuccess: () => {
-          toast.warning(t('auth:deviceApproval.denied'))
-          resetModal()
-          onOpenChange(false)
-          onDeny()
-        },
-        onError: (error) => {
-          toast.error(getErrorMessage(error, t))
-        },
-      }
-    )
-  }
-
   const handleRetryLogin = () => {
     resetModal()
     onOpenChange(false)
@@ -112,7 +91,7 @@ export function DeviceApprovalModal({
 
   // Check if code is complete
   const isCodeComplete = code.replace('-', '').length === 8
-  const isLoading = modalState === 'loading' || denyDevice.isPending
+  const isLoading = modalState === 'loading'
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -135,7 +114,7 @@ export function DeviceApprovalModal({
                 key={factor}
                 className="rounded-full bg-amber-100 px-2 py-1 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400"
               >
-                {factor.replace('_', ' ')}
+                {t(`auth:deviceApproval.riskFactors.${factor}`, { defaultValue: factor.replace('_', ' ') })}
               </span>
             ))}
           </div>
@@ -186,15 +165,6 @@ export function DeviceApprovalModal({
                   t('auth:deviceApproval.submitButton')
                 )}
               </Button>
-
-              <button
-                type="button"
-                onClick={handleDeny}
-                disabled={isLoading}
-                className="w-full text-center text-sm text-destructive hover:underline disabled:opacity-50"
-              >
-                {t('auth:deviceApproval.denyLink')}
-              </button>
             </>
           )}
 

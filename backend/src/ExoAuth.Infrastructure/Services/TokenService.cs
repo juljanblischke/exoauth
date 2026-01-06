@@ -16,6 +16,7 @@ public sealed class TokenService : ITokenService
     private readonly string _audience;
     private readonly TimeSpan _accessTokenExpiration;
     private readonly TimeSpan _refreshTokenExpiration;
+    private readonly int _rememberMeExpirationDays;
     private readonly JwtSecurityTokenHandler _tokenHandler;
 
     public TokenService(IConfiguration configuration)
@@ -28,7 +29,8 @@ public sealed class TokenService : ITokenService
         _audience = jwtSection["Audience"] ?? "ExoAuth";
 
         var accessMinutes = int.Parse(jwtSection["AccessTokenExpirationMinutes"] ?? "15");
-        var refreshDays = int.Parse(jwtSection["RefreshTokenExpirationDays"] ?? "30");
+        var refreshDays = int.Parse(jwtSection["RefreshTokenExpirationDays"] ?? "7");
+        _rememberMeExpirationDays = int.Parse(jwtSection["RememberMeExpirationDays"] ?? "30");
 
         _accessTokenExpiration = TimeSpan.FromMinutes(accessMinutes);
         _refreshTokenExpiration = TimeSpan.FromDays(refreshDays);
@@ -40,6 +42,7 @@ public sealed class TokenService : ITokenService
 
     public TimeSpan AccessTokenExpiration => _accessTokenExpiration;
     public TimeSpan RefreshTokenExpiration => _refreshTokenExpiration;
+    public int RememberMeExpirationDays => _rememberMeExpirationDays;
 
     public string GenerateAccessToken(Guid userId, string email, UserType userType, IEnumerable<string> permissions, Guid? sessionId = null)
     {

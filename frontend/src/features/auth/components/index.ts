@@ -10,10 +10,12 @@ export { MfaVerifyModal } from './mfa-verify-modal'
 export { MfaDisableModal } from './mfa-disable-modal'
 export { BackupCodesDisplay } from './backup-codes-display'
 
-// Session components
-export { SessionCard } from './session-card'
-export { SessionsList } from './sessions-list'
-export { SessionDetailsSheet } from './session-details-sheet'
+// Device components
+export { DeviceStatusBadge } from './device-status-badge'
+export { DeviceCard } from './device-card'
+export { DevicesList } from './devices-list'
+export { DeviceDetailsSheet } from './device-details-sheet'
+export { RenameDeviceModal } from './rename-device-modal'
 
 // Password reset components
 export { ForgotPasswordModal } from './forgot-password-modal'
@@ -22,7 +24,4 @@ export { ForgotPasswordModal } from './forgot-password-modal'
 export { DeviceApprovalCodeInput } from './device-approval-code-input'
 export { DeviceApprovalModal } from './device-approval-modal'
 
-// Trusted devices components
-export { TrustedDeviceCard } from './trusted-device-card'
-export { TrustedDevicesSection } from './trusted-devices-section'
-export { RenameDeviceModal } from './rename-device-modal'
+

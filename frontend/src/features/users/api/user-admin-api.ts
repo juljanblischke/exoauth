@@ -1,6 +1,5 @@
 import apiClient from '@/lib/axios'
 import type { ApiResponse } from '@/types'
-import type { DeviceSessionDto, RevokeAllSessionsResponse } from '@/features/auth/types'
 
 // Admin action request types
 export interface AdminActionRequest {
@@ -27,22 +26,6 @@ export const userAdminApi = {
     const { data } = await apiClient.post<ApiResponse<AdminActionResponse>>(
       `/system/users/${userId}/unlock`,
       request || {}
-    )
-    return data.data
-  },
-
-  // Get user's sessions (admin view)
-  getSessions: async (userId: string): Promise<DeviceSessionDto[]> => {
-    const { data } = await apiClient.get<ApiResponse<DeviceSessionDto[]>>(
-      `/system/users/${userId}/sessions`
-    )
-    return data.data
-  },
-
-  // Revoke all user sessions
-  revokeSessions: async (userId: string): Promise<RevokeAllSessionsResponse> => {
-    const { data } = await apiClient.delete<ApiResponse<RevokeAllSessionsResponse>>(
-      `/system/users/${userId}/sessions`
     )
     return data.data
   },

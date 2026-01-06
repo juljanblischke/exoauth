@@ -10,24 +10,18 @@ public sealed class LogoutHandler : ICommandHandler<LogoutCommand, LogoutRespons
     private readonly IAppDbContext _context;
     private readonly ITokenBlacklistService _tokenBlacklist;
     private readonly IRevokedSessionService _revokedSessionService;
-    private readonly IDeviceService _deviceService;
     private readonly IAuditService _auditService;
-    private readonly ICurrentUserService _currentUser;
 
     public LogoutHandler(
         IAppDbContext context,
         ITokenBlacklistService tokenBlacklist,
         IRevokedSessionService revokedSessionService,
-        IDeviceService deviceService,
-        IAuditService auditService,
-        ICurrentUserService currentUser)
+        IAuditService auditService)
     {
         _context = context;
         _tokenBlacklist = tokenBlacklist;
         _revokedSessionService = revokedSessionService;
-        _deviceService = deviceService;
         _auditService = auditService;
-        _currentUser = currentUser;
     }
 
     public async ValueTask<LogoutResponse> Handle(LogoutCommand command, CancellationToken ct)
@@ -45,13 +39,11 @@ public sealed class LogoutHandler : ICommandHandler<LogoutCommand, LogoutRespons
             storedToken.Revoke();
             await _tokenBlacklist.BlacklistAsync(storedToken.Id, storedToken.ExpiresAt, ct);
 
-            // Also revoke the linked device for immediate access token invalidation
+            // Revoke session in Redis for immediate access token invalidation
+            // Note: Device stays trusted - logout ends session, not device trust
             if (storedToken.DeviceId.HasValue)
             {
                 await _revokedSessionService.RevokeSessionAsync(storedToken.DeviceId.Value, ct);
-
-                // Remove the device from DB
-                await _deviceService.RevokeAsync(storedToken.DeviceId.Value, ct);
             }
 
             await _context.SaveChangesAsync(ct);

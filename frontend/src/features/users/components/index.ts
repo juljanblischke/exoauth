@@ -7,7 +7,6 @@ export { UserPermissionsModal } from './user-permissions-modal'
 export { UserStatusBadges, MfaBadge, LockedBadge, AnonymizedBadge } from './user-status-badges'
 
 // Admin components
-export { UserSessionsSection } from './user-sessions-section'
 export { UserDevicesSection } from './user-devices-section'
 
 // Invitation management

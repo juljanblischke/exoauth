@@ -251,13 +251,13 @@ public sealed class SystemUsersController : ApiControllerBase
     /// <summary>
     /// Get all sessions for a system user.
     /// </summary>
-    [HttpGet("{id:guid}/sessions")]
+    [HttpGet("{id:guid}/devices")]
     [SystemPermission(SystemPermissions.UsersSessionsView)]
     [ProducesResponseType(typeof(List<DeviceDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetSessions(Guid id, CancellationToken ct)
+    public async Task<IActionResult> GetDevices(Guid id, CancellationToken ct)
     {
         var query = new GetUserSessionsQuery(id);
         var result = await Mediator.Send(query, ct);
@@ -267,13 +267,13 @@ public sealed class SystemUsersController : ApiControllerBase
     /// <summary>
     /// Revoke all sessions for a system user.
     /// </summary>
-    [HttpDelete("{id:guid}/sessions")]
+    [HttpDelete("{id:guid}/devices")]
     [SystemPermission(SystemPermissions.UsersSessionsRevoke)]
     [ProducesResponseType(typeof(RevokeUserSessionsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RevokeSessions(Guid id, CancellationToken ct)
+    public async Task<IActionResult> RevokeAllDevices(Guid id, CancellationToken ct)
     {
         var command = new RevokeUserSessionsCommand(id);
         var result = await Mediator.Send(command, ct);
@@ -283,15 +283,15 @@ public sealed class SystemUsersController : ApiControllerBase
     /// <summary>
     /// Revoke a specific session for a system user.
     /// </summary>
-    [HttpDelete("{userId:guid}/sessions/{sessionId:guid}")]
+    [HttpDelete("{userId:guid}/devices/{deviceId:guid}")]
     [SystemPermission(SystemPermissions.UsersSessionsRevoke)]
     [ProducesResponseType(typeof(RevokeUserSessionResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RevokeSession(Guid userId, Guid sessionId, CancellationToken ct)
+    public async Task<IActionResult> RevokeDevice(Guid userId, Guid deviceId, CancellationToken ct)
     {
-        var command = new RevokeUserSessionCommand(userId, sessionId);
+        var command = new RevokeUserSessionCommand(userId, deviceId);
         var result = await Mediator.Send(command, ct);
         return ApiOk(result);
     }

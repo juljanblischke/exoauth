@@ -203,6 +203,12 @@ export function LoginForm() {
         onOpenChange={setMfaVerifyOpen}
         mfaToken={mfaToken || ''}
         rememberMe={rememberMeForMfa}
+        onDeviceApprovalRequired={(response) => {
+          setMfaVerifyOpen(false)
+          setDeviceApprovalToken(response.approvalToken)
+          setDeviceRiskFactors(response.riskFactors)
+          setDeviceApprovalOpen(true)
+        }}
       />
 
       {/* MFA Setup Modal - shown when MFA is required but not set up */}
@@ -230,11 +236,6 @@ export function LoginForm() {
         riskFactors={deviceRiskFactors}
         onSuccess={() => {
           // After device approval, user needs to login again
-          setDeviceApprovalToken(null)
-          setDeviceRiskFactors([])
-        }}
-        onDeny={() => {
-          // After denying, just clear state
           setDeviceApprovalToken(null)
           setDeviceRiskFactors([])
         }}

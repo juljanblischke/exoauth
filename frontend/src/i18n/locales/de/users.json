@@ -220,5 +220,11 @@
     "remove": "Gerät entfernen",
     "removeSuccess": "Gerät entfernt",
     "removeAllSuccess": "Alle Geräte entfernt"
+  },
+  "devices": {
+    "revokeSuccess": "Gerät erfolgreich widerrufen",
+    "revokeAllSuccess": "Alle Geräte erfolgreich widerrufen",
+    "revokeAllTitle": "Alle Geräte widerrufen?",
+    "revokeAllDescription": "Dies meldet den Benutzer von allen Geräten ab und entfernt den Vertrauensstatus. Der Benutzer muss die Geräte erneut verifizieren."
   }
 }

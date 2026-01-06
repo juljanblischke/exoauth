@@ -26,4 +26,11 @@ public interface IRevokedSessionService
     /// <param name="ct">Cancellation token.</param>
     /// <returns>True if the session is revoked.</returns>
     Task<bool> IsSessionRevokedAsync(Guid sessionId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Clears the revoked status of a session (e.g., when device is reset to pending for re-verification).
+    /// </summary>
+    /// <param name="sessionId">The session ID to clear.</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task ClearRevokedSessionAsync(Guid sessionId, CancellationToken ct = default);
 }

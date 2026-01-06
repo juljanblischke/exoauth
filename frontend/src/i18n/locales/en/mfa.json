@@ -55,7 +55,8 @@
     "backupCodeTitle": "Enter Backup Code",
     "backupCodeDescription": "Enter one of your backup codes",
     "backupCodePlaceholder": "XXXXXXXX",
-    "backToCode": "Use authenticator code"
+    "backToCode": "Use authenticator code",
+    "startNewLogin": "Start New Login"
   },
   "disable": {
     "title": "Disable Two-Factor Authentication",

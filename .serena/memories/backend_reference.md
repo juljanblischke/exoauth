@@ -470,13 +470,16 @@ Every new endpoint MUST have:
 ---
 
 ## Last Updated
-- **Date:** 2026-01-04
-- **Tasks Completed:** 001-017 (278 Unit Tests)
+- **Date:** 2026-01-05
+- **Tasks Completed:** 001-017 (315 Unit Tests)
 - **Task 017:** Device Model Consolidation
   - Consolidated DeviceSession, TrustedDevice, DeviceApprovalRequest → Device entity
   - Consolidated IDeviceSessionService, ITrustedDeviceService, IDeviceApprovalService → IDeviceService
   - Device.Id now serves as session ID
   - DeviceStatus enum: PendingApproval, Trusted, Revoked
-  - Single /auth/devices endpoint (replaces /sessions + /trusted-devices)
+  - Auth API: `/auth/devices` (replaces /sessions + /trusted-devices)
+  - Admin API: `/system-users/{id}/devices` (replaces /sessions)
   - Auto-login after device approval (tokens returned)
   - Approve device from existing trusted session
+  - Device.ResetToPending() for spoofing detection (reuses existing device record)
+  - IRevokedSessionService.ClearRevokedSessionAsync() clears Redis on device reuse

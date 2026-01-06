@@ -8,6 +8,7 @@ const AUTH_SESSION_KEY = 'exoauth_has_session'
 
 interface UseMfaVerifyOptions {
   onDeviceApprovalRequired?: (response: DeviceApprovalRequiredResponse) => void
+  onError?: (error: unknown) => void
 }
 
 export function useMfaVerify(options?: UseMfaVerifyOptions) {
@@ -27,6 +28,9 @@ export function useMfaVerify(options?: UseMfaVerifyOptions) {
       localStorage.setItem(AUTH_SESSION_KEY, 'true')
       queryClient.setQueryData(AUTH_QUERY_KEY, response.user)
       navigate({ to: '/dashboard' })
+    },
+    onError: (error) => {
+      options?.onError?.(error)
     },
   })
 }

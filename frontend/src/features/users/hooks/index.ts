@@ -14,14 +14,11 @@ export { useUpdateInvite } from './use-update-invite'
 // Admin action hooks
 export { useResetUserMfa } from './use-reset-user-mfa'
 export { useUnlockUser } from './use-unlock-user'
-export { useUserSessions, USER_SESSIONS_KEY } from './use-user-sessions'
-export { useRevokeUserSession } from './use-revoke-user-session'
-export { useRevokeUserSessions } from './use-revoke-user-sessions'
 export { useDeactivateUser } from './use-deactivate-user'
 export { useActivateUser } from './use-activate-user'
 export { useAnonymizeUser } from './use-anonymize-user'
 
-// Trusted devices admin hooks
-export { useUserTrustedDevices, USER_TRUSTED_DEVICES_KEY } from './use-user-trusted-devices'
-export { useRemoveUserTrustedDevice } from './use-remove-user-trusted-device'
-export { useRemoveAllUserTrustedDevices } from './use-remove-all-user-trusted-devices'
+// Device admin hooks
+export { useUserDevices, USER_DEVICES_KEY } from './use-user-devices'
+export { useRevokeUserDevice } from './use-revoke-user-device'
+export { useRevokeAllUserDevices } from './use-revoke-all-user-devices'
