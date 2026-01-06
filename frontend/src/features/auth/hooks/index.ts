@@ -27,3 +27,13 @@ export { useResetPassword } from './use-reset-password'
 export { useApproveDeviceByCode } from './use-approve-device-by-code'
 export { useApproveDeviceByLink } from './use-approve-device-by-link'
 export { useDenyDevice } from './use-deny-device'
+
+// Passkey hooks
+export { usePasskeys, PASSKEYS_QUERY_KEY } from './use-passkeys'
+export { usePasskeyRegisterOptions } from './use-passkey-register-options'
+export { usePasskeyRegister } from './use-passkey-register'
+export { usePasskeyLoginOptions } from './use-passkey-login-options'
+export { usePasskeyLogin, type UsePasskeyLoginOptions } from './use-passkey-login'
+export { useRenamePasskey } from './use-rename-passkey'
+export { useDeletePasskey } from './use-delete-passkey'
+export { useWebAuthnSupport } from './use-webauthn-support'

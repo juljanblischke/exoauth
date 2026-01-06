@@ -43,7 +43,8 @@ public sealed class ForceReauthMiddleware
             path.Contains("/api/auth/mfa/setup") ||
             path.Contains("/api/auth/mfa/confirm") ||
             path.Contains("/api/auth/forgot-password") ||
-            path.Contains("/api/auth/reset-password"))
+            path.Contains("/api/auth/reset-password") ||
+            path.Contains("/api/auth/passkeys/login"))
         {
             await _next(context);
             return;

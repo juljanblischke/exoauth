@@ -66,7 +66,7 @@ forceReauth.*      - title, description
 ### auth.json
 
 ```
-login.*            - title, subtitle, email, password, rememberMe, signIn
+login.*            - title, subtitle, email, password, rememberMe, signIn, orContinueWith
 register.*         - title, subtitle, firstName, lastName, createAccount
 invite.*           - title, subtitle, accept, expired, invalid, revoked
 forgotPassword.*   - title, subtitle, sendLink, sent, enterCode
@@ -78,6 +78,7 @@ password.*         - requirements, minLength, uppercase, lowercase, digit, speci
 deviceApproval.*   - title, description, codeLabel, submitButton, riskFactors.*, linkApproval.*, etc.
 trustedDevices.*   - title, description, current, removeAll, remove, rename, noDevices, etc.
 devices.*          - title, details, description, unknownDevice, current, empty.*, status.*, info.*, actions.*, rename.*, revoke.*, approve.*
+passkeys.*         - title, description, loginButton, addButton, empty.*, card.*, register.*, rename.*, delete.*, login.*, notSupported.*, multiDeviceHint
 ```
 
 ### users.json
@@ -232,4 +233,4 @@ function Component() {
 
 ## Last Updated
 - **Date:** 2026-01-06
-- **Latest Additions:** Added riskFactors translations, mfa:verify.startNewLogin, auth:devices.details (Task 018 bug fixes)
+- **Latest Additions:** Added passkeys.* translations for WebAuthn/Passkey support (Task 020)

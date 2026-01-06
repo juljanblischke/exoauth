@@ -137,4 +137,14 @@ export type {
 
 export { isDeviceApprovalRequired } from './device-approval'
 
+// Re-export Passkey types
+export type {
+  PasskeyDto,
+  GetPasskeysResponse,
+  PasskeyRegisterOptionsResponse,
+  PasskeyRegisterRequest,
+  PasskeyLoginOptionsResponse,
+  PasskeyLoginRequest,
+  RenamePasskeyRequest,
+} from './passkey'
 

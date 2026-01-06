@@ -17,6 +17,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
     private readonly IBruteForceProtectionService _bruteForceService;
     private readonly IPermissionCacheService _permissionCache;
     private readonly IForceReauthService _forceReauthService;
+    private readonly IRevokedSessionService _revokedSessionService;
     private readonly IDeviceService _deviceService;
     private readonly IAuditService _auditService;
     private readonly IMfaService _mfaService;
@@ -36,6 +37,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         IBruteForceProtectionService bruteForceService,
         IPermissionCacheService permissionCache,
         IForceReauthService forceReauthService,
+        IRevokedSessionService revokedSessionService,
         IDeviceService deviceService,
         IAuditService auditService,
         IMfaService mfaService,
@@ -54,6 +56,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         _bruteForceService = bruteForceService;
         _permissionCache = permissionCache;
         _forceReauthService = forceReauthService;
+        _revokedSessionService = revokedSessionService;
         _deviceService = deviceService;
         _auditService = auditService;
         _mfaService = mfaService;
@@ -353,8 +356,9 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         // Record device usage (updates last used timestamp and location)
         await _deviceService.RecordUsageAsync(device.Id, command.IpAddress, geoLocation.CountryCode, geoLocation.City, ct);
 
-        // Clear force re-auth flag for this device session
+        // Clear force re-auth flag and revoked session status for this device
         await _forceReauthService.ClearFlagAsync(device.Id, ct);
+        await _revokedSessionService.ClearRevokedSessionAsync(device.Id, ct);
 
         // Generate tokens with device ID as session ID
         var accessToken = _tokenService.GenerateAccessToken(

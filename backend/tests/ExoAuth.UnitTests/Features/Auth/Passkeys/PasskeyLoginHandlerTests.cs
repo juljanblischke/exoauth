@@ -21,6 +21,7 @@ public sealed class PasskeyLoginHandlerTests
     private readonly Mock<IPermissionCacheService> _mockPermissionCache;
     private readonly Mock<ISystemUserRepository> _mockUserRepository;
     private readonly Mock<IForceReauthService> _mockForceReauthService;
+    private readonly Mock<IRevokedSessionService> _mockRevokedSessionService;
     private readonly Mock<IDeviceService> _mockDeviceService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly Mock<ILoginPatternService> _mockLoginPatternService;
@@ -35,6 +36,7 @@ public sealed class PasskeyLoginHandlerTests
         _mockPermissionCache = new Mock<IPermissionCacheService>();
         _mockUserRepository = new Mock<ISystemUserRepository>();
         _mockForceReauthService = new Mock<IForceReauthService>();
+        _mockRevokedSessionService = new Mock<IRevokedSessionService>();
         _mockDeviceService = new Mock<IDeviceService>();
         _mockAuditService = new Mock<IAuditService>();
         _mockLoginPatternService = new Mock<ILoginPatternService>();
@@ -63,6 +65,7 @@ public sealed class PasskeyLoginHandlerTests
         _mockPermissionCache.Object,
         _mockUserRepository.Object,
         _mockForceReauthService.Object,
+        _mockRevokedSessionService.Object,
         _mockDeviceService.Object,
         _mockAuditService.Object,
         _mockLoginPatternService.Object,

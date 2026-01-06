@@ -114,7 +114,8 @@ frontend/
 │   │   │   │   ├── password-reset-api.ts
 │   │   │   │   ├── preferences-api.ts
 │   │   │   ├── device-approval-api.ts      (Task 014)
-│   │   │   │   └── devices-api.ts              (Task 018)
+│   │   │   │   ├── devices-api.ts              (Task 018)
+│   │   │   │   └── passkeys-api.ts             (Task 020)
 │   │   │   ├── hooks/
 │   │   │   │   ├── use-login.ts
 │   │   │   │   ├── use-logout.ts
@@ -137,6 +138,14 @@ frontend/
 │   │   │   │   ├── use-approve-device-by-code.ts  (Task 014)
 │   │   │   │   ├── use-approve-device-by-link.ts  (Task 014)
 │   │   │   │   ├── use-deny-device.ts             (Task 014)
+│   │   │   │   ├── use-passkeys.ts                (Task 020)
+│   │   │   │   ├── use-passkey-register-options.ts (Task 020)
+│   │   │   │   ├── use-passkey-register.ts        (Task 020)
+│   │   │   │   ├── use-passkey-login-options.ts   (Task 020)
+│   │   │   │   ├── use-passkey-login.ts           (Task 020)
+│   │   │   │   ├── use-rename-passkey.ts          (Task 020)
+│   │   │   │   ├── use-delete-passkey.ts          (Task 020)
+│   │   │   │   ├── use-webauthn-support.ts        (Task 020)
 │   │   │   │   └── index.ts
 │   │   │   ├── components/
 │   │   │   │   ├── login-form.tsx
@@ -156,13 +165,21 @@ frontend/
 │   │   │   │   ├── devices-list.tsx               (Task 018)
 │   │   │   │   ├── device-details-sheet.tsx       (Task 018)
 │   │   │   │   ├── rename-device-modal.tsx        (Task 018)
+│   │   │   │   ├── passkey-login-button.tsx       (Task 020)
+│   │   │   │   ├── passkeys-section.tsx           (Task 020)
+│   │   │   │   ├── passkey-card.tsx               (Task 020)
+│   │   │   │   ├── passkey-empty-state.tsx        (Task 020)
+│   │   │   │   ├── register-passkey-modal.tsx     (Task 020)
+│   │   │   │   ├── rename-passkey-modal.tsx       (Task 020)
+│   │   │   │   ├── webauthn-not-supported.tsx     (Task 020)
 │   │   │   │   └── index.ts
 │   │   │   ├── types/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── mfa.ts
 │   │   │   │   ├── password-reset.ts
 │   │   │   │   ├── device-approval.ts             (Task 014)
-│   │   │   │   └── device.ts                      (Task 018)
+│   │   │   │   ├── device.ts                      (Task 018)
+│   │   │   │   └── passkey.ts                     (Task 020)
 │   │   │   └── index.ts
 │   │   │
 │   │   ├── users/
@@ -219,6 +236,7 @@ frontend/
 │   │   │   │   ├── language-settings.tsx
 │   │   │   │   ├── mfa-section.tsx
 │   │   │   │   ├── devices-section.tsx            (Task 018)
+│   │   │   │   ├── passkeys-section.tsx           (Task 020)
 │   │   │   │   └── index.ts
 │   │   │   └── index.ts
 │   │   │
@@ -272,7 +290,8 @@ frontend/
 │   ├── lib/
 │   │   ├── utils.ts               (cn helper)
 │   │   ├── axios.ts               (API client + interceptors)
-│   │   └── device.ts              (Device ID, Fingerprint)
+│   │   ├── device.ts              (Device ID, Fingerprint)
+│   │   └── webauthn.ts            (WebAuthn helpers, Task 020)
 │   │
 │   ├── routes/
 │   │   ├── __root.tsx
@@ -333,6 +352,7 @@ frontend/
 | date-fns | ^4.1.0 |
 | react-intersection-observer | ^10.0.0 |
 | qrcode.react | ^4.2.0 |
+| @simplewebauthn/browser | ^13.2.2 |
 | @radix-ui/* | various |
 
 ### DevDependencies
@@ -591,4 +611,4 @@ import type { Feature } from '../types'
 
 ## Last Updated
 - **Date:** 2026-01-06
-- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016, 018
+- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016, 018, 020

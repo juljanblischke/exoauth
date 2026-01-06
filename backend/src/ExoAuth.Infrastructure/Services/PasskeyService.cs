@@ -3,6 +3,7 @@ using ExoAuth.Application.Common.Models;
 using ExoAuth.Domain.Entities;
 using Fido2NetLib;
 using Fido2NetLib.Objects;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ExoAuth.Infrastructure.Services;
@@ -14,6 +15,7 @@ public sealed class PasskeyService : IPasskeyService
 {
     private readonly IFido2 _fido2;
     private readonly ICacheService _cache;
+    private readonly IAppDbContext _dbContext;
     private readonly ILogger<PasskeyService> _logger;
 
     private const int ChallengeTtlMinutes = 5;
@@ -22,10 +24,12 @@ public sealed class PasskeyService : IPasskeyService
     public PasskeyService(
         IFido2 fido2,
         ICacheService cache,
+        IAppDbContext dbContext,
         ILogger<PasskeyService> logger)
     {
         _fido2 = fido2;
         _cache = cache;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -103,9 +107,11 @@ public sealed class PasskeyService : IPasskeyService
                 options,
                 async (args, _) =>
                 {
-                    // Callback to check if credential already exists
-                    // This is handled at the handler level, so we return false (not a duplicate)
-                    return await Task.FromResult(false);
+                    // Callback to check if credential is unique (doesn't already exist)
+                    // Return true = credential IS unique, false = credential already exists
+                    var existingPasskey = await _dbContext.Passkeys
+                        .FirstOrDefaultAsync(p => p.CredentialId == args.CredentialId);
+                    return existingPasskey is null; // true if unique (not found)
                 });
 
             if (result.Result is null)

@@ -27,6 +27,7 @@ import { MfaSetupModal } from './mfa-setup-modal'
 import { MfaConfirmModal } from './mfa-confirm-modal'
 import { ForgotPasswordModal } from './forgot-password-modal'
 import { DeviceApprovalModal } from './device-approval-modal'
+import { PasskeyLoginButton } from './passkey-login-button'
 
 const AUTH_SESSION_KEY = 'exoauth_has_session'
 const AUTH_QUERY_KEY = ['auth', 'me'] as const
@@ -111,6 +112,34 @@ export function LoginForm() {
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <PasskeyLoginButton
+        onMfaRequired={(response: AuthResponse) => {
+          setMfaToken(response.mfaToken)
+          setRememberMeForMfa(false)
+          setMfaVerifyOpen(true)
+        }}
+        onMfaSetupRequired={(response: AuthResponse) => {
+          setSetupToken(response.setupToken)
+          setMfaSetupOpen(true)
+        }}
+        onDeviceApprovalRequired={(response: DeviceApprovalRequiredResponse) => {
+          setDeviceApprovalToken(response.approvalToken)
+          setDeviceRiskFactors(response.riskFactors)
+          setDeviceApprovalOpen(true)
+        }}
+      />
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+            {t('auth:login.orContinueWith')}
+          </span>
+        </div>
+      </div>
+
       {error && (
         <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
           {getErrorMessage(error, t)}

@@ -24,4 +24,12 @@ export { ForgotPasswordModal } from './forgot-password-modal'
 export { DeviceApprovalCodeInput } from './device-approval-code-input'
 export { DeviceApprovalModal } from './device-approval-modal'
 
+// Passkey components
+export { PasskeyLoginButton } from './passkey-login-button'
+export { PasskeysSection } from './passkeys-section'
+export { PasskeyCard } from './passkey-card'
+export { PasskeyEmptyState } from './passkey-empty-state'
+export { RegisterPasskeyModal } from './register-passkey-modal'
+export { RenamePasskeyModal } from './rename-passkey-modal'
+export { WebAuthnNotSupported } from './webauthn-not-supported'
 

@@ -20,6 +20,7 @@ public sealed class LoginHandlerTests
     private readonly Mock<IBruteForceProtectionService> _mockBruteForceService;
     private readonly Mock<IPermissionCacheService> _mockPermissionCache;
     private readonly Mock<IForceReauthService> _mockForceReauthService;
+    private readonly Mock<IRevokedSessionService> _mockRevokedSessionService;
     private readonly Mock<IDeviceService> _mockDeviceService;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly Mock<IMfaService> _mockMfaService;
@@ -41,6 +42,7 @@ public sealed class LoginHandlerTests
         _mockBruteForceService = new Mock<IBruteForceProtectionService>();
         _mockPermissionCache = new Mock<IPermissionCacheService>();
         _mockForceReauthService = new Mock<IForceReauthService>();
+        _mockRevokedSessionService = new Mock<IRevokedSessionService>();
         _mockDeviceService = new Mock<IDeviceService>();
         _mockAuditService = new Mock<IAuditService>();
         _mockMfaService = new Mock<IMfaService>();
@@ -102,6 +104,7 @@ public sealed class LoginHandlerTests
             _mockBruteForceService.Object,
             _mockPermissionCache.Object,
             _mockForceReauthService.Object,
+            _mockRevokedSessionService.Object,
             _mockDeviceService.Object,
             _mockAuditService.Object,
             _mockMfaService.Object,

@@ -3,7 +3,7 @@ import { Shield, Globe } from 'lucide-react'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageHeader } from '@/components/shared/layout'
-import { LanguageSettings, MfaSection, DevicesSection } from '@/features/settings'
+import { LanguageSettings, MfaSection, DevicesSection, PasskeysSection } from '@/features/settings'
 
 export function SettingsPage() {
   const { t } = useTranslation()
@@ -36,6 +36,11 @@ export function SettingsPage() {
           {/* Devices Section */}
           <div className="rounded-lg border bg-card p-6">
             <DevicesSection />
+          </div>
+
+          {/* Passkeys Section */}
+          <div className="rounded-lg border bg-card p-6">
+            <PasskeysSection />
           </div>
         </TabsContent>
 

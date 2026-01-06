@@ -16,6 +16,7 @@ public sealed class PasskeyLoginHandler : ICommandHandler<PasskeyLoginCommand, A
     private readonly IPermissionCacheService _permissionCache;
     private readonly ISystemUserRepository _userRepository;
     private readonly IForceReauthService _forceReauthService;
+    private readonly IRevokedSessionService _revokedSessionService;
     private readonly IDeviceService _deviceService;
     private readonly IAuditService _auditService;
     private readonly ILoginPatternService _loginPatternService;
@@ -29,6 +30,7 @@ public sealed class PasskeyLoginHandler : ICommandHandler<PasskeyLoginCommand, A
         IPermissionCacheService permissionCache,
         ISystemUserRepository userRepository,
         IForceReauthService forceReauthService,
+        IRevokedSessionService revokedSessionService,
         IDeviceService deviceService,
         IAuditService auditService,
         ILoginPatternService loginPatternService,
@@ -41,6 +43,7 @@ public sealed class PasskeyLoginHandler : ICommandHandler<PasskeyLoginCommand, A
         _permissionCache = permissionCache;
         _userRepository = userRepository;
         _forceReauthService = forceReauthService;
+        _revokedSessionService = revokedSessionService;
         _deviceService = deviceService;
         _auditService = auditService;
         _loginPatternService = loginPatternService;
@@ -166,8 +169,9 @@ public sealed class PasskeyLoginHandler : ICommandHandler<PasskeyLoginCommand, A
             ct
         );
 
-        // Clear force re-auth flag
+        // Clear force re-auth flag and revoked session status for this device
         await _forceReauthService.ClearFlagAsync(device.Id, ct);
+        await _revokedSessionService.ClearRevokedSessionAsync(device.Id, ct);
 
         // Generate tokens
         var accessToken = _tokenService.GenerateAccessToken(

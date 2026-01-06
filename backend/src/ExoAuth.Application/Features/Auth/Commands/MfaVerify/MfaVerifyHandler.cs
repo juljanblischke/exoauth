@@ -20,6 +20,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
     private readonly IDeviceService _deviceService;
     private readonly IPermissionCacheService _permissionCache;
     private readonly IForceReauthService _forceReauthService;
+    private readonly IRevokedSessionService _revokedSessionService;
     private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
     private readonly IEmailTemplateService _emailTemplateService;
@@ -39,6 +40,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         IDeviceService deviceService,
         IPermissionCacheService permissionCache,
         IForceReauthService forceReauthService,
+        IRevokedSessionService revokedSessionService,
         IAuditService auditService,
         IEmailService emailService,
         IEmailTemplateService emailTemplateService,
@@ -57,6 +59,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         _deviceService = deviceService;
         _permissionCache = permissionCache;
         _forceReauthService = forceReauthService;
+        _revokedSessionService = revokedSessionService;
         _auditService = auditService;
         _emailService = emailService;
         _emailTemplateService = emailTemplateService;
@@ -333,8 +336,9 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         // Record device usage (updates last used timestamp and location)
         await _deviceService.RecordUsageAsync(device.Id, command.IpAddress, geoLocation.CountryCode, geoLocation.City, ct);
 
-        // Clear force re-auth flag for this device session
+        // Clear force re-auth flag and revoked session status for this device
         await _forceReauthService.ClearFlagAsync(device.Id, ct);
+        await _revokedSessionService.ClearRevokedSessionAsync(device.Id, ct);
 
         // Generate tokens with device ID as session ID
         var accessToken = _tokenService.GenerateAccessToken(
