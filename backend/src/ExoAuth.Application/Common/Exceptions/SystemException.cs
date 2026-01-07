@@ -174,3 +174,46 @@ public sealed class UserSessionNotFoundException : SystemException
         UserId = userId;
     }
 }
+
+
+/// <summary>
+/// Exception when IP restriction is not found.
+/// </summary>
+public sealed class IpRestrictionNotFoundException : SystemException
+{
+    public Guid RestrictionId { get; }
+
+    public IpRestrictionNotFoundException(Guid restrictionId)
+        : base("IP_RESTRICTION_NOT_FOUND", $"IP restriction with ID {restrictionId} was not found", 404)
+    {
+        RestrictionId = restrictionId;
+    }
+}
+
+/// <summary>
+/// Exception when IP address or CIDR format is invalid.
+/// </summary>
+public sealed class IpRestrictionInvalidCidrException : SystemException
+{
+    public string IpAddress { get; }
+
+    public IpRestrictionInvalidCidrException(string ipAddress)
+        : base("IP_RESTRICTION_INVALID_CIDR", $"Invalid IP address or CIDR notation: {ipAddress}", 400)
+    {
+        IpAddress = ipAddress;
+    }
+}
+
+/// <summary>
+/// Exception when an IP restriction already exists.
+/// </summary>
+public sealed class IpRestrictionAlreadyExistsException : SystemException
+{
+    public string IpAddress { get; }
+
+    public IpRestrictionAlreadyExistsException(string ipAddress)
+        : base("IP_RESTRICTION_ALREADY_EXISTS", $"An active restriction for IP address {ipAddress} already exists", 409)
+    {
+        IpAddress = ipAddress;
+    }
+}

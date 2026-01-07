@@ -22,6 +22,7 @@ public sealed class AppDbContext : DbContext, IAppDbContext
     public DbSet<LoginPattern> LoginPatterns => Set<LoginPattern>();
     public DbSet<Device> Devices => Set<Device>();
     public DbSet<Passkey> Passkeys => Set<Passkey>();
+    public DbSet<IpRestriction> IpRestrictions => Set<IpRestriction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

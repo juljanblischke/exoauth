@@ -30,7 +30,7 @@ public sealed class CaptchaController : ControllerBase
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The public CAPTCHA configuration.</returns>
     [HttpGet("config")]
-    [RateLimit(30)]
+    [RateLimit("default")]
     [ProducesResponseType(typeof(ApiResponse<CaptchaPublicConfig>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetConfig(CancellationToken ct)
     {

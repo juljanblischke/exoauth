@@ -24,10 +24,13 @@ backend/
 │   │   │   ├── MfaBackupCode.cs
 │   │   │   ├── Device.cs                        (Task 017 - consolidated from DeviceSession, TrustedDevice, DeviceApprovalRequest)
 │   │   │   ├── LoginPattern.cs                  (Task 013)
-│   │   │   └── Passkey.cs                       (Task 019 - WebAuthn credentials)
+│   │   │   ├── Passkey.cs                       (Task 019 - WebAuthn credentials)
+│   │   │   └── IpRestriction.cs                 (Task 023 - Whitelist/Blacklist)
 │   │   ├── Enums/
 │   │   │   ├── UserType.cs
-│   │   │   └── DeviceStatus.cs                  (Task 017 - PendingApproval, Trusted, Revoked)
+│   │   │   ├── DeviceStatus.cs                  (Task 017 - PendingApproval, Trusted, Revoked)
+│   │   │   ├── IpRestrictionType.cs             (Task 023 - Whitelist, Blacklist)
+│   │   │   └── IpRestrictionSource.cs           (Task 023 - Manual, Automatic)
 │   │   └── Constants/
 │   │       └── SystemPermissions.cs
 │   │
@@ -64,7 +67,9 @@ backend/
 │   │   │   │   ├── ILoginPatternService.cs      (Task 013)
 │   │   │   │   ├── IPasskeyService.cs           (Task 019)
 │   │   │   │   ├── ICaptchaProvider.cs          (Task 021)
-│   │   │   │   └── ICaptchaService.cs           (Task 021)
+│   │   │   │   ├── ICaptchaService.cs           (Task 021)
+│   │   │   │   ├── IRateLimitService.cs         (Task 023)
+│   │   │   │   └── IIpRestrictionService.cs     (Task 023)
 │   │   │   └── Models/
 │   │   │       ├── ApiResponse.cs
 │   │   │       ├── ApiError.cs
@@ -77,7 +82,8 @@ backend/
 │   │   │       ├── PasskeyCredentialResult.cs   (Task 019)
 │   │   │       ├── CaptchaSettings.cs           (Task 021)
 │   │   │       ├── CaptchaResult.cs             (Task 021)
-│   │   │       └── CaptchaPublicConfig.cs       (Task 021)
+│   │   │       ├── CaptchaPublicConfig.cs       (Task 021)
+│   │   │       └── RateLimitSettings.cs         (Task 023)
 │   │   │   ├── Behaviors/
 │   │   │   │   └── ValidationBehavior.cs
 │   │   │   ├── Messages/
@@ -140,7 +146,15 @@ backend/
 │   │       │       └── SystemUserDto.cs
 │   │       ├── SystemPermissions/
 │   │       ├── SystemAuditLogs/
-│   │       └── SystemInvites/
+│   │       ├── SystemInvites/
+│   │       └── IpRestrictions/                      (Task 023)
+│   │           ├── Commands/
+│   │           │   ├── CreateIpRestriction/
+│   │           │   └── DeleteIpRestriction/
+│   │           ├── Queries/
+│   │           │   └── GetIpRestrictions/
+│   │           └── Models/
+│   │               └── IpRestrictionDto.cs
 │   │
 │   ├── ExoAuth.Infrastructure/
 │   │   ├── DependencyInjection.cs
@@ -157,7 +171,8 @@ backend/
 │   │   │   │   ├── MfaBackupCodeConfiguration.cs
 │   │   │   │   ├── DeviceConfiguration.cs                 (Task 017)
 │   │   │   │   ├── LoginPatternConfiguration.cs           (Task 013)
-│   │   │   │   └── PasskeyConfiguration.cs                (Task 019)
+│   │   │   │   ├── PasskeyConfiguration.cs                (Task 019)
+│   │   │   │   └── IpRestrictionConfiguration.cs          (Task 023)
 │   │   │   ├── Migrations/
 │   │   │   └── Repositories/
 │   │   │       └── SystemUserRepository.cs
@@ -196,11 +211,13 @@ backend/
 │   │       ├── LoginPatternService.cs           (Task 013)
 │       ├── PasskeyService.cs                (Task 019)
 │       ├── CaptchaService.cs                (Task 021)
-│       └── Captcha/
-│           ├── TurnstileProvider.cs         (Task 021)
-│           ├── RecaptchaV3Provider.cs       (Task 021)
-│           ├── HcaptchaProvider.cs          (Task 021)
-│           └── DisabledCaptchaProvider.cs   (Task 021)
+│       ├── Captcha/
+│       │   ├── TurnstileProvider.cs         (Task 021)
+│       │   ├── RecaptchaV3Provider.cs       (Task 021)
+│       │   ├── HcaptchaProvider.cs          (Task 021)
+│       │   └── DisabledCaptchaProvider.cs   (Task 021)
+│       ├── RateLimitService.cs              (Task 023)
+│       └── IpRestrictionService.cs          (Task 023)
 │   │
 │   ├── ExoAuth.EmailWorker/                     (Separate Microservice)
 │   │   ├── Program.cs
@@ -220,7 +237,8 @@ backend/
 │       │   ├── SystemPermissionsController.cs
 │       │   ├── SystemAuditLogsController.cs
 │       │   ├── SystemInvitesController.cs
-│       │   └── CaptchaController.cs             (Task 021)
+│       │   ├── CaptchaController.cs             (Task 021)
+│       │   └── IpRestrictionsController.cs      (Task 023)
 │       ├── Middleware/
 │       │   ├── ExceptionMiddleware.cs
 │       │   ├── RequestLoggingMiddleware.cs
@@ -264,8 +282,11 @@ backend/
 │   │   └── Captcha/                         (Task 021 - 49 tests)
     │   ├── SystemUsers/
     │   ├── SystemAuditLogs/
-    │   └── SystemInvites/
+    │   ├── SystemInvites/
+    │   └── IpRestrictions/                      (Task 023 - 27 tests)
     ├── Services/
+    │   ├── RateLimitServiceTests.cs             (Task 023 - 15 tests)
+    │   └── IpRestrictionServiceTests.cs         (Task 023 - 9 tests)
     └── Helpers/
         ├── MockDbContext.cs
         ├── TestDataFactory.cs
@@ -401,7 +422,7 @@ public sealed class {Feature}Controller : ControllerBase
     public {Feature}Controller(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
-    [RateLimit(10)]
+    [RateLimit("default")] // Use preset: strict, sensitive, default, lenient, admin
     public async Task<IActionResult> Create(Request request, CancellationToken ct)
     {
         var command = new CreateCommand(request.Property);
@@ -473,6 +494,15 @@ public sealed class {Feature}Controller : ControllerBase
 | `CAPTCHA_REQUIRED` | 400 | CAPTCHA verification required |
 | `CAPTCHA_INVALID` | 400 | CAPTCHA verification failed |
 
+### Rate Limiting / IP Restriction Errors (Task 023)
+| Code | HTTP | Description |
+|------|------|-------------|
+| `RATE_LIMIT_EXCEEDED` | 429 | Rate limit exceeded |
+| `IP_BLACKLISTED` | 403 | IP address is blacklisted |
+| `IP_RESTRICTION_NOT_FOUND` | 404 | IP restriction not found |
+| `IP_RESTRICTION_ALREADY_EXISTS` | 409 | IP restriction already exists |
+| `IP_RESTRICTION_INVALID_CIDR` | 400 | Invalid IP address or CIDR notation |
+
 ### Account Errors
 | Code | HTTP | Description |
 |------|------|-------------|
@@ -495,13 +525,24 @@ Every new endpoint MUST have:
 
 | Question | Action |
 |----------|--------|
-| Public endpoint? | `[RateLimit(10)]` |
-| Sensitive (login, register, reset)? | `[RateLimit(5)]` |
-| Auth-protected? | `[RateLimit]` (default 100/min) |
+| Very sensitive (login, register, reset)? | `[RateLimit("strict")]` (3/min) |
+| Sensitive (MFA, password change)? | `[RateLimit("sensitive")]` (5/min) |
+| Public endpoint? | `[RateLimit("default")]` (30/min) |
+| Auth-protected general? | `[RateLimit("lenient")]` (60/min) |
+| Admin endpoint? | `[RateLimit("admin")]` (100/min) |
+
+**Rate Limit Presets (Task 023):**
+- `strict`: 3/min, 15/hour, 50/day - Login, Register, Password Reset
+- `sensitive`: 5/min, 30/hour, 100/day - MFA, Device Approval
+- `default`: 30/min, 200/hour, 1000/day - Public endpoints
+- `lenient`: 60/min, 500/hour, 5000/day - Authenticated users
+- `admin`: 100/min, 1000/hour, 10000/day - Admin operations
 
 **Both Brute Force AND Rate Limiting are needed:**
 - Brute Force: Protects individual accounts
 - Rate Limiting: Protects API from spam/DoS
+- IP Whitelist: Bypasses rate limiting (trusted IPs)
+- IP Blacklist: Blocks all requests (malicious IPs)
 
 ---
 
@@ -512,70 +553,7 @@ Every new endpoint MUST have:
 3. **Application**: Commands/Queries + Handlers + Validators
 4. **API**: Controller + Endpoints
 5. **Tests**: Unit Tests
-6. **Update this memory file**
+6. **Update the Task file**
+7. **Update this memory file**
 
 ---
-
-## Last Updated
-
-- **Date:** 2026-01-07
-- **Task:** 021 - CAPTCHA Integration (Backend Complete)
-- **Tests:** 405 total tests passing (49 CAPTCHA-specific)
-- **Notes:** 
-  - CAPTCHA smart trigger bug fixed: MFA verify and device approval failed attempts now properly recorded to Redis
-  - New methods: `RecordFailedMfaAttemptAsync`, `RecordFailedDeviceApprovalAttemptAsync`
-  - ExceptionMiddleware enhanced: AccountLockedException now includes `lockedUntil` in response data field
-
----
-
-## Last Updated
-- **Date:** 2026-01-07
-- **Tasks Completed:** 001-021 (405 Unit Tests)
-- **Task 019:** Passkeys (WebAuthn/FIDO2)
-  - New entity: Passkey (CredentialId, PublicKey, Counter, CredType, AaGuid, Name, LastUsedAt)
-  - SystemUser extended with Passkeys collection
-  - IPasskeyService interface with Fido2NetLib integration
-  - PasskeyService with Redis challenge storage (5-minute TTL)
-  - Auth API endpoints:
-    - POST /auth/passkeys/register/options (get registration challenge)
-    - POST /auth/passkeys/register (complete registration)
-    - POST /auth/passkeys/login/options (get authentication challenge)
-    - POST /auth/passkeys/login (passwordless login)
-    - GET /auth/passkeys (list user's passkeys)
-    - PATCH /auth/passkeys/{id} (rename passkey)
-    - DELETE /auth/passkeys/{id} (remove passkey)
-  - Passkey login creates trusted device automatically
-  - Email notifications: passkey-registered, passkey-removed
-  - Error codes: PASSKEY_NOT_FOUND, PASSKEY_INVALID_CREDENTIAL, PASSKEY_REGISTRATION_FAILED, 
-    PASSKEY_ALREADY_REGISTERED, PASSKEY_CANNOT_DELETE_LAST
-  - 41 new unit tests for passkey handlers
-- **Task 021:** CAPTCHA Integration
-  - ICaptchaProvider interface for provider abstraction
-  - ICaptchaService interface for validation and smart triggering
-  - Providers: TurnstileProvider, RecaptchaV3Provider, HcaptchaProvider, DisabledCaptchaProvider
-  - CaptchaService with smart triggering based on:
-    - Failed login attempts threshold (Redis counter)
-    - Risk score threshold
-    - Per-context thresholds: Login, ApproveDevice, MfaVerify
-  - Models: CaptchaSettings, CaptchaResult, CaptchaPublicConfig, SmartTriggerSettings
-  - API endpoint: GET /captcha/config (returns provider + siteKey)
-  - Commands updated with CAPTCHA validation:
-    - Register: Always required (if CAPTCHA enabled)
-    - ForgotPassword: Always required (if CAPTCHA enabled)
-    - Login: Smart triggered (failed attempts or risk score)
-    - ApproveDevice: Smart triggered
-    - MfaVerify: Smart triggered
-  - Error codes: CAPTCHA_REQUIRED, CAPTCHA_INVALID
-  - appsettings.json configuration for provider selection
-  - 49 new unit tests for CAPTCHA functionality
-- **Task 017:** Device Model Consolidation
-  - Consolidated DeviceSession, TrustedDevice, DeviceApprovalRequest → Device entity
-  - Consolidated IDeviceSessionService, ITrustedDeviceService, IDeviceApprovalService → IDeviceService
-  - Device.Id now serves as session ID
-  - DeviceStatus enum: PendingApproval, Trusted, Revoked
-  - Auth API: `/auth/devices` (replaces /sessions + /trusted-devices)
-  - Admin API: `/system-users/{id}/devices` (replaces /sessions)
-  - Auto-login after device approval (tokens returned)
-  - Approve device from existing trusted session
-  - Device.ResetToPending() for spoofing detection (reuses existing device record)
-  - IRevokedSessionService.ClearRevokedSessionAsync() clears Redis on device reuse

@@ -35,6 +35,7 @@ public static class DependencyInjection
 
         // Redis
         services.AddSingleton<RedisConnectionFactory>();
+        services.AddSingleton<IRedisConnectionFactory>(sp => sp.GetRequiredService<RedisConnectionFactory>());
         services.AddSingleton<ICacheService, RedisCacheService>();
 
         // RabbitMQ
@@ -86,6 +87,11 @@ public static class DependencyInjection
 
         // Passkey Services
         services.AddScoped<IPasskeyService, PasskeyService>();
+
+        // Rate Limiting Services
+        services.Configure<RateLimitSettings>(configuration.GetSection("RateLimiting"));
+        services.AddSingleton<IRateLimitService, RateLimitService>();
+        services.AddScoped<IIpRestrictionService, IpRestrictionService>();
 
         // CAPTCHA Services
         services.Configure<CaptchaSettings>(configuration.GetSection("Captcha"));

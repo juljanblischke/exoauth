@@ -19,6 +19,7 @@ public interface IAppDbContext
     DbSet<LoginPattern> LoginPatterns { get; }
     DbSet<Device> Devices { get; }
     DbSet<Passkey> Passkeys { get; }
+    DbSet<IpRestriction> IpRestrictions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

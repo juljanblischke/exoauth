@@ -50,7 +50,7 @@ public sealed class AuthController : ApiControllerBase
     /// First user must complete MFA setup before gaining access.
     /// </summary>
     [HttpPost("register")]
-    [RateLimit(5)]
+    [RateLimit("sensitive")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -85,7 +85,7 @@ public sealed class AuthController : ApiControllerBase
     /// Login with email and password.
     /// </summary>
     [HttpPost("login")]
-    [RateLimit(5)]
+    [RateLimit("sensitive")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
@@ -117,7 +117,7 @@ public sealed class AuthController : ApiControllerBase
     /// Refresh access token using refresh token.
     /// </summary>
     [HttpPost("refresh")]
-    [RateLimit(10)]
+    [RateLimit("mfa")]
     [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Refresh(RefreshTokenRequest? request, CancellationToken ct)
@@ -147,7 +147,7 @@ public sealed class AuthController : ApiControllerBase
     /// Logout and revoke refresh token.
     /// </summary>
     [HttpPost("logout")]
-    [RateLimit(10)]
+    [RateLimit("mfa")]
     [ProducesResponseType(typeof(LogoutResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Logout(LogoutRequest? request, CancellationToken ct)
     {
@@ -208,7 +208,7 @@ public sealed class AuthController : ApiControllerBase
     /// Validate an invitation token and get details.
     /// </summary>
     [HttpGet("invite")]
-    [RateLimit(10)]
+    [RateLimit("mfa")]
     [ProducesResponseType(typeof(InviteValidationDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> ValidateInvite([FromQuery] string token, CancellationToken ct)
     {
@@ -223,7 +223,7 @@ public sealed class AuthController : ApiControllerBase
     /// Accept an invitation and create account.
     /// </summary>
     [HttpPost("accept-invite")]
-    [RateLimit(5)]
+    [RateLimit("sensitive")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AcceptInvite(AcceptInviteRequest request, CancellationToken ct)
@@ -253,7 +253,7 @@ public sealed class AuthController : ApiControllerBase
     /// Request a password reset email.
     /// </summary>
     [HttpPost("forgot-password")]
-    [RateLimit(3)]
+    [RateLimit("forgot-password")]
     [ProducesResponseType(typeof(ForgotPasswordResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct)
     {
@@ -272,7 +272,7 @@ public sealed class AuthController : ApiControllerBase
     /// Reset password using token or code.
     /// </summary>
     [HttpPost("reset-password")]
-    [RateLimit(5)]
+    [RateLimit("sensitive")]
     [ProducesResponseType(typeof(ResetPasswordResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken ct)
@@ -366,7 +366,7 @@ public sealed class AuthController : ApiControllerBase
     /// Called when user enters the code from the approval email.
     /// </summary>
     [HttpPost("approve-device")]
-    [RateLimit(5)]
+    [RateLimit("sensitive")]
     [ProducesResponseType(typeof(ApproveDeviceResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
@@ -388,7 +388,7 @@ public sealed class AuthController : ApiControllerBase
     /// Returns a redirect URL to the login page.
     /// </summary>
     [HttpGet("approve-device-link/{token}")]
-    [RateLimit(10)]
+    [RateLimit("mfa")]
     [ProducesResponseType(typeof(ApproveDeviceLinkResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ApproveDeviceLink([FromRoute] string token, CancellationToken ct)
@@ -404,7 +404,7 @@ public sealed class AuthController : ApiControllerBase
     /// This will revoke the device session and send a security alert.
     /// </summary>
     [HttpPost("deny-device")]
-    [RateLimit(5)]
+    [RateLimit("sensitive")]
     [ProducesResponseType(typeof(DenyDeviceResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DenyDevice(DenyDeviceRequest request, CancellationToken ct)
@@ -425,7 +425,7 @@ public sealed class AuthController : ApiControllerBase
     /// - SetupToken in body: For forced MFA setup during login flow
     /// </summary>
     [HttpPost("mfa/setup")]
-    [RateLimit(3)]
+    [RateLimit("forgot-password")]
     [ProducesResponseType(typeof(MfaSetupResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -443,7 +443,7 @@ public sealed class AuthController : ApiControllerBase
     /// - SetupToken in body: For forced MFA setup during login/registration (returns tokens + backup codes)
     /// </summary>
     [HttpPost("mfa/confirm")]
-    [RateLimit(5)]
+    [RateLimit("sensitive")]
     [ProducesResponseType(typeof(MfaConfirmResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -473,7 +473,7 @@ public sealed class AuthController : ApiControllerBase
     /// Verify MFA code during login. Accepts TOTP code or backup code.
     /// </summary>
     [HttpPost("mfa/verify")]
-    [RateLimit(5)]
+    [RateLimit("sensitive")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -505,7 +505,7 @@ public sealed class AuthController : ApiControllerBase
     /// </summary>
     [HttpPost("mfa/disable")]
     [Authorize]
-    [RateLimit(3)]
+    [RateLimit("forgot-password")]
     [ProducesResponseType(typeof(MfaDisableResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -521,7 +521,7 @@ public sealed class AuthController : ApiControllerBase
     /// </summary>
     [HttpPost("mfa/backup-codes")]
     [Authorize]
-    [RateLimit(3)]
+    [RateLimit("forgot-password")]
     [ProducesResponseType(typeof(RegenerateBackupCodesResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -542,7 +542,7 @@ public sealed class AuthController : ApiControllerBase
     /// </summary>
     [HttpPost("passkeys/register/options")]
     [Authorize]
-    [RateLimit(10)]
+    [RateLimit("mfa")]
     [ProducesResponseType(typeof(PasskeyRegisterOptionsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> PasskeyRegisterOptions(CancellationToken ct)
@@ -557,7 +557,7 @@ public sealed class AuthController : ApiControllerBase
     /// </summary>
     [HttpPost("passkeys/register")]
     [Authorize]
-    [RateLimit(5)]
+    [RateLimit("sensitive")]
     [ProducesResponseType(typeof(PasskeyDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -577,7 +577,7 @@ public sealed class AuthController : ApiControllerBase
     /// Get WebAuthn assertion options for passkey login.
     /// </summary>
     [HttpPost("passkeys/login/options")]
-    [RateLimit(10)]
+    [RateLimit("mfa")]
     [ProducesResponseType(typeof(PasskeyLoginOptionsResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> PasskeyLoginOptions(PasskeyLoginOptionsRequest? request, CancellationToken ct)
     {
@@ -590,7 +590,7 @@ public sealed class AuthController : ApiControllerBase
     /// Login with passkey using the assertion response.
     /// </summary>
     [HttpPost("passkeys/login")]
-    [RateLimit(5)]
+    [RateLimit("sensitive")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

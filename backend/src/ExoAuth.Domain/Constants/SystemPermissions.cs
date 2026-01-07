@@ -39,6 +39,10 @@ public static class SystemPermissions
     public const string ProjectsUpdate = "system:projects:update";
     public const string ProjectsDelete = "system:projects:delete";
 
+    // IP Restrictions
+    public const string IpRestrictionsRead = "system:ip-restrictions:read";
+    public const string IpRestrictionsManage = "system:ip-restrictions:manage";
+
     /// <summary>
     /// All system permissions for seeding and first user registration.
     /// </summary>
@@ -77,6 +81,10 @@ public static class SystemPermissions
         (ProjectsCreate, "Create system-owned projects", "Projects"),
         (ProjectsUpdate, "Edit system-owned projects", "Projects"),
         (ProjectsDelete, "Delete system-owned projects", "Projects"),
+
+        // IP Restrictions
+        (IpRestrictionsRead, "View IP whitelist and blacklist", "Security"),
+        (IpRestrictionsManage, "Manage IP whitelist and blacklist", "Security"),
     };
 
     /// <summary>

@@ -4,7 +4,7 @@ using StackExchange.Redis;
 
 namespace ExoAuth.Infrastructure.Caching;
 
-public sealed class RedisConnectionFactory : IDisposable
+public sealed class RedisConnectionFactory : IRedisConnectionFactory, IDisposable
 {
     private readonly ILogger<RedisConnectionFactory> _logger;
     private readonly string _connectionString;

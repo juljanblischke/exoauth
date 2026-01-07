@@ -109,6 +109,12 @@ public static class ErrorCodes
     public const string CaptchaInvalid = "AUTH_CAPTCHA_INVALID";
     public const string CaptchaExpired = "AUTH_CAPTCHA_EXPIRED";
 
+    // IP Restriction Errors (400/403/404/409)
+    public const string IpBlacklisted = "IP_BLACKLISTED";
+    public const string IpRestrictionNotFound = "IP_RESTRICTION_NOT_FOUND";
+    public const string IpRestrictionInvalidCidr = "IP_RESTRICTION_INVALID_CIDR";
+    public const string IpRestrictionDuplicate = "IP_RESTRICTION_DUPLICATE";
+
     // User Errors (400)
     public const string UserAlreadyAnonymized = "USER_ALREADY_ANONYMIZED";
     public const string CannotAnonymizeSelf = "CANNOT_ANONYMIZE_SELF";
