@@ -50,6 +50,8 @@
     "logout": "Abmelden",
     "rename": "Umbenennen"
   },
+  "selectDate": "Datum auswählen",
+  "deleting": "Wird gelöscht...",
   "search": {
     "placeholder": "Suchen...",
     "noResults": "Keine Ergebnisse gefunden."

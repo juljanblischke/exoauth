@@ -1,0 +1,78 @@
+{
+  "title": "IP Restrictions",
+  "subtitle": "Manage IP whitelist and blacklist",
+  "table": {
+    "ipAddress": "IP Address",
+    "type": "Type",
+    "reason": "Reason",
+    "source": "Source",
+    "expiresAt": "Expires",
+    "createdAt": "Created",
+    "createdBy": "Created By",
+    "actions": "Actions",
+    "noResults": "No IP restrictions found",
+    "noResultsDescription": "Add your first IP restriction to get started."
+  },
+  "type": {
+    "whitelist": "Whitelist",
+    "blacklist": "Blacklist"
+  },
+  "source": {
+    "manual": "Manual",
+    "auto": "Automatic"
+  },
+  "filters": {
+    "search": "Search IP or reason...",
+    "type": "Type",
+    "source": "Source",
+    "allTypes": "All types",
+    "allSources": "All sources"
+  },
+  "create": {
+    "title": "Add IP Restriction",
+    "description": "Add an IP address to the whitelist or blacklist.",
+    "ipAddress": "IP Address",
+    "ipAddressPlaceholder": "e.g., 192.168.1.1 or 10.0.0.0/8",
+    "ipAddressDescription": "Single IP or CIDR notation",
+    "invalidIp": "Invalid IP address or CIDR notation",
+    "type": "Type",
+    "typePlaceholder": "Select type",
+    "reason": "Reason",
+    "reasonPlaceholder": "Why is this IP being added?",
+    "expiresAt": "Expires At",
+    "expiresAtDescription": "Leave empty for permanent restriction",
+    "permanent": "Permanent",
+    "submit": "Add Restriction",
+    "success": "IP restriction created successfully",
+    "getMyIp": "Get my IP address"
+  },
+  "edit": {
+    "title": "Edit IP Restriction",
+    "description": "Modify the type, reason, or expiration of this IP restriction.",
+    "ipAddressReadonly": "IP address cannot be changed"
+  },
+  "update": {
+    "success": "IP restriction updated successfully"
+  },
+  "delete": {
+    "title": "Delete IP Restriction",
+    "description": "Are you sure you want to delete this IP restriction? This action cannot be undone.",
+    "confirm": "Delete",
+    "success": "IP restriction deleted successfully"
+  },
+  "details": {
+    "title": "IP Restriction Details",
+    "ipAddress": "IP Address",
+    "type": "Type",
+    "reason": "Reason",
+    "source": "Source",
+    "expiresAt": "Expires At",
+    "createdAt": "Created At",
+    "createdBy": "Created By",
+    "never": "Never",
+    "system": "System",
+    "temporary": "Temporary"
+  },
+  "expired": "Expired",
+  "never": "Never"
+}

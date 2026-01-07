@@ -134,4 +134,10 @@ public static class AuditActions
     public const string PasskeyLoginFailed = "system.passkey.login_failed";
     public const string PasskeyRenamed = "system.passkey.renamed";
     public const string PasskeyDeleted = "system.passkey.deleted";
+
+    // IP restriction actions
+    public const string IpWhitelisted = "system.ip.whitelisted";
+    public const string IpBlacklisted = "system.ip.blacklisted";
+    public const string IpRestrictionUpdated = "system.ip.restriction_updated";
+    public const string IpRestrictionDeleted = "system.ip.restriction_deleted";
 }

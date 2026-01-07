@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/sonner'
+import { GlobalErrorHandler } from '@/components/shared'
 import { AuthProvider, ThemeProvider, SidebarProvider } from '@/contexts'
 import '@/i18n'
 import type { ReactNode } from 'react'
@@ -26,6 +27,7 @@ export function AppProviders({ children }: AppProvidersProps) {
           <SidebarProvider>
             {children}
             <Toaster position="bottom-right" richColors closeButton />
+            <GlobalErrorHandler />
           </SidebarProvider>
         </AuthProvider>
       </ThemeProvider>

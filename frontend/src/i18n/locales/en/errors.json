@@ -42,7 +42,12 @@
     "ACCOUNT_LOCKED_UNTIL": "Account is locked until {{time}}.",
     "MFA_CODE_INVALID": "Invalid verification code. Please try again.",
     "MFA_TOKEN_INVALID": "MFA session expired. Please sign in again.",
-    "MFA_TOKEN_EXPIRED": "MFA session expired. Please sign in again."
+    "MFA_TOKEN_EXPIRED": "MFA session expired. Please sign in again.",
+    "IP_BLACKLISTED": "Your IP address has been blocked.",
+    "IP_RESTRICTION_NOT_FOUND": "IP restriction not found.",
+    "IP_RESTRICTION_INVALID_CIDR": "Invalid IP address or CIDR notation.",
+    "IP_RESTRICTION_DUPLICATE": "This IP address is already in the list.",
+    "IP_RESTRICTION_ALREADY_EXISTS": "An active restriction for this IP address already exists."
   },
   "general": {
     "title": "Something went wrong",
@@ -78,6 +83,15 @@
     "code": "401",
     "message": "Your session has expired. Please sign in again.",
     "signIn": "Sign In"
+  },
+  "rateLimited": {
+    "title": "Too Many Requests",
+    "message": "You're making requests too quickly. Please slow down.",
+    "withRetry": "Please wait {{seconds}} seconds before trying again."
+  },
+  "ipBlacklisted": {
+    "title": "Access Blocked",
+    "message": "Your IP address has been blocked. Please contact support if you believe this is an error."
   },
   "api": {
     "badRequest": "Invalid request. Please check your input.",

@@ -17,6 +17,7 @@ const routeLabels: Record<string, string> = {
   users: 'navigation:breadcrumb.users',
   permissions: 'navigation:breadcrumb.permissions',
   'audit-logs': 'navigation:breadcrumb.auditLogs',
+  'ip-restrictions': 'navigation:breadcrumb.ipRestrictions',
   organizations: 'navigation:breadcrumb.organizations',
   projects: 'navigation:breadcrumb.projects',
   settings: 'navigation:breadcrumb.settings',

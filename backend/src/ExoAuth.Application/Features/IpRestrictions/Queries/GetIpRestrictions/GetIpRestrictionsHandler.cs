@@ -79,7 +79,8 @@ public sealed class GetIpRestrictionsHandler : IQueryHandler<GetIpRestrictionsQu
                 x.ExpiresAt,
                 x.CreatedAt,
                 x.CreatedByUserId,
-                x.CreatedByUser != null ? x.CreatedByUser.Email : null
+                x.CreatedByUser != null ? x.CreatedByUser.Email : null,
+                x.CreatedByUser != null ? x.CreatedByUser.FirstName + " " + x.CreatedByUser.LastName : null
             ))
             .ToListAsync(ct);
 

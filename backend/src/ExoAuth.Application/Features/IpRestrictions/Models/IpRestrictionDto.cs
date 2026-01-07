@@ -14,7 +14,8 @@ public sealed record IpRestrictionDto(
     DateTime? ExpiresAt,
     DateTime CreatedAt,
     Guid? CreatedByUserId,
-    string? CreatedByUserEmail
+    string? CreatedByUserEmail,
+    string? CreatedByUserFullName
 );
 
 /// <summary>
@@ -22,6 +23,15 @@ public sealed record IpRestrictionDto(
 /// </summary>
 public sealed record CreateIpRestrictionRequest(
     string IpAddress,
+    IpRestrictionType Type,
+    string Reason,
+    DateTime? ExpiresAt
+);
+
+/// <summary>
+/// Request to update an existing IP restriction.
+/// </summary>
+public sealed record UpdateIpRestrictionRequest(
     IpRestrictionType Type,
     string Reason,
     DateTime? ExpiresAt

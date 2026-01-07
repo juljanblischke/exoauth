@@ -61,6 +61,8 @@ interface DataTableProps<TData, TValue> {
       render?: (value: unknown, row: TData) => React.ReactNode
     }>
     avatar?: (row: TData) => { name?: string; email?: string; imageUrl?: string }
+    /** Custom icon element to display instead of avatar (e.g., for non-user entities) */
+    icon?: (row: TData) => React.ReactNode
   }
   tableId?: string
   initialSorting?: SortingState
@@ -219,6 +221,7 @@ export function DataTable<TData, TValue>({
                 secondaryField={mobileCard.secondaryField}
                 tertiaryFields={mobileCard.tertiaryFields}
                 avatar={mobileCard.avatar?.(row)}
+                icon={mobileCard.icon?.(row)}
                 actions={rowActions}
                 isSelected={rowSelection[index] ?? false}
                 onSelect={

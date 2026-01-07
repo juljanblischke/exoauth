@@ -42,7 +42,12 @@
     "ACCOUNT_LOCKED_UNTIL": "Konto ist gesperrt bis {{time}}.",
     "MFA_CODE_INVALID": "Ungültiger Verifizierungscode. Bitte versuchen Sie es erneut.",
     "MFA_TOKEN_INVALID": "MFA-Sitzung abgelaufen. Bitte melden Sie sich erneut an.",
-    "MFA_TOKEN_EXPIRED": "MFA-Sitzung abgelaufen. Bitte melden Sie sich erneut an."
+    "MFA_TOKEN_EXPIRED": "MFA-Sitzung abgelaufen. Bitte melden Sie sich erneut an.",
+    "IP_BLACKLISTED": "Ihre IP-Adresse wurde blockiert.",
+    "IP_RESTRICTION_NOT_FOUND": "IP-Einschränkung nicht gefunden.",
+    "IP_RESTRICTION_INVALID_CIDR": "Ungültige IP-Adresse oder CIDR-Notation.",
+    "IP_RESTRICTION_DUPLICATE": "Diese IP-Adresse ist bereits in der Liste.",
+    "IP_RESTRICTION_ALREADY_EXISTS": "Eine aktive Einschränkung für diese IP-Adresse existiert bereits."
   },
   "general": {
     "title": "Etwas ist schiefgelaufen",
@@ -78,6 +83,15 @@
     "code": "401",
     "message": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
     "signIn": "Anmelden"
+  },
+  "rateLimited": {
+    "title": "Zu viele Anfragen",
+    "message": "Sie senden Anfragen zu schnell. Bitte langsamer.",
+    "withRetry": "Bitte warten Sie {{seconds}} Sekunden, bevor Sie es erneut versuchen."
+  },
+  "ipBlacklisted": {
+    "title": "Zugriff blockiert",
+    "message": "Ihre IP-Adresse wurde blockiert. Bitte kontaktieren Sie den Support, wenn Sie glauben, dass dies ein Fehler ist."
   },
   "api": {
     "badRequest": "Ungültige Anfrage. Bitte überprüfen Sie Ihre Eingabe.",

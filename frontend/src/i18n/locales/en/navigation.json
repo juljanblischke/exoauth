@@ -10,6 +10,7 @@
     "users": "Users",
     "permissions": "Permissions",
     "auditLogs": "Audit Logs",
+    "ipRestrictions": "IP Restrictions",
     "organizations": "Organizations",
     "projects": "Projects",
     "settings": "Settings"
@@ -23,6 +24,7 @@
     "editUser": "Edit User",
     "permissions": "Permissions",
     "auditLogs": "Audit Logs",
+    "ipRestrictions": "IP Restrictions",
     "organizations": "Organizations",
     "projects": "Projects",
     "settings": "Settings"

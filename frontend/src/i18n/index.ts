@@ -13,6 +13,7 @@ import enAuditLogs from './locales/en/auditLogs.json'
 import enSettings from './locales/en/settings.json'
 import enMfa from './locales/en/mfa.json'
 import enSessions from './locales/en/sessions.json'
+import enIpRestrictions from './locales/en/ipRestrictions.json'
 
 // DE imports
 import deCommon from './locales/de/common.json'
@@ -25,6 +26,7 @@ import deAuditLogs from './locales/de/auditLogs.json'
 import deSettings from './locales/de/settings.json'
 import deMfa from './locales/de/mfa.json'
 import deSessions from './locales/de/sessions.json'
+import deIpRestrictions from './locales/de/ipRestrictions.json'
 
 export const defaultNS = 'common'
 export const resources = {
@@ -39,6 +41,7 @@ export const resources = {
     settings: enSettings,
     mfa: enMfa,
     sessions: enSessions,
+    ipRestrictions: enIpRestrictions,
   },
   'de-DE': {
     common: deCommon,
@@ -51,6 +54,7 @@ export const resources = {
     settings: deSettings,
     mfa: deMfa,
     sessions: deSessions,
+    ipRestrictions: deIpRestrictions,
   },
 } as const
 
@@ -61,7 +65,7 @@ i18n
     resources,
     fallbackLng: 'en-US',
     defaultNS,
-    ns: ['common', 'auth', 'navigation', 'users', 'errors', 'validation', 'auditLogs', 'settings', 'mfa', 'sessions'],
+    ns: ['common', 'auth', 'navigation', 'users', 'errors', 'validation', 'auditLogs', 'settings', 'mfa', 'sessions', 'ipRestrictions'],
     interpolation: {
       escapeValue: false,
     },

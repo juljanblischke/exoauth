@@ -50,6 +50,26 @@ apiClient.interceptors.response.use(
       _retry?: boolean
     }
 
+    // Handle 429 Too Many Requests (Rate Limiting)
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers['retry-after']
+      window.dispatchEvent(
+        new CustomEvent('api:rate-limited', {
+          detail: { retryAfter: retryAfter ? parseInt(retryAfter, 10) : undefined },
+        })
+      )
+      return Promise.reject(transformError(error))
+    }
+
+    // Handle 403 Forbidden - check for IP blacklist
+    if (error.response?.status === 403) {
+      const errorCode = error.response.data?.errors?.[0]?.code
+      if (errorCode === 'IP_BLACKLISTED') {
+        window.dispatchEvent(new CustomEvent('api:ip-blacklisted'))
+        return Promise.reject(transformError(error))
+      }
+    }
+
     // Handle 401 Unauthorized - attempt token refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Check for force re-auth header (permissions changed, don't try refresh)

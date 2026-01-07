@@ -5,6 +5,7 @@ import {
   Settings,
   Building2,
   FolderKanban,
+  Shield,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -42,6 +43,12 @@ export const navigation: NavSection[] = [
         href: '/audit-logs',
         icon: FileText,
         permission: 'system:audit:read',
+      },
+      {
+        label: 'navigation:items.ipRestrictions',
+        href: '/ip-restrictions',
+        icon: Shield,
+        permission: 'system:ip-restrictions:read',
       },
     ],
   },

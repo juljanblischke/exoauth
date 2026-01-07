@@ -33,7 +33,7 @@ Erweitertes Rate Limiting System mit Sliding Window, Multiple Time Windows, Per-
 
 ### Edge Cases / Error Handling
 - Was passiert bei IP in CIDR Notation? → Unterstützen (z.B. `10.0.0.0/8`)
-- Was passiert wenn IP sowohl in Whitelist als auch Blacklist? → Blacklist hat Priorität
+- Was passiert wenn IP sowohl in Whitelist als auch Blacklist? → Not allowed (one entry per IP)
 - Was passiert bei abgelaufenen Blacklist-Einträgen? → Werden ignoriert (Cleanup Job optional)
 - Was passiert bei ungültiger IP/CIDR? → Validation Error
 
@@ -52,6 +52,7 @@ X-RateLimit-Reset: 1704067200 (Unix timestamp)
 |--------|-------|--------------|----------|--------------|
 | GET | `/api/admin/ip-restrictions` | Query params | `PagedList<IpRestrictionDto>` | Liste mit Sorting/Filter/Pagination |
 | POST | `/api/admin/ip-restrictions` | `CreateIpRestrictionRequest` | `IpRestrictionDto` | Whitelist/Blacklist hinzufügen |
+| PATCH | `/api/admin/ip-restrictions/{id}` | `UpdateIpRestrictionRequest` | `IpRestrictionDto` | Type/Reason/ExpiresAt ändern |
 | DELETE | `/api/admin/ip-restrictions/{id}` | - | 204 | Eintrag entfernen |
 
 ### Query Parameters für GET
@@ -69,9 +70,16 @@ X-RateLimit-Reset: 1704067200 (Unix timestamp)
 ### Request/Response Models
 
 ```csharp
-// Request
+// Create Request
 public record CreateIpRestrictionRequest(
     string IpAddress,          // IP or CIDR (e.g., "1.2.3.4" or "10.0.0.0/8")
+    IpRestrictionType Type,    // Whitelist or Blacklist
+    string Reason,
+    DateTime? ExpiresAt        // null = permanent
+);
+
+// Update Request
+public record UpdateIpRestrictionRequest(
     IpRestrictionType Type,    // Whitelist or Blacklist
     string Reason,
     DateTime? ExpiresAt        // null = permanent
@@ -87,7 +95,8 @@ public record IpRestrictionDto(
     DateTime? ExpiresAt,
     DateTime CreatedAt,
     Guid? CreatedByUserId,
-    string? CreatedByUserEmail
+    string? CreatedByUserEmail,
+    string? CreatedByUserFullName   // Added for display in UI
 );
 ```
 
@@ -199,6 +208,8 @@ public enum IpRestrictionSource
 | CreateIpRestrictionCommand.cs | `src/ExoAuth.Application/Features/Admin/IpRestrictions/Commands/CreateIpRestriction/CreateIpRestrictionCommand.cs` | Command |
 | CreateIpRestrictionHandler.cs | `src/ExoAuth.Application/Features/Admin/IpRestrictions/Commands/CreateIpRestriction/CreateIpRestrictionHandler.cs` | Handler |
 | CreateIpRestrictionValidator.cs | `src/ExoAuth.Application/Features/Admin/IpRestrictions/Commands/CreateIpRestriction/CreateIpRestrictionValidator.cs` | Validator |
+| UpdateIpRestrictionCommand.cs | `src/ExoAuth.Application/Features/Admin/IpRestrictions/Commands/UpdateIpRestriction/UpdateIpRestrictionCommand.cs` | Command |
+| UpdateIpRestrictionHandler.cs | `src/ExoAuth.Application/Features/Admin/IpRestrictions/Commands/UpdateIpRestriction/UpdateIpRestrictionHandler.cs` | Handler |
 | DeleteIpRestrictionCommand.cs | `src/ExoAuth.Application/Features/Admin/IpRestrictions/Commands/DeleteIpRestriction/DeleteIpRestrictionCommand.cs` | Command |
 | DeleteIpRestrictionHandler.cs | `src/ExoAuth.Application/Features/Admin/IpRestrictions/Commands/DeleteIpRestriction/DeleteIpRestrictionHandler.cs` | Handler |
 
@@ -293,8 +304,9 @@ public async Task<RateLimitResult> CheckRateLimitAsync(string key, int limit, Ti
 | `tests/ExoAuth.UnitTests/Services/RateLimitServiceTests.cs` | Sliding Window, Multi-Window, Presets, Per-User | 15 |
 | `tests/ExoAuth.UnitTests/Services/IpRestrictionServiceTests.cs` | Whitelist, Blacklist, CIDR, Cache, Auto-Blacklist | 9 |
 | `tests/ExoAuth.UnitTests/Features/IpRestrictions/CreateIpRestrictionHandlerTests.cs` | Create Handler, Validation, Duplicates | 20 |
-| `tests/ExoAuth.UnitTests/Features/IpRestrictions/DeleteIpRestrictionHandlerTests.cs` | Delete Handler, Cache Invalidation | 5 |
-| **Total** | | **51** |
+| `tests/ExoAuth.UnitTests/Features/IpRestrictions/UpdateIpRestrictionHandlerTests.cs` | Update Handler, Type change, Duplicate check | 11 |
+| `tests/ExoAuth.UnitTests/Features/IpRestrictions/DeleteIpRestrictionHandlerTests.cs` | Delete Handler, Cache Invalidation | 7 |
+| **Total** | | **59** |
 
 > Note: GetIpRestrictionsHandlerTests was removed due to EF Core async mock limitations with `.Select()` projections.
 
@@ -309,7 +321,7 @@ public async Task<RateLimitResult> CheckRateLimitAsync(string key, int limit, Ti
 
 - **Datum:** 2026-01-07
 - **Status:** ✅ Completed
-- **Tests:** 51 new tests (15 RateLimitService, 9 IpRestrictionService, 27 Handlers)
+- **Tests:** 59 new tests (15 RateLimitService, 9 IpRestrictionService, 35 Handlers)
 - **Notes:**
   - Sliding window rate limiting with Redis sorted sets
   - Multi-window support: per-minute, per-hour, per-day limits
@@ -318,3 +330,6 @@ public async Task<RateLimitResult> CheckRateLimitAsync(string key, int limit, Ti
   - CIDR notation support for IP ranges
   - Auto-blacklist on repeated rate limit violations
   - All controllers migrated from numeric values to preset names
+  - Full CRUD (Create, Read, Update, Delete) for IP restrictions with audit logging
+  - IpRestrictionDto includes CreatedByUserFullName for UI display
+  - Constraint: Each IP can only be whitelisted OR blacklisted, not both

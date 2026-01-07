@@ -22,6 +22,8 @@ interface DataTableCardProps<TData> {
     render?: (value: unknown, row: TData) => React.ReactNode
   }>
   avatar?: { name?: string; email?: string; imageUrl?: string }
+  /** Custom icon element to display instead of avatar (e.g., for non-user entities) */
+  icon?: React.ReactNode
   actions?: RowAction<TData>[]
   isSelected?: boolean
   onSelect?: () => void
@@ -34,6 +36,7 @@ export function DataTableCard<TData>({
   secondaryField,
   tertiaryFields,
   avatar,
+  icon,
   actions = [],
   isSelected = false,
   onSelect,
@@ -73,6 +76,9 @@ export function DataTableCard<TData>({
             className="mt-1"
           />
         )}
+
+        {/* Custom icon displayed prominently */}
+        {icon && <div className="shrink-0">{icon}</div>}
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">

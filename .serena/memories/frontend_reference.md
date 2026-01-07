@@ -95,7 +95,8 @@ frontend/
 │   │       ├── command-menu.tsx
 │   │       ├── session-warning.tsx
 │   │       ├── cookie-consent.tsx
-│   │       └── help-button.tsx
+│   │       ├── help-button.tsx
+│   │       └── global-error-handler.tsx   (Task 024 - 429/403 toasts)
 │   │
 │   ├── config/
 │   │   └── navigation.ts
@@ -267,6 +268,26 @@ frontend/
 │   │   │   ├── types/index.ts
 │   │   │   └── index.ts
 │   │   │
+│   │   ├── ip-restrictions/                    (Task 024)
+│   │   │   ├── api/ip-restrictions-api.ts
+│   │   │   ├── hooks/
+│   │   │   │   ├── use-ip-restrictions.ts
+│   │   │   │   ├── use-create-ip-restriction.ts
+│   │   │   │   ├── use-update-ip-restriction.ts
+│   │   │   │   ├── use-delete-ip-restriction.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── components/
+│   │   │   │   ├── ip-restrictions-table.tsx      (+ row actions, mobile card actions)
+│   │   │   │   ├── ip-restrictions-table-columns.tsx (+ actions column)
+│   │   │   │   ├── ip-restriction-details-sheet.tsx  (+ edit button)
+│   │   │   │   ├── create-ip-restriction-modal.tsx   (+ "Get my IP" button)
+│   │   │   │   ├── edit-ip-restriction-modal.tsx
+│   │   │   │   ├── ip-restriction-type-badge.tsx
+│   │   │   │   ├── ip-restriction-source-badge.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── types/index.ts
+│   │   │   └── index.ts
+│   │   │
 │   │   └── roles/                 [PLACEHOLDER - Empty]
 │   │
 │   ├── hooks/
@@ -315,6 +336,7 @@ frontend/
 │   │   ├── approve-device.tsx     (Task 014)
 │   │   ├── legal.tsx
 │   │   ├── not-found.tsx
+│   │   ├── ip-restrictions.tsx          (Task 024)
 │   │   ├── forbidden.tsx
 │   │   └── server-error.tsx
 │   │
@@ -378,9 +400,9 @@ frontend/
 
 ---
 
-## Shadcn/UI Components (24 installed)
+## Shadcn/UI Components (25 installed)
 
-**Installed:** alert, alert-dialog, avatar, badge, breadcrumb, button, calendar, checkbox, command, dialog, dropdown-menu, input, label, popover, progress, scroll-area, separator, sheet, skeleton, sonner, switch, table, tabs, tooltip
+**Installed:** alert, alert-dialog, avatar, badge, breadcrumb, button, calendar, checkbox, command, dialog, dropdown-menu, input, label, popover, progress, scroll-area, select, separator, sheet, skeleton, sonner, switch, table, tabs, tooltip
 
 **To add more:** `npx shadcn@latest add [name]`
 
@@ -416,7 +438,7 @@ frontend/
 - `DataTablePagination` - Infinite scroll
 - `DataTableRowActions` - Row menu
 - `DataTableBulkActions` - Bulk actions
-- `DataTableCard` - Mobile card view
+- `DataTableCard` - Mobile card view (supports `icon` prop for custom icons)
 
 ### Form (`@/components/shared/form`)
 - `PasswordInput` - Password + toggle
@@ -476,6 +498,7 @@ frontend/
 | mfa | mfa.json | MFA texts |
 | sessions | sessions.json | Sessions texts |
 | auditLogs | auditLogs.json | Audit Logs |
+| ipRestrictions | ipRestrictions.json | IP Restrictions (Task 024) |
 
 ---
 
@@ -621,4 +644,4 @@ import type { Feature } from '../types'
 
 ## Last Updated
 - **Date:** 2026-01-07
-- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016, 018, 020, 022
+- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016, 018, 020, 022, 024

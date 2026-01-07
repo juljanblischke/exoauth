@@ -1,0 +1,78 @@
+{
+  "title": "IP-Einschränkungen",
+  "subtitle": "IP-Whitelist und Blacklist verwalten",
+  "table": {
+    "ipAddress": "IP-Adresse",
+    "type": "Typ",
+    "reason": "Grund",
+    "source": "Quelle",
+    "expiresAt": "Läuft ab",
+    "createdAt": "Erstellt",
+    "createdBy": "Erstellt von",
+    "actions": "Aktionen",
+    "noResults": "Keine IP-Einschränkungen gefunden",
+    "noResultsDescription": "Fügen Sie Ihre erste IP-Einschränkung hinzu."
+  },
+  "type": {
+    "whitelist": "Whitelist",
+    "blacklist": "Blacklist"
+  },
+  "source": {
+    "manual": "Manuell",
+    "auto": "Automatisch"
+  },
+  "filters": {
+    "search": "IP oder Grund suchen...",
+    "type": "Typ",
+    "source": "Quelle",
+    "allTypes": "Alle Typen",
+    "allSources": "Alle Quellen"
+  },
+  "create": {
+    "title": "IP-Einschränkung hinzufügen",
+    "description": "IP-Adresse zur Whitelist oder Blacklist hinzufügen.",
+    "ipAddress": "IP-Adresse",
+    "ipAddressPlaceholder": "z.B. 192.168.1.1 oder 10.0.0.0/8",
+    "ipAddressDescription": "Einzelne IP oder CIDR-Notation",
+    "invalidIp": "Ungültige IP-Adresse oder CIDR-Notation",
+    "type": "Typ",
+    "typePlaceholder": "Typ wählen",
+    "reason": "Grund",
+    "reasonPlaceholder": "Warum wird diese IP hinzugefügt?",
+    "expiresAt": "Läuft ab am",
+    "expiresAtDescription": "Leer lassen für permanente Einschränkung",
+    "permanent": "Permanent",
+    "submit": "Einschränkung hinzufügen",
+    "success": "IP-Einschränkung erfolgreich erstellt",
+    "getMyIp": "Meine IP-Adresse abrufen"
+  },
+  "edit": {
+    "title": "IP-Einschränkung bearbeiten",
+    "description": "Typ, Grund oder Ablaufdatum dieser IP-Einschränkung ändern.",
+    "ipAddressReadonly": "IP-Adresse kann nicht geändert werden"
+  },
+  "update": {
+    "success": "IP-Einschränkung erfolgreich aktualisiert"
+  },
+  "delete": {
+    "title": "IP-Einschränkung löschen",
+    "description": "Möchten Sie diese IP-Einschränkung wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "confirm": "Löschen",
+    "success": "IP-Einschränkung erfolgreich gelöscht"
+  },
+  "details": {
+    "title": "IP-Einschränkung Details",
+    "ipAddress": "IP-Adresse",
+    "type": "Typ",
+    "reason": "Grund",
+    "source": "Quelle",
+    "expiresAt": "Läuft ab am",
+    "createdAt": "Erstellt am",
+    "createdBy": "Erstellt von",
+    "never": "Nie",
+    "system": "System",
+    "temporary": "Temporär"
+  },
+  "expired": "Abgelaufen",
+  "never": "Nie"
+}

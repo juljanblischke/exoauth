@@ -10,6 +10,7 @@
     "users": "Benutzer",
     "permissions": "Berechtigungen",
     "auditLogs": "Audit-Protokolle",
+    "ipRestrictions": "IP-Einschränkungen",
     "organizations": "Organisationen",
     "projects": "Projekte",
     "settings": "Einstellungen"
@@ -23,6 +24,7 @@
     "editUser": "Benutzer bearbeiten",
     "permissions": "Berechtigungen",
     "auditLogs": "Audit-Protokolle",
+    "ipRestrictions": "IP-Einschränkungen",
     "organizations": "Organisationen",
     "projects": "Projekte",
     "settings": "Einstellungen"

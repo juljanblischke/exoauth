@@ -33,6 +33,7 @@ public sealed class ForceReauthMiddleware
         }
 
         // Skip for auth endpoints that need to work during force-reauth
+        // and public config endpoints that may receive tokens from logged-in users
         var path = context.Request.Path.Value?.ToLowerInvariant() ?? "";
         if (path.Contains("/api/auth/login") ||
             path.Contains("/api/auth/register") ||
@@ -44,7 +45,8 @@ public sealed class ForceReauthMiddleware
             path.Contains("/api/auth/mfa/confirm") ||
             path.Contains("/api/auth/forgot-password") ||
             path.Contains("/api/auth/reset-password") ||
-            path.Contains("/api/auth/passkeys/login"))
+            path.Contains("/api/auth/passkeys/login") ||
+            path.Contains("/api/captcha/config"))
         {
             await _next(context);
             return;

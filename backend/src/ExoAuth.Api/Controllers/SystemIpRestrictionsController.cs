@@ -3,6 +3,7 @@ using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Application.Common.Models;
 using ExoAuth.Application.Features.IpRestrictions.Commands.CreateIpRestriction;
 using ExoAuth.Application.Features.IpRestrictions.Commands.DeleteIpRestriction;
+using ExoAuth.Application.Features.IpRestrictions.Commands.UpdateIpRestriction;
 using ExoAuth.Application.Features.IpRestrictions.Models;
 using ExoAuth.Application.Features.IpRestrictions.Queries.GetIpRestrictions;
 using ExoAuth.Domain.Constants;
@@ -94,6 +95,37 @@ public sealed class SystemIpRestrictionsController : ApiControllerBase
         var result = await Mediator.Send(command, ct);
 
         return ApiCreated(result);
+    }
+
+    /// <summary>
+    /// Update an existing IP restriction.
+    /// </summary>
+    /// <param name="id">The ID of the IP restriction to update.</param>
+    /// <param name="request">The updated IP restriction details.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The updated IP restriction.</returns>
+    [HttpPatch("{id:guid}")]
+    [SystemPermission(SystemPermissions.IpRestrictionsManage)]
+    [ProducesResponseType(typeof(ApiResponse<IpRestrictionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Update(
+        [FromRoute] Guid id,
+        [FromBody] UpdateIpRestrictionRequest request,
+        CancellationToken ct)
+    {
+        var command = new UpdateIpRestrictionCommand(
+            id,
+            request.Type,
+            request.Reason,
+            request.ExpiresAt,
+            _currentUserService.UserId!.Value);
+
+        var result = await Mediator.Send(command, ct);
+
+        return ApiOk(result);
     }
 
     /// <summary>

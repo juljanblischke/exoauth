@@ -3,6 +3,7 @@ using ExoAuth.Application.Common.Exceptions;
 using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Application.Features.IpRestrictions.Models;
 using ExoAuth.Domain.Entities;
+using ExoAuth.Domain.Enums;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,15 +14,18 @@ public sealed class CreateIpRestrictionHandler : ICommandHandler<CreateIpRestric
     private readonly IAppDbContext _dbContext;
     private readonly IIpRestrictionService _ipRestrictionService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IAuditService _auditService;
 
     public CreateIpRestrictionHandler(
         IAppDbContext dbContext,
         IIpRestrictionService ipRestrictionService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IAuditService auditService)
     {
         _dbContext = dbContext;
         _ipRestrictionService = ipRestrictionService;
         _dateTimeProvider = dateTimeProvider;
+        _auditService = auditService;
     }
 
     public async ValueTask<IpRestrictionDto> Handle(CreateIpRestrictionCommand command, CancellationToken ct)
@@ -34,11 +38,10 @@ public sealed class CreateIpRestrictionHandler : ICommandHandler<CreateIpRestric
 
         var now = _dateTimeProvider.UtcNow;
 
-        // Check for existing active restriction with the same IP
+        // Check for existing active restriction with the same IP (regardless of type)
         var existing = await _dbContext.IpRestrictions
             .FirstOrDefaultAsync(x =>
                 x.IpAddress == command.IpAddress &&
-                x.Type == command.Type &&
                 (x.ExpiresAt == null || x.ExpiresAt > now),
                 ct);
 
@@ -61,10 +64,28 @@ public sealed class CreateIpRestrictionHandler : ICommandHandler<CreateIpRestric
         // Invalidate cache
         await _ipRestrictionService.InvalidateCacheAsync(ct);
 
-        // Get created by user email
+        // Audit log
+        await _auditService.LogAsync(
+            command.Type == IpRestrictionType.Whitelist
+                ? AuditActions.IpWhitelisted
+                : AuditActions.IpBlacklisted,
+            userId: command.CurrentUserId,
+            targetUserId: null,
+            entityType: "IpRestriction",
+            entityId: restriction.Id,
+            details: new
+            {
+                restriction.IpAddress,
+                Type = command.Type.ToString(),
+                restriction.Reason,
+                restriction.ExpiresAt
+            },
+            cancellationToken: ct);
+
+        // Get created by user info
         var createdByUser = await _dbContext.SystemUsers
             .Where(x => x.Id == command.CurrentUserId)
-            .Select(x => x.Email)
+            .Select(x => new { x.Email, x.FirstName, x.LastName })
             .FirstOrDefaultAsync(ct);
 
         return new IpRestrictionDto(
@@ -76,7 +97,8 @@ public sealed class CreateIpRestrictionHandler : ICommandHandler<CreateIpRestric
             restriction.ExpiresAt,
             restriction.CreatedAt,
             restriction.CreatedByUserId,
-            createdByUser);
+            createdByUser?.Email,
+            createdByUser != null ? $"{createdByUser.FirstName} {createdByUser.LastName}" : null);
     }
 
     private static bool IsValidIpOrCidr(string ipOrCidr)

@@ -50,6 +50,7 @@
     "logout": "Logout",
     "rename": "Rename"
   },
+  "selectDate": "Select date",
   "search": {
     "placeholder": "Search...",
     "noResults": "No results found."

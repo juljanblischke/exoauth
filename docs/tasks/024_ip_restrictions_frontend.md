@@ -22,21 +22,24 @@ Frontend für das IP Restrictions Management (Whitelist/Blacklist) aus Task 023.
 ### UI/UX Beschreibung
 - Tabelle mit IP-Restrictions (wie Audit Logs)
 - Toolbar mit Search, Filter (Type, Source), Create Button
-- Create Modal mit Form (IP Address, Type, Reason, Expiration)
+- Create Modal mit Form (IP Address + "Get my IP" Button, Type, Reason, Expiration)
 - Delete mit Confirm Dialog
 - Details Sheet bei Klick auf Row
 
 ### Akzeptanzkriterien
-- [ ] Tabelle zeigt alle IP-Restrictions mit Pagination
-- [ ] Filter nach Type (Whitelist/Blacklist) funktioniert
-- [ ] Filter nach Source (Manual/Auto) funktioniert
-- [ ] Search nach IP/Reason funktioniert
-- [ ] Create Modal mit Validation
-- [ ] Delete mit Confirmation
-- [ ] Details Sheet zeigt alle Infos
-- [ ] Global Toast bei 429 Rate Limit
-- [ ] Global Toast bei 403 IP Blacklisted
-- [ ] i18n EN + DE komplett
+- [x] Tabelle zeigt alle IP-Restrictions mit Pagination
+- [x] Filter nach Type (Whitelist/Blacklist) funktioniert
+- [x] Filter nach Source (Manual/Auto) funktioniert
+- [x] Search nach IP/Reason funktioniert
+- [x] Create Modal mit Validation
+- [x] Edit Modal für Type/Reason/ExpiresAt
+- [x] Delete mit Confirmation
+- [x] Details Sheet zeigt alle Infos + Edit Button
+- [x] Row Actions (Edit/Delete) im Table und Mobile Card
+- [x] Global Toast bei 429 Rate Limit
+- [x] Global Toast bei 403 IP Blacklisted
+- [x] Breadcrumb für IP Restrictions
+- [x] i18n EN + DE komplett
 
 ### Edge Cases / Error Handling
 - Was passiert bei ungültiger IP/CIDR? → Validation Error im Form
@@ -50,6 +53,7 @@ Frontend für das IP Restrictions Management (Whitelist/Blacklist) aus Task 023.
 |----------|--------|---------|----------|-----------|
 | `/api/system/ip-restrictions` | GET | Query params | `CursorPagedList<IpRestrictionDto>` | `useIpRestrictions` |
 | `/api/system/ip-restrictions` | POST | `CreateIpRestrictionRequest` | `IpRestrictionDto` | `useCreateIpRestriction` |
+| `/api/system/ip-restrictions/{id}` | PATCH | `UpdateIpRestrictionRequest` | `IpRestrictionDto` | `useUpdateIpRestriction` |
 | `/api/system/ip-restrictions/{id}` | DELETE | - | 204 | `useDeleteIpRestriction` |
 
 ### Query Parameters (GET)
@@ -126,12 +130,14 @@ interface CreateIpRestrictionRequest {
 | API | `src/features/ip-restrictions/api/ip-restrictions-api.ts` | API calls |
 | Hook List | `src/features/ip-restrictions/hooks/use-ip-restrictions.ts` | List query |
 | Hook Create | `src/features/ip-restrictions/hooks/use-create-ip-restriction.ts` | Create mutation |
+| Hook Update | `src/features/ip-restrictions/hooks/use-update-ip-restriction.ts` | Update mutation |
 | Hook Delete | `src/features/ip-restrictions/hooks/use-delete-ip-restriction.ts` | Delete mutation |
 | Hooks Index | `src/features/ip-restrictions/hooks/index.ts` | Barrel export |
 | Table | `src/features/ip-restrictions/components/ip-restrictions-table.tsx` | Main table |
 | Columns | `src/features/ip-restrictions/components/ip-restrictions-table-columns.tsx` | Column defs |
 | Details | `src/features/ip-restrictions/components/ip-restriction-details-sheet.tsx` | Details sheet |
 | Create Modal | `src/features/ip-restrictions/components/create-ip-restriction-modal.tsx` | Create form |
+| Edit Modal | `src/features/ip-restrictions/components/edit-ip-restriction-modal.tsx` | Edit form |
 | Type Badge | `src/features/ip-restrictions/components/ip-restriction-type-badge.tsx` | Type badge |
 | Source Badge | `src/features/ip-restrictions/components/ip-restriction-source-badge.tsx` | Source badge |
 | Components Index | `src/features/ip-restrictions/components/index.ts` | Barrel export |
@@ -164,22 +170,22 @@ Alle benötigten Komponenten bereits installiert.
 
 ## 8. Implementation Reihenfolge
 
-1. [ ] **Types**: TypeScript interfaces definieren
-2. [ ] **API**: API client functions erstellen
-3. [ ] **Hooks**: React Query hooks erstellen
-4. [ ] **Components**: UI Komponenten bauen
-   - [ ] Type Badge
-   - [ ] Source Badge
-   - [ ] Table Columns
-   - [ ] Details Sheet
-   - [ ] Create Modal
-   - [ ] Main Table
-5. [ ] **Route**: Page erstellen
-6. [ ] **Router**: Route registrieren
-7. [ ] **Navigation**: Sidebar entry hinzufügen
-8. [ ] **Axios**: Global error handling (429, 403)
-9. [ ] **i18n**: Translations hinzufügen (EN + DE!)
-10. [ ] **Memory updaten**: frontend_reference.md aktualisieren
+1. [x] **Types**: TypeScript interfaces definieren
+2. [x] **API**: API client functions erstellen
+3. [x] **Hooks**: React Query hooks erstellen
+4. [x] **Components**: UI Komponenten bauen
+   - [x] Type Badge
+   - [x] Source Badge
+   - [x] Table Columns
+   - [x] Details Sheet
+   - [x] Create Modal
+   - [x] Main Table
+5. [x] **Route**: Page erstellen
+6. [x] **Router**: Route registrieren
+7. [x] **Navigation**: Sidebar entry hinzufügen
+8. [x] **Axios**: Global error handling (429, 403)
+9. [x] **i18n**: Translations hinzufügen (EN + DE!)
+10. [x] **Memory updaten**: frontend_reference.md aktualisiert
 
 ## 9. i18n Keys
 
@@ -375,14 +381,27 @@ Alle benötigten Komponenten bereits installiert.
 
 ## 10. Nach Completion
 
-- [ ] TypeScript keine Errors
-- [ ] Lint passed
-- [ ] `frontend_reference.md` Memory aktualisiert
-- [ ] `i18n_translations.md` Memory aktualisiert
-- [ ] Navigation zeigt IP Restrictions unter System
+- [x] TypeScript keine Errors
+- [x] Lint passed
+- [x] `frontend_reference.md` Memory aktualisiert
+- [x] `i18n_translations.md` Memory aktualisiert
+- [x] Navigation zeigt IP Restrictions unter System
 
 ## 11. Letzte Änderung
 
 - **Datum:** 2026-01-07
-- **Status:** Planning
-- **Nächster Schritt:** Types erstellen
+- **Status:** ✅ Complete
+- **Features:**
+  - "Get my IP" Button im Create Modal (fetcht IP von ipify.org)
+  - Edit Modal für Type/Reason/ExpiresAt (PATCH Endpoint)
+  - Row Actions (Edit/Delete) im Table und Mobile Card
+  - Edit Button in Details Sheet
+  - Breadcrumb Navigation für IP Restrictions
+  - Calendar Locale Support (EN/DE)
+  - Details Sheet styled like Audit Log Details (Shield icon, clickable creator)
+  - UserDetailsSheet integration (click on creator opens user details)
+  - Mobile Card with custom icon support (Shield icon + IP badge)
+  - Error toast notifications for all mutations (create/update/delete)
+  - IP_RESTRICTION_ALREADY_EXISTS error translation (EN/DE)
+  - Extended DataTableCard component to support custom icons
+- **Nächster Schritt:** N/A

@@ -14,12 +14,18 @@ public sealed class DeleteIpRestrictionHandlerTests
 {
     private readonly Mock<IAppDbContext> _mockDbContext;
     private readonly Mock<IIpRestrictionService> _mockIpRestrictionService;
+    private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<ICurrentUserService> _mockCurrentUserService;
+    private readonly Guid _currentUserId = Guid.NewGuid();
     private List<IpRestriction> _restrictions;
 
     public DeleteIpRestrictionHandlerTests()
     {
         _mockDbContext = new Mock<IAppDbContext>();
         _mockIpRestrictionService = new Mock<IIpRestrictionService>();
+        _mockAuditService = new Mock<IAuditService>();
+        _mockCurrentUserService = new Mock<ICurrentUserService>();
+        _mockCurrentUserService.Setup(x => x.UserId).Returns(_currentUserId);
         _restrictions = new List<IpRestriction>();
         SetupDbSet();
     }
@@ -34,7 +40,9 @@ public sealed class DeleteIpRestrictionHandlerTests
     {
         return new DeleteIpRestrictionHandler(
             _mockDbContext.Object,
-            _mockIpRestrictionService.Object);
+            _mockIpRestrictionService.Object,
+            _mockAuditService.Object,
+            _mockCurrentUserService.Object);
     }
 
     #region Success Cases

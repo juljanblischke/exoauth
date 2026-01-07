@@ -36,6 +36,7 @@ frontend/src/i18n/
 | navigation | navigation.json | `t('navigation:items.dashboard')` |
 | users | users.json | `t('users:title')` |
 | auditLogs | auditLogs.json | `t('auditLogs:title')` |
+| ipRestrictions | ipRestrictions.json | `t('ipRestrictions:title')` |
 | settings | settings.json | `t('settings:title')` |
 | mfa | mfa.json | `t('mfa:title')` |
 | sessions | sessions.json | `t('sessions:title')` |
@@ -100,6 +101,22 @@ trustedDevices.*   - title, loading, noDevices, removeAll, remove, errors.*
 devices.*          - revokeSuccess, revokeAllSuccess, revokeAllTitle, revokeAllDescription
 ```
 
+### ipRestrictions.json (Task 024)
+
+```
+title, subtitle
+table.*            - ipAddress, type, reason, source, expiresAt, createdAt, createdBy, actions, noResults, noResultsDescription
+type.*             - whitelist, blacklist
+source.*           - manual, auto
+filters.*          - search, type, source, allTypes, allSources
+create.*           - title, description, ipAddress, ipAddressPlaceholder, ipAddressDescription, type, typePlaceholder, reason, reasonPlaceholder, expiresAt, expiresAtDescription, permanent, submit, success, invalidIp, getMyIp
+edit.*             - title, description, ipAddressReadonly
+update.*           - success
+delete.*           - title, description, confirm, success
+details.*          - title, ipAddress, type, reason, source, expiresAt, createdAt, createdBy, never, system
+expired, never
+```
+
 ### sessions.json
 
 ```
@@ -140,7 +157,11 @@ codes.*            - All backend error codes mapped to user-friendly messages
   APPROVAL_TOKEN_INVALID, APPROVAL_CODE_INVALID, APPROVAL_MAX_ATTEMPTS
   AUTH_CAPTCHA_REQUIRED, AUTH_CAPTCHA_INVALID, AUTH_CAPTCHA_EXPIRED
   ACCOUNT_LOCKED, ACCOUNT_LOCKED_SECONDS, ACCOUNT_LOCKED_MINUTES, ACCOUNT_LOCKED_UNTIL
-  MFA_CODE_INVALID, MFA_TOKEN_INVALID, MFA_TOKEN_EXPIRED, etc.
+  MFA_CODE_INVALID, MFA_TOKEN_INVALID, MFA_TOKEN_EXPIRED
+  IP_BLACKLISTED, IP_RESTRICTION_NOT_FOUND, IP_RESTRICTION_INVALID_CIDR, IP_RESTRICTION_DUPLICATE, IP_RESTRICTION_ALREADY_EXISTS
+
+rateLimited.*      - title, description (Task 024)
+ipBlacklisted.*    - title, description (Task 024)
 
 general.*          - title, message, retry, goHome
 network.*          - title, message, offline
@@ -237,4 +258,4 @@ function Component() {
 
 ## Last Updated
 - **Date:** 2026-01-07
-- **Latest Additions:** Added MFA_CODE_INVALID, MFA_TOKEN_INVALID, MFA_TOKEN_EXPIRED error codes
+- **Latest Additions:** Task 024 - Added ipRestrictions namespace (create/edit/update/delete), rateLimited/ipBlacklisted error toasts, IP_BLACKLISTED/IP_RESTRICTION_* error codes (including IP_RESTRICTION_ALREADY_EXISTS), navigation breadcrumb.ipRestrictions, details.temporary key

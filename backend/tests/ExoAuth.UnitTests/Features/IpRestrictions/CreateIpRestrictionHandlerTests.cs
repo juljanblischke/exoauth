@@ -15,6 +15,7 @@ public sealed class CreateIpRestrictionHandlerTests
     private readonly Mock<IAppDbContext> _mockDbContext;
     private readonly Mock<IIpRestrictionService> _mockIpRestrictionService;
     private readonly Mock<IDateTimeProvider> _mockDateTimeProvider;
+    private readonly Mock<IAuditService> _mockAuditService;
     private readonly DateTime _testNow = new(2025, 1, 15, 12, 0, 0, DateTimeKind.Utc);
     private readonly Guid _userId = Guid.NewGuid();
     private List<IpRestriction> _restrictions;
@@ -25,6 +26,7 @@ public sealed class CreateIpRestrictionHandlerTests
         _mockDbContext = new Mock<IAppDbContext>();
         _mockIpRestrictionService = new Mock<IIpRestrictionService>();
         _mockDateTimeProvider = new Mock<IDateTimeProvider>();
+        _mockAuditService = new Mock<IAuditService>();
 
         _mockDateTimeProvider.Setup(x => x.UtcNow).Returns(_testNow);
 
@@ -50,14 +52,17 @@ public sealed class CreateIpRestrictionHandlerTests
         return new CreateIpRestrictionHandler(
             _mockDbContext.Object,
             _mockIpRestrictionService.Object,
-            _mockDateTimeProvider.Object);
+            _mockDateTimeProvider.Object,
+            _mockAuditService.Object);
     }
 
-    private static SystemUser CreateSystemUser(Guid id, string email)
+    private static SystemUser CreateSystemUser(Guid id, string email, string firstName = "Admin", string lastName = "User")
     {
         var user = (SystemUser)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SystemUser));
         typeof(SystemUser).GetProperty(nameof(SystemUser.Id))!.SetValue(user, id);
         typeof(SystemUser).GetProperty(nameof(SystemUser.Email))!.SetValue(user, email);
+        typeof(SystemUser).GetProperty(nameof(SystemUser.FirstName))!.SetValue(user, firstName);
+        typeof(SystemUser).GetProperty(nameof(SystemUser.LastName))!.SetValue(user, lastName);
         return user;
     }
 
@@ -86,6 +91,7 @@ public sealed class CreateIpRestrictionHandlerTests
         result.Source.Should().Be(IpRestrictionSource.Manual);
         result.CreatedByUserId.Should().Be(_userId);
         result.CreatedByUserEmail.Should().Be("admin@example.com");
+        result.CreatedByUserFullName.Should().Be("Admin User");
 
         _mockDbContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

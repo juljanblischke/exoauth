@@ -12,6 +12,7 @@ import { DashboardPage } from './dashboard'
 import { UsersPage } from './users'
 import { InvitePage } from './invite'
 import { AuditLogsPage } from './audit-logs'
+import { IpRestrictionsPage } from './ip-restrictions'
 import { SettingsPage } from './settings'
 import { ImprintPage, PrivacyPage, TermsPage } from './legal'
 import { ResetPasswordPage } from './reset-password'
@@ -169,6 +170,13 @@ const auditLogsRoute = createRoute({
   component: withPermission(AuditLogsPage, 'system:audit:read'),
 })
 
+// IP Restrictions route (requires system:ip-restrictions:read)
+const ipRestrictionsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/ip-restrictions',
+  component: withPermission(IpRestrictionsPage, 'system:ip-restrictions:read'),
+})
+
 // Settings route
 const settingsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
@@ -194,6 +202,7 @@ export const routeTree = rootRoute.addChildren([
     dashboardRoute,
     usersRoute,
     auditLogsRoute,
+    ipRestrictionsRoute,
     settingsRoute,
   ]),
 ])

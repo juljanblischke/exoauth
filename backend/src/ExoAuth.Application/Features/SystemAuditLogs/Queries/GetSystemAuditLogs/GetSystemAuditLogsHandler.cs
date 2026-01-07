@@ -43,7 +43,7 @@ public sealed class GetSystemAuditLogsHandler : IQueryHandler<GetSystemAuditLogs
             );
         }
 
-        // Search: search in actor and target user email/name, and Details JSON
+        // Search: search in actor and target user email/name, IP address, and Details JSON
         // Note: FullName is a computed C# property, so we search FirstName and LastName separately
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
@@ -59,6 +59,8 @@ public sealed class GetSystemAuditLogsHandler : IQueryHandler<GetSystemAuditLogs
                     l.TargetUser.FirstName.ToLower().Contains(searchLower) ||
                     l.TargetUser.LastName.ToLower().Contains(searchLower)
                 )) ||
+                // Search in IP address
+                (l.IpAddress != null && l.IpAddress.ToLower().Contains(searchLower)) ||
                 // Search in Details JSON field (e.g., OriginalEmail after anonymization)
                 (l.Details != null && l.Details.ToLower().Contains(searchLower))
             );

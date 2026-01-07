@@ -95,7 +95,10 @@ frontend/src/
 | Auth, Users, Permissions, Audit | 002 | 004 |
 | Improvements & Bug Fixes | 005, 009, 011 | 006, 010, 012 |
 | MFA, Sessions, Device Management | 007 | 008 |
-| Risk-Based Device Trust | 013 | 014 |
+| Risk-Based Device Trust | 013-017 | 014, 016, 018 |
+| Passkeys (WebAuthn/FIDO2) | 019 | 020 |
+| CAPTCHA Integration | 021 | 022 |
+| Advanced Rate Limiting & IP Restrictions | 023 | 024 |
 
 ---
 
@@ -120,7 +123,7 @@ frontend/src/
 
 ## Current Status
 
-- **Completed Tasks:** 001-014
+- **Completed Tasks:** 001-024
 - **Total Unit Tests:** 303+
 - **Languages:** English (en-US), German (de-DE)
-- **Last Updated:** 2026-01-01
+- **Last Updated:** 2026-01-07

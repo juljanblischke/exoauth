@@ -93,4 +93,14 @@ public sealed class IpRestriction : BaseEntity
     {
         return ExpiresAt == null || ExpiresAt > utcNow;
     }
+
+    /// <summary>
+    /// Updates the restriction properties.
+    /// </summary>
+    public void Update(IpRestrictionType type, string reason, DateTime? expiresAt)
+    {
+        Type = type;
+        Reason = reason;
+        ExpiresAt = expiresAt;
+    }
 }

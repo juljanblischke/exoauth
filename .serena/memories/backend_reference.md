@@ -149,12 +149,11 @@ backend/
 │   │       ├── SystemInvites/
 │   │       └── IpRestrictions/                      (Task 023)
 │   │           ├── Commands/
-│   │           │   ├── CreateIpRestriction/
-│   │           │   └── DeleteIpRestriction/
+│   │           │   ├── CreateIpRestriction/\n│   │           │   ├── UpdateIpRestriction/\n│   │           │   └── DeleteIpRestriction/
 │   │           ├── Queries/
 │   │           │   └── GetIpRestrictions/
 │   │           └── Models/
-│   │               └── IpRestrictionDto.cs
+│   │               └── IpRestrictionDto.cs              (includes CreatedByUserFullName)
 │   │
 │   ├── ExoAuth.Infrastructure/
 │   │   ├── DependencyInjection.cs
@@ -283,7 +282,7 @@ backend/
     │   ├── SystemUsers/
     │   ├── SystemAuditLogs/
     │   ├── SystemInvites/
-    │   └── IpRestrictions/                      (Task 023 - 27 tests)
+    │   └── IpRestrictions/                      (Task 023 - 59 tests)
     ├── Services/
     │   ├── RateLimitServiceTests.cs             (Task 023 - 15 tests)
     │   └── IpRestrictionServiceTests.cs         (Task 023 - 9 tests)
@@ -553,7 +552,97 @@ Every new endpoint MUST have:
 3. **Application**: Commands/Queries + Handlers + Validators
 4. **API**: Controller + Endpoints
 5. **Tests**: Unit Tests
-6. **Update the Task file**
-7. **Update this memory file**
+6. **Update this memory file**
 
 ---
+
+## Last Updated
+
+- **Date:** 2026-01-07
+- **Task:** 023 - Advanced Rate Limiting (Backend Complete)
+- **Tests:** 456 total tests passing (51 Rate Limiting/IP Restriction-specific)
+- **Notes:** 
+  - Sliding window rate limiting with multi-window support (per-minute, per-hour, per-day)
+  - IP whitelist/blacklist with auto-blacklist on rate limit violations
+  - Configurable presets: strict, sensitive, default, lenient, admin
+  - All controllers migrated from numeric limits to preset names
+
+---
+
+## Last Updated
+- **Date:** 2026-01-07
+- **Tasks Completed:** 001-023 (456 Unit Tests)
+- **Task 019:** Passkeys (WebAuthn/FIDO2)
+  - New entity: Passkey (CredentialId, PublicKey, Counter, CredType, AaGuid, Name, LastUsedAt)
+  - SystemUser extended with Passkeys collection
+  - IPasskeyService interface with Fido2NetLib integration
+  - PasskeyService with Redis challenge storage (5-minute TTL)
+  - Auth API endpoints:
+    - POST /auth/passkeys/register/options (get registration challenge)
+    - POST /auth/passkeys/register (complete registration)
+    - POST /auth/passkeys/login/options (get authentication challenge)
+    - POST /auth/passkeys/login (passwordless login)
+    - GET /auth/passkeys (list user's passkeys)
+    - PATCH /auth/passkeys/{id} (rename passkey)
+    - DELETE /auth/passkeys/{id} (remove passkey)
+  - Passkey login creates trusted device automatically
+  - Email notifications: passkey-registered, passkey-removed
+  - Error codes: PASSKEY_NOT_FOUND, PASSKEY_INVALID_CREDENTIAL, PASSKEY_REGISTRATION_FAILED, 
+    PASSKEY_ALREADY_REGISTERED, PASSKEY_CANNOT_DELETE_LAST
+  - 41 new unit tests for passkey handlers
+- **Task 023:** Advanced Rate Limiting
+  - IpRestriction entity: IP-based whitelist/blacklist with manual/automatic sources
+  - Enums: IpRestrictionType (Whitelist, Blacklist), IpRestrictionSource (Manual, Automatic)
+  - IRateLimitService interface with sliding window algorithm
+  - IIpRestrictionService interface for whitelist/blacklist + auto-blacklist
+  - RateLimitService with:
+    - Sliding window rate limiting (Redis-based)
+    - Multi-window support: per-minute, per-hour, per-day limits
+    - Configurable presets: strict (3/min), sensitive (5/min), default (30/min), lenient (60/min), admin (100/min)
+  - IpRestrictionService with:
+    - IP whitelist (bypass rate limiting) and blacklist (block all requests)
+    - CIDR notation support (e.g., 10.0.0.0/8, 192.168.1.0/24)
+    - Auto-blacklist on rate limit violations (configurable threshold)
+    - 15-minute cache with Redis invalidation
+  - RateLimitSettings model with window configuration
+  - RateLimitAttribute refactored to use preset names (string) instead of numeric values
+  - RateLimitFilter checks IP whitelist/blacklist before rate limiting
+  - IpRestrictionsController (Admin API):
+    - GET /ip-restrictions (list with cursor pagination, filtering, sorting)
+    - POST /ip-restrictions (create whitelist/blacklist entry)
+    - DELETE /ip-restrictions/{id} (remove restriction)
+  - IpRestrictionDto with full audit info (CreatedByUserId, CreatedByUserEmail)
+  - Error codes: RATE_LIMIT_EXCEEDED, IP_BLACKLISTED, IP_RESTRICTION_NOT_FOUND, 
+    IP_RESTRICTION_ALREADY_EXISTS, IP_RESTRICTION_INVALID_CIDR
+  - appsettings.json configuration for presets, auto-blacklist, windows
+  - 51 new unit tests (24 IpRestrictionService, 15 RateLimitService, 27 handlers)
+- **Task 021:** CAPTCHA Integration
+  - ICaptchaProvider interface for provider abstraction
+  - ICaptchaService interface for validation and smart triggering
+  - Providers: TurnstileProvider, RecaptchaV3Provider, HcaptchaProvider, DisabledCaptchaProvider
+  - CaptchaService with smart triggering based on:
+    - Failed login attempts threshold (Redis counter)
+    - Risk score threshold
+    - Per-context thresholds: Login, ApproveDevice, MfaVerify
+  - Models: CaptchaSettings, CaptchaResult, CaptchaPublicConfig, SmartTriggerSettings
+  - API endpoint: GET /captcha/config (returns provider + siteKey)
+  - Commands updated with CAPTCHA validation:
+    - Register: Always required (if CAPTCHA enabled)
+    - ForgotPassword: Always required (if CAPTCHA enabled)
+    - Login: Smart triggered (failed attempts or risk score)
+    - ApproveDevice: Smart triggered
+    - MfaVerify: Smart triggered
+  - Error codes: CAPTCHA_REQUIRED, CAPTCHA_INVALID
+  - appsettings.json configuration for provider selection
+  - 49 new unit tests for CAPTCHA functionality
+- **Task 017:** Device Model Consolidation
+  - Consolidated DeviceSession, TrustedDevice, DeviceApprovalRequest → Device entity
+  - Consolidated IDeviceSessionService, ITrustedDeviceService, IDeviceApprovalService → IDeviceService
+  - Device.Id now serves as session ID
+  - DeviceStatus enum: PendingApproval, Trusted, Revoked
+  - Auth API: `/auth/devices` (replaces /sessions + /trusted-devices)
+  - Admin API: `/system-users/{id}/devices` (replaces /sessions)
+  - Auto-login after device approval (tokens returned)
+  - Approve device from existing trusted session
+  - Device.ResetToPending() for spoofing detection (reuses existing device record)
+  - IRevokedSessionService.ClearRevokedSessionAsync() clears Redis on device reuse
