@@ -18,6 +18,7 @@ export interface DeviceApprovalRequiredResponse {
 export interface ApproveDeviceByCodeRequest {
   approvalToken: string
   code: string
+  captchaToken?: string
 }
 
 /**

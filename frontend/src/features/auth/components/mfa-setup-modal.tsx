@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label'
 import { useMfaSetup, useMfaConfirm } from '../hooks'
 import type { MfaSetupResponse, MfaConfirmResponse } from '../types'
 import { getDeviceInfo } from '@/lib/device'
+import { getErrorMessage } from '@/lib/error-utils'
 
 interface MfaSetupModalProps {
   open: boolean
@@ -190,7 +191,7 @@ export function MfaSetupModal({
                   />
                   {mfaConfirm.isError && (
                     <p className="text-sm text-destructive">
-                      {t('mfa:errors.codeInvalid')}
+                      {getErrorMessage(mfaConfirm.error, t)}
                     </p>
                   )}
                 </div>

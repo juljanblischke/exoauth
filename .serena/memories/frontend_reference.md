@@ -113,9 +113,10 @@ frontend/
 │   │   │   │   ├── mfa-api.ts
 │   │   │   │   ├── password-reset-api.ts
 │   │   │   │   ├── preferences-api.ts
-│   │   │   ├── device-approval-api.ts      (Task 014)
-│   │   │   │   ├── devices-api.ts              (Task 018)
-│   │   │   │   └── passkeys-api.ts             (Task 020)
+│   │   │   │   ├── device-approval-api.ts         (Task 014)
+│   │   │   │   ├── devices-api.ts                 (Task 018)
+│   │   │   │   ├── passkeys-api.ts                (Task 020)
+│   │   │   │   └── captcha-api.ts                 (Task 022)
 │   │   │   ├── hooks/
 │   │   │   │   ├── use-login.ts
 │   │   │   │   ├── use-logout.ts
@@ -146,6 +147,7 @@ frontend/
 │   │   │   │   ├── use-rename-passkey.ts          (Task 020)
 │   │   │   │   ├── use-delete-passkey.ts          (Task 020)
 │   │   │   │   ├── use-webauthn-support.ts        (Task 020)
+│   │   │   │   ├── use-captcha-config.ts          (Task 022)
 │   │   │   │   └── index.ts
 │   │   │   ├── components/
 │   │   │   │   ├── login-form.tsx
@@ -172,6 +174,10 @@ frontend/
 │   │   │   │   ├── register-passkey-modal.tsx     (Task 020)
 │   │   │   │   ├── rename-passkey-modal.tsx       (Task 020)
 │   │   │   │   ├── webauthn-not-supported.tsx     (Task 020)
+│   │   │   │   ├── captcha-widget.tsx             (Task 022)
+│   │   │   │   ├── turnstile-captcha.tsx          (Task 022)
+│   │   │   │   ├── recaptcha-v3-captcha.tsx       (Task 022)
+│   │   │   │   ├── hcaptcha-captcha.tsx           (Task 022)
 │   │   │   │   └── index.ts
 │   │   │   ├── types/
 │   │   │   │   ├── index.ts
@@ -179,7 +185,8 @@ frontend/
 │   │   │   │   ├── password-reset.ts
 │   │   │   │   ├── device-approval.ts             (Task 014)
 │   │   │   │   ├── device.ts                      (Task 018)
-│   │   │   │   └── passkey.ts                     (Task 020)
+│   │   │   │   ├── passkey.ts                     (Task 020)
+│   │   │   │   └── captcha.ts                     (Task 022)
 │   │   │   └── index.ts
 │   │   │
 │   │   ├── users/
@@ -353,6 +360,9 @@ frontend/
 | react-intersection-observer | ^10.0.0 |
 | qrcode.react | ^4.2.0 |
 | @simplewebauthn/browser | ^13.2.2 |
+| @marsidev/react-turnstile | ^1.1.4 |
+| react-google-recaptcha-v3 | ^1.10.1 |
+| @hcaptcha/react-hcaptcha | ^1.11.0 |
 | @radix-ui/* | various |
 
 ### DevDependencies
@@ -610,5 +620,5 @@ import type { Feature } from '../types'
 ---
 
 ## Last Updated
-- **Date:** 2026-01-06
-- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016, 018, 020
+- **Date:** 2026-01-07
+- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016, 018, 020, 022

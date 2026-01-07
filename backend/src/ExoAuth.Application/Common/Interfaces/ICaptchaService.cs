@@ -82,4 +82,18 @@ public interface ICaptchaService
     /// Checks if CAPTCHA is globally enabled.
     /// </summary>
     bool IsEnabled { get; }
+
+    /// <summary>
+    /// Records a failed MFA verification attempt for smart triggering.
+    /// </summary>
+    /// <param name="mfaToken">The MFA token that failed verification.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task RecordFailedMfaAttemptAsync(string mfaToken, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records a failed device approval attempt for smart triggering.
+    /// </summary>
+    /// <param name="deviceId">The device ID that failed approval.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task RecordFailedDeviceApprovalAttemptAsync(Guid deviceId, CancellationToken cancellationToken = default);
 }

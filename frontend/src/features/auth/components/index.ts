@@ -33,3 +33,9 @@ export { RegisterPasskeyModal } from './register-passkey-modal'
 export { RenamePasskeyModal } from './rename-passkey-modal'
 export { WebAuthnNotSupported } from './webauthn-not-supported'
 
+// CAPTCHA components
+export { CaptchaWidget } from './captcha-widget'
+export { TurnstileCaptcha } from './turnstile-captcha'
+export { RecaptchaCaptcha } from './recaptcha-captcha'
+export { HCaptchaCaptcha } from './hcaptcha-captcha'
+

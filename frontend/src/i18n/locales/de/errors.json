@@ -32,7 +32,17 @@
     "APPROVAL_TOKEN_EXPIRED": "Verifizierungstoken ist abgelaufen",
     "APPROVAL_CODE_INVALID": "Ungültiger Verifizierungscode",
     "APPROVAL_MAX_ATTEMPTS": "Zu viele Fehlversuche",
-    "DEVICE_APPROVAL_DENIED": "Dieses Gerät wurde abgelehnt"
+    "DEVICE_APPROVAL_DENIED": "Dieses Gerät wurde abgelehnt",
+    "AUTH_CAPTCHA_REQUIRED": "Bitte schließen Sie die Sicherheitsprüfung ab",
+    "AUTH_CAPTCHA_INVALID": "Sicherheitsprüfung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "AUTH_CAPTCHA_EXPIRED": "Sicherheitsprüfung abgelaufen. Bitte versuchen Sie es erneut.",
+    "ACCOUNT_LOCKED": "Konto ist vorübergehend gesperrt. Bitte versuchen Sie es später erneut.",
+    "ACCOUNT_LOCKED_SECONDS": "Konto ist gesperrt. Versuchen Sie es in {{seconds}} Sekunden erneut.",
+    "ACCOUNT_LOCKED_MINUTES": "Konto ist gesperrt. Versuchen Sie es in {{minutes}} Minute(n) erneut.",
+    "ACCOUNT_LOCKED_UNTIL": "Konto ist gesperrt bis {{time}}.",
+    "MFA_CODE_INVALID": "Ungültiger Verifizierungscode. Bitte versuchen Sie es erneut.",
+    "MFA_TOKEN_INVALID": "MFA-Sitzung abgelaufen. Bitte melden Sie sich erneut an.",
+    "MFA_TOKEN_EXPIRED": "MFA-Sitzung abgelaufen. Bitte melden Sie sich erneut an."
   },
   "general": {
     "title": "Etwas ist schiefgelaufen",

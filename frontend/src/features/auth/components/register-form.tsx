@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
@@ -12,9 +12,11 @@ import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/shared/form'
 
 import { useRegister } from '../hooks/use-register'
+import { useCaptchaConfig } from '../hooks/use-captcha-config'
 import { createRegisterSchema, type RegisterFormData, type MfaConfirmResponse } from '../types'
 import type { AuthResponse } from '@/types/auth'
 import { PasswordRequirements } from './password-requirements'
+import { CaptchaWidget } from './captcha-widget'
 import { getErrorMessage } from '@/lib/error-utils'
 import { getDeviceInfo } from '@/lib/device'
 import { MfaSetupModal } from './mfa-setup-modal'
@@ -28,6 +30,19 @@ export function RegisterForm() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [password, setPassword] = useState('')
+
+  // CAPTCHA state
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const { data: captchaConfig } = useCaptchaConfig()
+  const captchaRequired = captchaConfig?.enabled && captchaConfig?.provider !== 'Disabled'
+
+  const handleCaptchaVerify = useCallback((token: string) => {
+    setCaptchaToken(token)
+  }, [])
+
+  const handleCaptchaExpire = useCallback(() => {
+    setCaptchaToken(null)
+  }, [])
 
   // MFA state (for first user registration)
   const [mfaSetupOpen, setMfaSetupOpen] = useState(false)
@@ -61,6 +76,7 @@ export function RegisterForm() {
       ...data,
       ...deviceInfo,
       language: i18n.language,
+      captchaToken: captchaToken || undefined,
     })
   }
 
@@ -154,7 +170,19 @@ export function RegisterForm() {
 
       <PasswordRequirements password={password} />
 
-      <Button type="submit" className="w-full" disabled={isPending}>
+      {/* CAPTCHA Widget - always visible for registration */}
+      <CaptchaWidget
+        onVerify={handleCaptchaVerify}
+        onExpire={handleCaptchaExpire}
+        action="register"
+        className="flex justify-center"
+      />
+
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isPending || (captchaRequired && !captchaToken)}
+      >
         {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

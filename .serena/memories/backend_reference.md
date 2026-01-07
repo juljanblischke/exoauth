@@ -512,8 +512,70 @@ Every new endpoint MUST have:
 3. **Application**: Commands/Queries + Handlers + Validators
 4. **API**: Controller + Endpoints
 5. **Tests**: Unit Tests
-6. **Update this Task-File** 
 6. **Update this memory file**
 
 ---
 
+## Last Updated
+
+- **Date:** 2026-01-07
+- **Task:** 021 - CAPTCHA Integration (Backend Complete)
+- **Tests:** 405 total tests passing (49 CAPTCHA-specific)
+- **Notes:** 
+  - CAPTCHA smart trigger bug fixed: MFA verify and device approval failed attempts now properly recorded to Redis
+  - New methods: `RecordFailedMfaAttemptAsync`, `RecordFailedDeviceApprovalAttemptAsync`
+  - ExceptionMiddleware enhanced: AccountLockedException now includes `lockedUntil` in response data field
+
+---
+
+## Last Updated
+- **Date:** 2026-01-07
+- **Tasks Completed:** 001-021 (405 Unit Tests)
+- **Task 019:** Passkeys (WebAuthn/FIDO2)
+  - New entity: Passkey (CredentialId, PublicKey, Counter, CredType, AaGuid, Name, LastUsedAt)
+  - SystemUser extended with Passkeys collection
+  - IPasskeyService interface with Fido2NetLib integration
+  - PasskeyService with Redis challenge storage (5-minute TTL)
+  - Auth API endpoints:
+    - POST /auth/passkeys/register/options (get registration challenge)
+    - POST /auth/passkeys/register (complete registration)
+    - POST /auth/passkeys/login/options (get authentication challenge)
+    - POST /auth/passkeys/login (passwordless login)
+    - GET /auth/passkeys (list user's passkeys)
+    - PATCH /auth/passkeys/{id} (rename passkey)
+    - DELETE /auth/passkeys/{id} (remove passkey)
+  - Passkey login creates trusted device automatically
+  - Email notifications: passkey-registered, passkey-removed
+  - Error codes: PASSKEY_NOT_FOUND, PASSKEY_INVALID_CREDENTIAL, PASSKEY_REGISTRATION_FAILED, 
+    PASSKEY_ALREADY_REGISTERED, PASSKEY_CANNOT_DELETE_LAST
+  - 41 new unit tests for passkey handlers
+- **Task 021:** CAPTCHA Integration
+  - ICaptchaProvider interface for provider abstraction
+  - ICaptchaService interface for validation and smart triggering
+  - Providers: TurnstileProvider, RecaptchaV3Provider, HcaptchaProvider, DisabledCaptchaProvider
+  - CaptchaService with smart triggering based on:
+    - Failed login attempts threshold (Redis counter)
+    - Risk score threshold
+    - Per-context thresholds: Login, ApproveDevice, MfaVerify
+  - Models: CaptchaSettings, CaptchaResult, CaptchaPublicConfig, SmartTriggerSettings
+  - API endpoint: GET /captcha/config (returns provider + siteKey)
+  - Commands updated with CAPTCHA validation:
+    - Register: Always required (if CAPTCHA enabled)
+    - ForgotPassword: Always required (if CAPTCHA enabled)
+    - Login: Smart triggered (failed attempts or risk score)
+    - ApproveDevice: Smart triggered
+    - MfaVerify: Smart triggered
+  - Error codes: CAPTCHA_REQUIRED, CAPTCHA_INVALID
+  - appsettings.json configuration for provider selection
+  - 49 new unit tests for CAPTCHA functionality
+- **Task 017:** Device Model Consolidation
+  - Consolidated DeviceSession, TrustedDevice, DeviceApprovalRequest → Device entity
+  - Consolidated IDeviceSessionService, ITrustedDeviceService, IDeviceApprovalService → IDeviceService
+  - Device.Id now serves as session ID
+  - DeviceStatus enum: PendingApproval, Trusted, Revoked
+  - Auth API: `/auth/devices` (replaces /sessions + /trusted-devices)
+  - Admin API: `/system-users/{id}/devices` (replaces /sessions)
+  - Auto-login after device approval (tokens returned)
+  - Approve device from existing trusted session
+  - Device.ResetToPending() for spoofing detection (reuses existing device record)
+  - IRevokedSessionService.ClearRevokedSessionAsync() clears Redis on device reuse

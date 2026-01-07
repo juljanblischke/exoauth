@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
@@ -28,6 +28,7 @@ import { MfaConfirmModal } from './mfa-confirm-modal'
 import { ForgotPasswordModal } from './forgot-password-modal'
 import { DeviceApprovalModal } from './device-approval-modal'
 import { PasskeyLoginButton } from './passkey-login-button'
+import { CaptchaWidget } from './captcha-widget'
 
 const AUTH_SESSION_KEY = 'exoauth_has_session'
 const AUTH_QUERY_KEY = ['auth', 'me'] as const
@@ -55,6 +56,24 @@ export function LoginForm() {
   const [deviceApprovalToken, setDeviceApprovalToken] = useState<string | null>(null)
   const [deviceRiskFactors, setDeviceRiskFactors] = useState<string[]>([])
 
+  // CAPTCHA state (conditional - only shown after CAPTCHA_REQUIRED error)
+  const [showCaptcha, setShowCaptcha] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
+
+  const handleCaptchaVerify = useCallback((token: string) => {
+    setCaptchaToken(token)
+  }, [])
+
+  const handleCaptchaExpire = useCallback(() => {
+    setCaptchaToken(null)
+  }, [])
+
+  const resetCaptcha = useCallback(() => {
+    setCaptchaToken(null)
+    setCaptchaKey((k) => k + 1) // Force widget to remount and refresh
+  }, [])
+
   const { mutate: login, isPending, error } = useLogin({
     onMfaRequired: (response: AuthResponse) => {
       setMfaToken(response.mfaToken)
@@ -70,6 +89,11 @@ export function LoginForm() {
       setDeviceRiskFactors(response.riskFactors)
       setDeviceApprovalOpen(true)
     },
+    onCaptchaRequired: () => {
+      setShowCaptcha(true)
+      setCaptchaToken(null)
+    },
+    onCaptchaExpired: resetCaptcha,
   })
 
   const loginSchema = useMemo(() => createLoginSchema(t), [t])
@@ -89,6 +113,7 @@ export function LoginForm() {
       ...data,
       rememberMe: data.rememberMe ?? false,
       ...deviceInfo,
+      captchaToken: captchaToken || undefined,
     })
   }
 
@@ -201,7 +226,22 @@ export function LoginForm() {
         </Label>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isPending}>
+      {/* CAPTCHA Widget - shown conditionally after CAPTCHA_REQUIRED error */}
+      {showCaptcha && (
+        <CaptchaWidget
+          key={captchaKey}
+          onVerify={handleCaptchaVerify}
+          onExpire={handleCaptchaExpire}
+          action="login"
+          className="flex justify-center"
+        />
+      )}
+
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isPending || (showCaptcha && !captchaToken)}
+      >
         {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

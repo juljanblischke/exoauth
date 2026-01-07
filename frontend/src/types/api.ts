@@ -18,6 +18,7 @@ export interface ApiError {
   field?: string
   code: string
   message: string
+  data?: Record<string, unknown>  // Response data for special error handling
 }
 
 export interface PaginationMeta {

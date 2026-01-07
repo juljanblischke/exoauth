@@ -27,7 +27,8 @@ export const deviceApprovalApi = {
    */
   approveByLink: async (token: string): Promise<ApproveDeviceByLinkResponse> => {
     const response = await apiClient.get<ApiResponse<ApproveDeviceByLinkResponse>>(
-      `/auth/approve-device/${token}`
+      '/auth/approve-device-link',
+      { params: { token } }
     )
     return extractData(response)
   },

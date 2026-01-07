@@ -11,6 +11,8 @@ export interface UseLoginOptions {
   onMfaRequired?: (response: AuthResponse) => void
   onMfaSetupRequired?: (response: AuthResponse) => void
   onDeviceApprovalRequired?: (response: DeviceApprovalRequiredResponse) => void
+  onCaptchaRequired?: () => void
+  onCaptchaExpired?: () => void
 }
 
 export function useLogin(options?: UseLoginOptions) {
@@ -42,6 +44,17 @@ export function useLogin(options?: UseLoginOptions) {
       localStorage.setItem(AUTH_SESSION_KEY, 'true')
       queryClient.setQueryData(AUTH_QUERY_KEY, response.user)
       navigate({ to: '/dashboard' })
+    },
+    onError: (error) => {
+      const errorCode = (error as { code?: string })?.code?.toLowerCase()
+      // Check if CAPTCHA is required
+      if (errorCode === 'auth_captcha_required') {
+        options?.onCaptchaRequired?.()
+      }
+      // Check if CAPTCHA token expired
+      if (errorCode === 'auth_captcha_expired' || errorCode === 'auth_captcha_invalid') {
+        options?.onCaptchaExpired?.()
+      }
     },
   })
 }

@@ -69,6 +69,7 @@ export interface LoginRequest extends DeviceInfo {
   email: string
   password: string
   rememberMe: boolean
+  captchaToken?: string
 }
 
 export interface RegisterRequest extends DeviceInfo {
@@ -78,6 +79,7 @@ export interface RegisterRequest extends DeviceInfo {
   lastName: string
   organizationName?: string
   language?: string
+  captchaToken?: string
 }
 
 export interface AcceptInviteRequest extends DeviceInfo {
@@ -92,6 +94,7 @@ export interface RefreshTokenRequest {
 
 export interface ForgotPasswordRequest {
   email: string
+  captchaToken?: string
 }
 
 export interface ResetPasswordRequest {
@@ -105,6 +108,7 @@ export interface MfaVerifyRequest extends DeviceInfo {
   mfaToken: string
   code: string
   rememberMe: boolean
+  captchaToken?: string
 }
 
 export interface SessionInfo {

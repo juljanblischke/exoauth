@@ -148,3 +148,10 @@ export type {
   RenamePasskeyRequest,
 } from './passkey'
 
+// Re-export CAPTCHA types
+export type {
+  CaptchaProvider,
+  CaptchaConfig,
+  CaptchaWidgetProps,
+} from './captcha'
+

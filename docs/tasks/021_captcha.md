@@ -208,14 +208,19 @@ public interface ICaptchaProvider
 public interface ICaptchaService
 {
     /// <summary>
-    /// Validates CAPTCHA token. Throws if invalid and CAPTCHA is required.
+    /// Validates CAPTCHA token (required endpoints like Register, ForgotPassword).
     /// </summary>
-    Task ValidateAsync(string? token, string action, CancellationToken ct = default);
+    Task ValidateRequiredAsync(string? token, string action, string? remoteIp = null, CancellationToken ct = default);
+    
+    /// <summary>
+    /// Validates CAPTCHA token conditionally (smart trigger endpoints).
+    /// </summary>
+    Task ValidateConditionalAsync(string? token, bool isRequired, string action, string? remoteIp = null, CancellationToken ct = default);
     
     /// <summary>
     /// Checks if CAPTCHA is required for login (smart trigger).
     /// </summary>
-    Task<bool> IsRequiredForLoginAsync(string email, CancellationToken ct = default);
+    Task<bool> IsRequiredForLoginAsync(string email, int? riskScore = null, CancellationToken ct = default);
     
     /// <summary>
     /// Checks if CAPTCHA is required for device approval (smart trigger).
@@ -231,6 +236,18 @@ public interface ICaptchaService
     /// Gets public config for frontend.
     /// </summary>
     CaptchaPublicConfig GetPublicConfig();
+    
+    /// <summary>
+    /// Records failed MFA attempt for smart triggering.
+    /// </summary>
+    Task RecordFailedMfaAttemptAsync(string mfaToken, CancellationToken ct = default);
+    
+    /// <summary>
+    /// Records failed device approval attempt for smart triggering.
+    /// </summary>
+    Task RecordFailedDeviceApprovalAttemptAsync(Guid deviceId, CancellationToken ct = default);
+    
+    bool IsEnabled { get; }
 }
 ```
 
@@ -282,9 +299,25 @@ Frontend implementation will be Task 022:
 - [ ] Code reviewed
 - [ ] Task 022 (Frontend) erstellt
 
-## 15. Letzte Änderung
+## 15. Bug Fixes
+
+### Smart Trigger Recording Fix (2026-01-07)
+**Problem:** MFA verify and device approval CAPTCHA smart triggers never activated because failed attempts weren't being recorded to Redis.
+
+**Root Cause:** `IsRequiredForMfaVerifyAsync` and `IsRequiredForDeviceApprovalAsync` read from Redis keys, but nothing wrote to them.
+
+**Solution:** Added two new methods to `ICaptchaService`:
+- `RecordFailedMfaAttemptAsync(string mfaToken)` - Called in `MfaVerifyHandler` when code is invalid
+- `RecordFailedDeviceApprovalAttemptAsync(Guid deviceId)` - Called in `ApproveDeviceHandler` when code is invalid
+
+Redis keys with 15-minute TTL:
+- `mfa:verify:attempts:{tokenHash}`
+- `device:approval:attempts:{deviceId}`
+
+## 16. Letzte Änderung
 
 - **Datum:** 2026-01-07
 - **Status:** ✅ Backend Completed
 - **Tests:** 49 CAPTCHA tests, 405 total tests passing
+- **Letzte Änderung:** Smart trigger recording fix - MFA/Device approval failed attempts now properly recorded
 - **Nächster Schritt:** Task 022 - Frontend CAPTCHA Integration

@@ -32,7 +32,17 @@
     "APPROVAL_TOKEN_EXPIRED": "Verification token has expired",
     "APPROVAL_CODE_INVALID": "Invalid verification code",
     "APPROVAL_MAX_ATTEMPTS": "Too many failed attempts",
-    "DEVICE_APPROVAL_DENIED": "This device has been denied"
+    "DEVICE_APPROVAL_DENIED": "This device has been denied",
+    "AUTH_CAPTCHA_REQUIRED": "Please complete the security verification",
+    "AUTH_CAPTCHA_INVALID": "Security verification failed. Please try again.",
+    "AUTH_CAPTCHA_EXPIRED": "Security verification expired. Please try again.",
+    "ACCOUNT_LOCKED": "Account is temporarily locked. Please try again later.",
+    "ACCOUNT_LOCKED_SECONDS": "Account is locked. Try again in {{seconds}} seconds.",
+    "ACCOUNT_LOCKED_MINUTES": "Account is locked. Try again in {{minutes}} minute(s).",
+    "ACCOUNT_LOCKED_UNTIL": "Account is locked until {{time}}.",
+    "MFA_CODE_INVALID": "Invalid verification code. Please try again.",
+    "MFA_TOKEN_INVALID": "MFA session expired. Please sign in again.",
+    "MFA_TOKEN_EXPIRED": "MFA session expired. Please sign in again."
   },
   "general": {
     "title": "Something went wrong",

@@ -140,6 +140,23 @@ public sealed class ExceptionMiddleware
 
     private static (int, ApiResponse<object>) HandleAuthException(AuthException exception)
     {
+        // Special handling for AccountLockedException to include lockedUntil
+        if (exception is AccountLockedException lockedException)
+        {
+            return (exception.StatusCode,
+                new ApiResponse<object>
+                {
+                    Status = "error",
+                    StatusCode = exception.StatusCode,
+                    Message = exception.Message,
+                    Data = lockedException.LockedUntil.HasValue
+                        ? new { lockedUntil = lockedException.LockedUntil.Value }
+                        : null,
+                    Errors = new[] { ApiError.Create(exception.ErrorCode, exception.Message) },
+                    Meta = new ApiResponseMeta()
+                });
+        }
+
         return (exception.StatusCode,
             ApiResponse<object>.Error(
                 exception.Message,

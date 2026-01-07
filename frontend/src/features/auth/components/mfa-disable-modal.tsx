@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useMfaDisable } from '../hooks'
+import { getErrorMessage } from '@/lib/error-utils'
 
 interface MfaDisableModalProps {
   open: boolean
@@ -86,7 +87,7 @@ export function MfaDisableModal({
             />
             {mfaDisable.isError && (
               <p className="text-sm text-destructive">
-                {t('mfa:errors.codeInvalid')}
+                {getErrorMessage(mfaDisable.error, t)}
               </p>
             )}
           </div>

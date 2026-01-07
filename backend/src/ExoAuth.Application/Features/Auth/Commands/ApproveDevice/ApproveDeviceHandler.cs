@@ -50,6 +50,12 @@ public sealed class ApproveDeviceHandler : ICommandHandler<ApproveDeviceCommand,
         {
             _logger.LogDebug("Device approval code validation failed: {Error}", result.Error);
 
+            // Record failed attempt for CAPTCHA smart trigger (only for code errors, not token errors)
+            if (result.Error == "APPROVAL_CODE_INVALID")
+            {
+                await _captchaService.RecordFailedDeviceApprovalAttemptAsync(device.Id, ct);
+            }
+
             throw result.Error switch
             {
                 "APPROVAL_TOKEN_INVALID" => new ApprovalTokenInvalidException(),

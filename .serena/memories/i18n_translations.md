@@ -79,6 +79,7 @@ deviceApproval.*   - title, description, codeLabel, submitButton, riskFactors.*,
 trustedDevices.*   - title, description, current, removeAll, remove, rename, noDevices, etc.
 devices.*          - title, details, description, unknownDevice, current, empty.*, status.*, info.*, actions.*, rename.*, revoke.*, approve.*
 passkeys.*         - title, description, loginButton, addButton, empty.*, card.*, register.*, rename.*, delete.*, login.*, notSupported.*, multiDeviceHint
+captcha.*          - loading, loadError, verificationError, disabled, recaptcha.indicator
 ```
 
 ### users.json
@@ -136,7 +137,10 @@ codes.*            - All backend error codes mapped to user-friendly messages
   MFA_REQUIRED, MFA_CODE_INVALID, MFA_ALREADY_ENABLED, MFA_TOKEN_INVALID
   SESSION_NOT_FOUND, SESSION_REVOKED
   SYSTEM_USER_NOT_FOUND, SYSTEM_LAST_PERMISSION_HOLDER, SYSTEM_USER_ANONYMIZED
-  APPROVAL_TOKEN_INVALID, APPROVAL_CODE_INVALID, APPROVAL_MAX_ATTEMPTS, etc.
+  APPROVAL_TOKEN_INVALID, APPROVAL_CODE_INVALID, APPROVAL_MAX_ATTEMPTS
+  AUTH_CAPTCHA_REQUIRED, AUTH_CAPTCHA_INVALID, AUTH_CAPTCHA_EXPIRED
+  ACCOUNT_LOCKED, ACCOUNT_LOCKED_SECONDS, ACCOUNT_LOCKED_MINUTES, ACCOUNT_LOCKED_UNTIL
+  MFA_CODE_INVALID, MFA_TOKEN_INVALID, MFA_TOKEN_EXPIRED, etc.
 
 general.*          - title, message, retry, goHome
 network.*          - title, message, offline
@@ -232,5 +236,5 @@ function Component() {
 ---
 
 ## Last Updated
-- **Date:** 2026-01-06
-- **Latest Additions:** Added passkeys.* translations for WebAuthn/Passkey support (Task 020)
+- **Date:** 2026-01-07
+- **Latest Additions:** Added MFA_CODE_INVALID, MFA_TOKEN_INVALID, MFA_TOKEN_EXPIRED error codes

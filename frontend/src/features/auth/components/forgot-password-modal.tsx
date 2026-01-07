@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
@@ -18,7 +18,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/shared/form'
 import { PasswordRequirements } from './password-requirements'
-import { useForgotPassword, useResetPassword } from '../hooks'
+import { CaptchaWidget } from './captcha-widget'
+import { useForgotPassword, useResetPassword, useCaptchaConfig } from '../hooks'
 import { getErrorMessage } from '@/lib/error-utils'
 
 type Step = 'email' | 'code' | 'password' | 'success'
@@ -62,6 +63,19 @@ export function ForgotPasswordModal({
   const [email, setEmail] = useState(defaultEmail)
   const [code, setCode] = useState('')
 
+  // CAPTCHA state
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const { data: captchaConfig } = useCaptchaConfig()
+  const captchaRequired = captchaConfig?.enabled && captchaConfig?.provider !== 'Disabled'
+
+  const handleCaptchaVerify = useCallback((token: string) => {
+    setCaptchaToken(token)
+  }, [])
+
+  const handleCaptchaExpire = useCallback(() => {
+    setCaptchaToken(null)
+  }, [])
+
   const forgotPassword = useForgotPassword()
   const resetPassword = useResetPassword()
 
@@ -83,6 +97,7 @@ export function ForgotPasswordModal({
       setEmail(defaultEmail)
       setCode('')
       setStep('email')
+      setCaptchaToken(null)
       forgotPassword.reset()
       resetPassword.reset()
       passwordForm.reset()
@@ -95,7 +110,7 @@ export function ForgotPasswordModal({
     if (!email.trim()) return
 
     forgotPassword.mutate(
-      { email: email.trim() },
+      { email: email.trim(), captchaToken: captchaToken || undefined },
       {
         onSuccess: () => {
           setStep('code')
@@ -171,6 +186,14 @@ export function ForgotPasswordModal({
               />
             </div>
 
+            {/* CAPTCHA Widget - always visible for forgot password */}
+            <CaptchaWidget
+              onVerify={handleCaptchaVerify}
+              onExpire={handleCaptchaExpire}
+              action="forgot_password"
+              className="flex justify-center"
+            />
+
             <div className="flex gap-3">
               <Button
                 type="button"
@@ -184,7 +207,7 @@ export function ForgotPasswordModal({
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={!email.trim() || isEmailPending}
+                disabled={!email.trim() || isEmailPending || (captchaRequired && !captchaToken)}
               >
                 {isEmailPending ? (
                   <>

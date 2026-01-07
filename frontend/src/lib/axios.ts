@@ -122,7 +122,10 @@ function transformError(error: AxiosError<ApiResponse<unknown>>): ApiError {
   const response = error.response?.data
 
   if (response?.errors && response.errors.length > 0) {
-    return response.errors[0]
+    return {
+      ...response.errors[0],
+      data: response.data as Record<string, unknown> | undefined,
+    }
   }
 
   return {

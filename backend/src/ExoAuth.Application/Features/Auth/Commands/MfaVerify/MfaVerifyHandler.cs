@@ -175,6 +175,8 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
 
         if (!codeValid)
         {
+            // Record failed attempt for CAPTCHA smart trigger
+            await _captchaService.RecordFailedMfaAttemptAsync(command.MfaToken, ct);
             throw new MfaCodeInvalidException();
         }
 

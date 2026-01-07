@@ -225,6 +225,31 @@ public sealed class CaptchaService : ICaptchaService
         _logger.LogDebug("CAPTCHA validation successful for action {Action}", action);
     }
 
+    public async Task RecordFailedMfaAttemptAsync(string mfaToken, CancellationToken cancellationToken = default)
+    {
+        var tokenHash = GetTokenHash(mfaToken);
+        var key = $"{MfaVerifyAttemptsKeyPrefix}{tokenHash}";
+
+        var attempts = await _cache.IncrementAsync(key, 1, TimeSpan.FromMinutes(15), cancellationToken);
+
+        _logger.LogDebug(
+            "Recorded failed MFA attempt: {Attempts} attempts for token hash {TokenHash}",
+            attempts,
+            tokenHash);
+    }
+
+    public async Task RecordFailedDeviceApprovalAttemptAsync(Guid deviceId, CancellationToken cancellationToken = default)
+    {
+        var key = $"{DeviceApprovalAttemptsKeyPrefix}{deviceId}";
+
+        var attempts = await _cache.IncrementAsync(key, 1, TimeSpan.FromMinutes(15), cancellationToken);
+
+        _logger.LogDebug(
+            "Recorded failed device approval attempt: {Attempts} attempts for device {DeviceId}",
+            attempts,
+            deviceId);
+    }
+
     private static string GetTokenHash(string token)
     {
         using var sha256 = System.Security.Cryptography.SHA256.Create();

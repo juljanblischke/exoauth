@@ -12,7 +12,9 @@ import {
 import { Button } from '@/components/ui/button'
 
 import { DeviceApprovalCodeInput } from './device-approval-code-input'
+import { CaptchaWidget } from './captcha-widget'
 import { useApproveDeviceByCode } from '../hooks'
+import { getErrorMessage } from '@/lib/error-utils'
 import type { DeviceApprovalModalState, DeviceApprovalModalProps } from '../types'
 
 export function DeviceApprovalModal({
@@ -27,24 +29,44 @@ export function DeviceApprovalModal({
   const [code, setCode] = useState('')
   const [modalState, setModalState] = useState<DeviceApprovalModalState>('input')
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null)
+  const [showCaptcha, setShowCaptcha] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const approveByCode = useApproveDeviceByCode()
+  const approveByCode = useApproveDeviceByCode({
+    onCaptchaRequired: () => {
+      setShowCaptcha(true)
+      setCaptchaToken(null)
+      setModalState('input') // Go back to input state to show CAPTCHA
+    },
+    onCaptchaExpired: () => {
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
+      setModalState('input')
+    },
+  })
 
   const resetModal = useCallback(() => {
     setCode('')
     setModalState('input')
     setRemainingAttempts(null)
+    setShowCaptcha(false)
+    setCaptchaToken(null)
+    setCaptchaKey(0)
+    setErrorMessage(null)
   }, [])
 
   const handleSubmit = () => {
     // Remove dash for API call
     const cleanCode = code.replace('-', '')
     if (cleanCode.length !== 8) return
+    if (showCaptcha && !captchaToken) return
 
     setModalState('loading')
 
     approveByCode.mutate(
-      { approvalToken, code: cleanCode },
+      { approvalToken, code: cleanCode, captchaToken: captchaToken || undefined },
       {
         onSuccess: () => {
           setModalState('success')
@@ -59,11 +81,12 @@ export function DeviceApprovalModal({
           } else if (errorCode === 'APPROVAL_MAX_ATTEMPTS') {
             setModalState('maxAttempts')
           } else {
-            // Wrong code - show remaining attempts
+            // Wrong code or other error - show remaining attempts if available
             const attempts = apiError?.response?.data?.data?.remainingAttempts
             if (typeof attempts === 'number') {
               setRemainingAttempts(attempts)
             }
+            setErrorMessage(getErrorMessage(error, t))
             setModalState('error')
           }
         },
@@ -89,9 +112,18 @@ export function DeviceApprovalModal({
     onOpenChange(newOpen)
   }
 
+  const handleCaptchaVerify = (token: string) => {
+    setCaptchaToken(token)
+  }
+
+  const handleCaptchaExpire = () => {
+    setCaptchaToken(null)
+  }
+
   // Check if code is complete
   const isCodeComplete = code.replace('-', '').length === 8
   const isLoading = modalState === 'loading'
+  const canSubmit = isCodeComplete && (!showCaptcha || captchaToken)
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -142,7 +174,7 @@ export function DeviceApprovalModal({
               {/* Error message with remaining attempts */}
               {modalState === 'error' && (
                 <div className="rounded-md bg-destructive/10 p-3 text-center text-sm text-destructive">
-                  {t('errors:codes.APPROVAL_CODE_INVALID')}
+                  {errorMessage || t('errors:codes.APPROVAL_CODE_INVALID')}
                   {remainingAttempts !== null && (
                     <span className="block mt-1 font-medium">
                       {t('auth:deviceApproval.attemptsRemaining', { count: remainingAttempts })}
@@ -151,9 +183,18 @@ export function DeviceApprovalModal({
                 </div>
               )}
 
+              {showCaptcha && (
+                <CaptchaWidget
+                  key={captchaKey}
+                  onVerify={handleCaptchaVerify}
+                  onExpire={handleCaptchaExpire}
+                  action="device_approval"
+                />
+              )}
+
               <Button
                 onClick={handleSubmit}
-                disabled={!isCodeComplete || isLoading}
+                disabled={!canSubmit || isLoading}
                 className="w-full"
               >
                 {isLoading ? (

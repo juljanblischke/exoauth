@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useMfaVerify } from '../hooks'
 import { getDeviceInfo } from '@/lib/device'
+import { getErrorMessage } from '@/lib/error-utils'
+import { CaptchaWidget } from './captcha-widget'
 import type { DeviceApprovalRequiredResponse } from '../types'
 
 interface MfaVerifyModalProps {
@@ -35,11 +37,22 @@ export function MfaVerifyModal({
   const [code, setCode] = useState('')
   const [useBackupCode, setUseBackupCode] = useState(false)
   const [isTokenExpired, setIsTokenExpired] = useState(false)
+  const [showCaptcha, setShowCaptcha] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
 
   const mfaVerify = useMfaVerify({
     onDeviceApprovalRequired: (response) => {
       onOpenChange(false)
       onDeviceApprovalRequired?.(response)
+    },
+    onCaptchaRequired: () => {
+      setShowCaptcha(true)
+      setCaptchaToken(null)
+    },
+    onCaptchaExpired: () => {
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     },
     onError: (error) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,6 +70,9 @@ export function MfaVerifyModal({
       setCode('')
       setUseBackupCode(false)
       setIsTokenExpired(false)
+      setShowCaptcha(false)
+      setCaptchaToken(null)
+      setCaptchaKey(0)
       mfaVerify.reset()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -65,14 +81,24 @@ export function MfaVerifyModal({
   const handleVerify = () => {
     const expectedLength = useBackupCode ? 8 : 6
     if (code.length !== expectedLength) return
+    if (showCaptcha && !captchaToken) return
 
     const deviceInfo = getDeviceInfo()
     mfaVerify.mutate({
       mfaToken,
       code,
       rememberMe,
+      captchaToken: captchaToken || undefined,
       ...deviceInfo,
     })
+  }
+
+  const handleCaptchaVerify = (token: string) => {
+    setCaptchaToken(token)
+  }
+
+  const handleCaptchaExpire = () => {
+    setCaptchaToken(null)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -150,15 +176,28 @@ export function MfaVerifyModal({
                 />
                 {mfaVerify.isError && !isTokenExpired && (
                   <p className="text-sm text-destructive">
-                    {t('mfa:errors.codeInvalid')}
+                    {getErrorMessage(mfaVerify.error, t)}
                   </p>
                 )}
               </div>
 
+              {showCaptcha && (
+                <CaptchaWidget
+                  key={captchaKey}
+                  onVerify={handleCaptchaVerify}
+                  onExpire={handleCaptchaExpire}
+                  action="mfa_verify"
+                />
+              )}
+
               <Button
                 className="w-full"
                 onClick={handleVerify}
-                disabled={code.length !== expectedLength || isVerifying}
+                disabled={
+                  code.length !== expectedLength ||
+                  isVerifying ||
+                  (showCaptcha && !captchaToken)
+                }
               >
                 {isVerifying ? (
                   <>

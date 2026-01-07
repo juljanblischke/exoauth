@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from '@tanstack/react-router'
+import { Link, useSearch } from '@tanstack/react-router'
 import { Loader2, ShieldCheck, ShieldX } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,8 @@ import { getErrorMessage } from '@/lib/error-utils'
 
 export function ApproveDevicePage() {
   const { t } = useTranslation()
-  const { token } = useParams({ strict: false }) as { token?: string }
+  const search = useSearch({ strict: false }) as { token?: string }
+  const token = search.token
 
   const { data, isLoading, isError, error } = useApproveDeviceByLink(token || '')
 

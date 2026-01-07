@@ -37,3 +37,6 @@ export { usePasskeyLogin, type UsePasskeyLoginOptions } from './use-passkey-logi
 export { useRenamePasskey } from './use-rename-passkey'
 export { useDeletePasskey } from './use-delete-passkey'
 export { useWebAuthnSupport } from './use-webauthn-support'
+
+// CAPTCHA hooks
+export { useCaptchaConfig, CAPTCHA_CONFIG_KEY } from './use-captcha-config'

@@ -8,6 +8,8 @@ const AUTH_SESSION_KEY = 'exoauth_has_session'
 
 interface UseMfaVerifyOptions {
   onDeviceApprovalRequired?: (response: DeviceApprovalRequiredResponse) => void
+  onCaptchaRequired?: () => void
+  onCaptchaExpired?: () => void
   onError?: (error: unknown) => void
 }
 
@@ -30,6 +32,15 @@ export function useMfaVerify(options?: UseMfaVerifyOptions) {
       navigate({ to: '/dashboard' })
     },
     onError: (error) => {
+      const errorCode = (error as { code?: string })?.code?.toLowerCase()
+      // Check if CAPTCHA is required
+      if (errorCode === 'auth_captcha_required') {
+        options?.onCaptchaRequired?.()
+      }
+      // Check if CAPTCHA token expired
+      if (errorCode === 'auth_captcha_expired' || errorCode === 'auth_captcha_invalid') {
+        options?.onCaptchaExpired?.()
+      }
       options?.onError?.(error)
     },
   })
