@@ -5,9 +5,14 @@ namespace ExoAuth.Application.Features.Auth.Commands.ApproveDevice;
 /// <summary>
 /// Command to approve a device using the approval token and XXXX-XXXX code.
 /// </summary>
+/// <summary>
+/// Command to approve a device using the approval token and XXXX-XXXX code.
+/// </summary>
 public sealed record ApproveDeviceCommand(
     string ApprovalToken,
-    string Code
+    string Code,
+    string? CaptchaToken = null,
+    string? IpAddress = null
 ) : ICommand<ApproveDeviceResponse>;
 
 /// <summary>

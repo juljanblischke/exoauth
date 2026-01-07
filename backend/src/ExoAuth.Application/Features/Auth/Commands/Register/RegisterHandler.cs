@@ -15,6 +15,7 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
     private readonly ITokenService _tokenService;
     private readonly IMfaService _mfaService;
     private readonly IAuditService _auditService;
+    private readonly ICaptchaService _captchaService;
 
     public RegisterHandler(
         IAppDbContext context,
@@ -22,7 +23,8 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
         IMfaService mfaService,
-        IAuditService auditService)
+        IAuditService auditService,
+        ICaptchaService captchaService)
     {
         _context = context;
         _userRepository = userRepository;
@@ -30,10 +32,17 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
         _tokenService = tokenService;
         _mfaService = mfaService;
         _auditService = auditService;
+        _captchaService = captchaService;
     }
 
     public async ValueTask<AuthResponse> Handle(RegisterCommand command, CancellationToken ct)
     {
+        // Validate CAPTCHA (always required for registration)
+        await _captchaService.ValidateRequiredAsync(
+            command.CaptchaToken,
+            "register",
+            command.IpAddress,
+            ct);
         // Check if any system users exist
         var anyUsersExist = await _userRepository.AnyExistsAsync(ct);
 

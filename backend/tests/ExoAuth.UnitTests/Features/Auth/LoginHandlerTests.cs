@@ -31,6 +31,7 @@ public sealed class LoginHandlerTests
     private readonly Mock<ILoginPatternService> _mockLoginPatternService;
     private readonly Mock<IGeoIpService> _mockGeoIpService;
     private readonly Mock<IDeviceDetectionService> _mockDeviceDetectionService;
+    private readonly Mock<ICaptchaService> _mockCaptchaService;
     private readonly LoginHandler _handler;
 
     public LoginHandlerTests()
@@ -53,6 +54,7 @@ public sealed class LoginHandlerTests
         _mockLoginPatternService = new Mock<ILoginPatternService>();
         _mockGeoIpService = new Mock<IGeoIpService>();
         _mockDeviceDetectionService = new Mock<IDeviceDetectionService>();
+        _mockCaptchaService = new Mock<ICaptchaService>();
 
         // Default token service setup
         _mockTokenService.Setup(x => x.RefreshTokenExpiration).Returns(TimeSpan.FromDays(30));
@@ -96,6 +98,20 @@ public sealed class LoginHandlerTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(SpoofingCheckResult.NotSuspicious());
 
+        // Default CAPTCHA service setup - not required in tests
+        _mockCaptchaService.Setup(x => x.IsRequiredForLoginAsync(
+                It.IsAny<string>(),
+                It.IsAny<int?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _mockCaptchaService.Setup(x => x.ValidateConditionalAsync(
+                It.IsAny<string?>(),
+                It.IsAny<bool>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
         _handler = new LoginHandler(
             _mockContext.Object,
             _mockUserRepository.Object,
@@ -114,7 +130,8 @@ public sealed class LoginHandlerTests
             _mockRiskScoringService.Object,
             _mockLoginPatternService.Object,
             _mockGeoIpService.Object,
-            _mockDeviceDetectionService.Object);
+            _mockDeviceDetectionService.Object,
+            _mockCaptchaService.Object);
     }
 
     [Fact]

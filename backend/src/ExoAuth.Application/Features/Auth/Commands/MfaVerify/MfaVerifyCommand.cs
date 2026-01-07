@@ -7,12 +7,17 @@ namespace ExoAuth.Application.Features.Auth.Commands.MfaVerify;
 /// Command to verify MFA code during login.
 /// Accepts either a TOTP code or a backup code.
 /// </summary>
+/// <summary>
+/// Command to verify MFA code during login.
+/// Accepts either a TOTP code or a backup code.
+/// </summary>
 public sealed record MfaVerifyCommand(
     string MfaToken,
     string Code,
-    string? DeviceId,
-    string? DeviceFingerprint,
-    string? UserAgent,
-    string? IpAddress,
+    string? CaptchaToken = null,
+    string? DeviceId = null,
+    string? DeviceFingerprint = null,
+    string? UserAgent = null,
+    string? IpAddress = null,
     bool RememberMe = false
 ) : ICommand<AuthResponse>;

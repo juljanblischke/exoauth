@@ -1,10 +1,12 @@
 using ExoAuth.Application.Common.Interfaces;
+using ExoAuth.Application.Common.Models;
 using ExoAuth.Infrastructure.Caching;
 using ExoAuth.Infrastructure.Messaging;
 using ExoAuth.Infrastructure.Persistence;
 using ExoAuth.Infrastructure.Persistence.Repositories;
 using ExoAuth.Infrastructure.Persistence.Seeders;
 using ExoAuth.Infrastructure.Services;
+using ExoAuth.Infrastructure.Services.Captcha;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,6 +86,30 @@ public static class DependencyInjection
 
         // Passkey Services
         services.AddScoped<IPasskeyService, PasskeyService>();
+
+        // CAPTCHA Services
+        services.Configure<CaptchaSettings>(configuration.GetSection("Captcha"));
+        services.AddHttpClient<TurnstileProvider>();
+        services.AddHttpClient<RecaptchaProvider>();
+        services.AddHttpClient<HCaptchaProvider>();
+        services.AddSingleton<DisabledCaptchaProvider>();
+        services.AddSingleton<ICaptchaProvider>(sp =>
+        {
+            var settings = configuration.GetSection("Captcha").Get<CaptchaSettings>() ?? new CaptchaSettings();
+            if (!settings.Enabled)
+            {
+                return sp.GetRequiredService<DisabledCaptchaProvider>();
+            }
+
+            return settings.Provider.ToLowerInvariant() switch
+            {
+                "turnstile" => sp.GetRequiredService<TurnstileProvider>(),
+                "recaptcha" => sp.GetRequiredService<RecaptchaProvider>(),
+                "hcaptcha" => sp.GetRequiredService<HCaptchaProvider>(),
+                _ => sp.GetRequiredService<DisabledCaptchaProvider>()
+            };
+        });
+        services.AddSingleton<ICaptchaService, CaptchaService>();
 
         // Repositories
         services.AddScoped<ISystemUserRepository, SystemUserRepository>();

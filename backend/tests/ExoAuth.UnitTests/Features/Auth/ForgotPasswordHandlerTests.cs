@@ -14,6 +14,7 @@ public sealed class ForgotPasswordHandlerTests
     private readonly Mock<IPasswordResetService> _mockPasswordResetService;
     private readonly Mock<IEmailService> _mockEmailService;
     private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<ICaptchaService> _mockCaptchaService;
     private readonly Mock<ILogger<ForgotPasswordHandler>> _mockLogger;
     private readonly ForgotPasswordHandler _handler;
 
@@ -23,13 +24,23 @@ public sealed class ForgotPasswordHandlerTests
         _mockPasswordResetService = new Mock<IPasswordResetService>();
         _mockEmailService = new Mock<IEmailService>();
         _mockAuditService = new Mock<IAuditService>();
+        _mockCaptchaService = new Mock<ICaptchaService>();
         _mockLogger = new Mock<ILogger<ForgotPasswordHandler>>();
+
+        // Default CAPTCHA service setup - always valid in tests
+        _mockCaptchaService.Setup(x => x.ValidateRequiredAsync(
+            It.IsAny<string?>(),
+            It.IsAny<string>(),
+            It.IsAny<string?>(),
+            It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         _handler = new ForgotPasswordHandler(
             _mockUserRepository.Object,
             _mockPasswordResetService.Object,
             _mockEmailService.Object,
             _mockAuditService.Object,
+            _mockCaptchaService.Object,
             _mockLogger.Object);
     }
 

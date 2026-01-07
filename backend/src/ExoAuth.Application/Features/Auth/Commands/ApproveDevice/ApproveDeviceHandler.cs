@@ -10,20 +10,39 @@ public sealed class ApproveDeviceHandler : ICommandHandler<ApproveDeviceCommand,
 {
     private readonly IDeviceService _deviceService;
     private readonly IAuditService _auditService;
+    private readonly ICaptchaService _captchaService;
     private readonly ILogger<ApproveDeviceHandler> _logger;
 
     public ApproveDeviceHandler(
         IDeviceService deviceService,
         IAuditService auditService,
+        ICaptchaService captchaService,
         ILogger<ApproveDeviceHandler> logger)
     {
         _deviceService = deviceService;
         _auditService = auditService;
+        _captchaService = captchaService;
         _logger = logger;
     }
 
     public async ValueTask<ApproveDeviceResponse> Handle(ApproveDeviceCommand command, CancellationToken ct)
     {
+        // First, validate the token to get the device (without incrementing attempts)
+        var device = await _deviceService.ValidateApprovalTokenAsync(command.ApprovalToken, ct);
+        if (device is null)
+        {
+            throw new ApprovalTokenInvalidException();
+        }
+
+        // Check if CAPTCHA is required based on device's previous failed attempts
+        var captchaRequired = await _captchaService.IsRequiredForDeviceApprovalAsync(device.Id, ct);
+        await _captchaService.ValidateConditionalAsync(
+            command.CaptchaToken,
+            captchaRequired,
+            "device_approval",
+            command.IpAddress,
+            ct);
+
         // Validate the code against the approval token
         var result = await _deviceService.ValidateApprovalCodeAsync(command.ApprovalToken, command.Code, ct);
 
@@ -41,7 +60,8 @@ public sealed class ApproveDeviceHandler : ICommandHandler<ApproveDeviceCommand,
             };
         }
 
-        var device = result.Device!;
+        // Use the device from the result (same as from token validation)
+        device = result.Device!;
 
         // Mark device as trusted
         await _deviceService.MarkDeviceTrustedAsync(device, ct);

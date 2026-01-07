@@ -28,6 +28,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
     private readonly ILoginPatternService _loginPatternService;
     private readonly IGeoIpService _geoIpService;
     private readonly IDeviceDetectionService _deviceDetectionService;
+    private readonly ICaptchaService _captchaService;
 
     public LoginHandler(
         IAppDbContext context,
@@ -47,7 +48,8 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         IRiskScoringService riskScoringService,
         ILoginPatternService loginPatternService,
         IGeoIpService geoIpService,
-        IDeviceDetectionService deviceDetectionService)
+        IDeviceDetectionService deviceDetectionService,
+        ICaptchaService captchaService)
     {
         _context = context;
         _userRepository = userRepository;
@@ -67,11 +69,21 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
         _loginPatternService = loginPatternService;
         _geoIpService = geoIpService;
         _deviceDetectionService = deviceDetectionService;
+        _captchaService = captchaService;
     }
 
     public async ValueTask<AuthResponse> Handle(LoginCommand command, CancellationToken ct)
     {
         var email = command.Email.ToLowerInvariant();
+
+        // Check if CAPTCHA is required (smart trigger based on failed attempts)
+        var captchaRequired = await _captchaService.IsRequiredForLoginAsync(email, null, ct);
+        await _captchaService.ValidateConditionalAsync(
+            command.CaptchaToken,
+            captchaRequired,
+            "login",
+            command.IpAddress,
+            ct);
 
         // Check if blocked due to too many attempts (Redis-based progressive lockout)
         if (await _bruteForceService.IsBlockedAsync(email, ct))

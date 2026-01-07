@@ -10,6 +10,7 @@ public sealed class ForgotPasswordHandler : ICommandHandler<ForgotPasswordComman
     private readonly IPasswordResetService _passwordResetService;
     private readonly IEmailService _emailService;
     private readonly IAuditService _auditService;
+    private readonly ICaptchaService _captchaService;
     private readonly ILogger<ForgotPasswordHandler> _logger;
 
     public ForgotPasswordHandler(
@@ -17,17 +18,26 @@ public sealed class ForgotPasswordHandler : ICommandHandler<ForgotPasswordComman
         IPasswordResetService passwordResetService,
         IEmailService emailService,
         IAuditService auditService,
+        ICaptchaService captchaService,
         ILogger<ForgotPasswordHandler> logger)
     {
         _userRepository = userRepository;
         _passwordResetService = passwordResetService;
         _emailService = emailService;
         _auditService = auditService;
+        _captchaService = captchaService;
         _logger = logger;
     }
 
     public async ValueTask<ForgotPasswordResponse> Handle(ForgotPasswordCommand command, CancellationToken ct)
     {
+        // Validate CAPTCHA (always required for forgot password)
+        await _captchaService.ValidateRequiredAsync(
+            command.CaptchaToken,
+            "forgot_password",
+            command.IpAddress,
+            ct);
+
         var email = command.Email.ToLowerInvariant();
 
         // Always return success to prevent email enumeration

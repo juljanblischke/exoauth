@@ -19,6 +19,7 @@ public sealed class RegisterHandlerTests
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<IMfaService> _mockMfaService;
     private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<ICaptchaService> _mockCaptchaService;
     private readonly RegisterHandler _handler;
 
     public RegisterHandlerTests()
@@ -29,6 +30,7 @@ public sealed class RegisterHandlerTests
         _mockTokenService = new Mock<ITokenService>();
         _mockMfaService = new Mock<IMfaService>();
         _mockAuditService = new Mock<IAuditService>();
+        _mockCaptchaService = new Mock<ICaptchaService>();
 
         // Default token service setup
         _mockTokenService.Setup(x => x.RefreshTokenExpiration).Returns(TimeSpan.FromDays(30));
@@ -37,13 +39,22 @@ public sealed class RegisterHandlerTests
         _mockMfaService.Setup(x => x.GenerateMfaToken(It.IsAny<Guid>(), It.IsAny<Guid?>()))
             .Returns("test-setup-token");
 
+        // Default CAPTCHA service setup - always valid in tests
+        _mockCaptchaService.Setup(x => x.ValidateRequiredAsync(
+            It.IsAny<string?>(),
+            It.IsAny<string>(),
+            It.IsAny<string?>(),
+            It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
         _handler = new RegisterHandler(
             _mockContext.Object,
             _mockUserRepository.Object,
             _mockPasswordHasher.Object,
             _mockTokenService.Object,
             _mockMfaService.Object,
-            _mockAuditService.Object);
+            _mockAuditService.Object,
+            _mockCaptchaService.Object);
     }
 
     [Fact]

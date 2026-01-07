@@ -104,6 +104,11 @@ public static class ErrorCodes
     public const string PasskeyCannotDeleteLast = "PASSKEY_CANNOT_DELETE_LAST";
     public const string WebAuthnNotSupported = "WEBAUTHN_NOT_SUPPORTED";
 
+    // CAPTCHA Errors (400)
+    public const string CaptchaRequired = "AUTH_CAPTCHA_REQUIRED";
+    public const string CaptchaInvalid = "AUTH_CAPTCHA_INVALID";
+    public const string CaptchaExpired = "AUTH_CAPTCHA_EXPIRED";
+
     // User Errors (400)
     public const string UserAlreadyAnonymized = "USER_ALREADY_ANONYMIZED";
     public const string CannotAnonymizeSelf = "CANNOT_ANONYMIZE_SELF";

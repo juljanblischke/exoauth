@@ -460,3 +460,37 @@ public sealed class PasskeyCannotDeleteLastException : AuthException
     {
     }
 }
+
+
+/// <summary>
+/// Exception when CAPTCHA is required but not provided.
+/// </summary>
+public sealed class CaptchaRequiredException : AuthException
+{
+    public CaptchaRequiredException()
+        : base("AUTH_CAPTCHA_REQUIRED", "CAPTCHA verification required", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when CAPTCHA verification fails.
+/// </summary>
+public sealed class CaptchaInvalidException : AuthException
+{
+    public CaptchaInvalidException()
+        : base("AUTH_CAPTCHA_INVALID", "CAPTCHA verification failed", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when CAPTCHA token has expired.
+/// </summary>
+public sealed class CaptchaExpiredException : AuthException
+{
+    public CaptchaExpiredException()
+        : base("AUTH_CAPTCHA_EXPIRED", "CAPTCHA token has expired", 400)
+    {
+    }
+}

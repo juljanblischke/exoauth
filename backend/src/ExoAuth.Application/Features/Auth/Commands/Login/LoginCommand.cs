@@ -6,9 +6,13 @@ namespace ExoAuth.Application.Features.Auth.Commands.Login;
 /// <summary>
 /// Command to login a user with email and password.
 /// </summary>
+/// <summary>
+/// Command to login a user with email and password.
+/// </summary>
 public sealed record LoginCommand(
     string Email,
     string Password,
+    string? CaptchaToken = null,
     string? DeviceId = null,
     string? DeviceFingerprint = null,
     string? UserAgent = null,

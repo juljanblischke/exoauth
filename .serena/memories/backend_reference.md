@@ -62,11 +62,9 @@ backend/
 │   │   │   │   ├── IInviteCleanupService.cs
 │   │   │   │   ├── IRiskScoringService.cs       (Task 013)
 │   │   │   │   ├── ILoginPatternService.cs      (Task 013)
-│   │   │   │   └── IPasskeyService.cs           (Task 019)
-│   │   │   ├── Behaviors/
-│   │   │   │   └── ValidationBehavior.cs
-│   │   │   ├── Messages/
-│   │   │   │   └── EmailMessage.cs
+│   │   │   │   ├── IPasskeyService.cs           (Task 019)
+│   │   │   │   ├── ICaptchaProvider.cs          (Task 021)
+│   │   │   │   └── ICaptchaService.cs           (Task 021)
 │   │   │   └── Models/
 │   │   │       ├── ApiResponse.cs
 │   │   │       ├── ApiError.cs
@@ -76,7 +74,14 @@ backend/
 │   │   │       ├── GeoLocation.cs
 │   │   │       ├── DeviceInfo.cs
 │   │   │       ├── RiskScore.cs                 (Task 013)
-│   │   │       └── PasskeyCredentialResult.cs   (Task 019)
+│   │   │       ├── PasskeyCredentialResult.cs   (Task 019)
+│   │   │       ├── CaptchaSettings.cs           (Task 021)
+│   │   │       ├── CaptchaResult.cs             (Task 021)
+│   │   │       └── CaptchaPublicConfig.cs       (Task 021)
+│   │   │   ├── Behaviors/
+│   │   │   │   └── ValidationBehavior.cs
+│   │   │   ├── Messages/
+│   │   │   │   └── EmailMessage.cs
 │   │   └── Features/
 │   │       ├── Auth/
 │   │       │   ├── Commands/
@@ -189,7 +194,13 @@ backend/
 │   │       ├── InviteCleanupBackgroundService.cs
 │   │       ├── RiskScoringService.cs            (Task 013)
 │   │       ├── LoginPatternService.cs           (Task 013)
-│       └── PasskeyService.cs                (Task 019)
+│       ├── PasskeyService.cs                (Task 019)
+│       ├── CaptchaService.cs                (Task 021)
+│       └── Captcha/
+│           ├── TurnstileProvider.cs         (Task 021)
+│           ├── RecaptchaV3Provider.cs       (Task 021)
+│           ├── HcaptchaProvider.cs          (Task 021)
+│           └── DisabledCaptchaProvider.cs   (Task 021)
 │   │
 │   ├── ExoAuth.EmailWorker/                     (Separate Microservice)
 │   │   ├── Program.cs
@@ -208,7 +219,8 @@ backend/
 │       │   ├── SystemUsersController.cs
 │       │   ├── SystemPermissionsController.cs
 │       │   ├── SystemAuditLogsController.cs
-│       │   └── SystemInvitesController.cs
+│       │   ├── SystemInvitesController.cs
+│       │   └── CaptchaController.cs             (Task 021)
 │       ├── Middleware/
 │       │   ├── ExceptionMiddleware.cs
 │       │   ├── RequestLoggingMiddleware.cs
@@ -248,7 +260,8 @@ backend/
 └── tests/ExoAuth.UnitTests/
     ├── Features/
     │   ├── Auth/
-    │   │   └── Passkeys/                        (Task 019 - 41 tests)
+    │   │   ├── Passkeys/                        (Task 019 - 41 tests)
+│   │   └── Captcha/                         (Task 021 - 49 tests)
     │   ├── SystemUsers/
     │   ├── SystemAuditLogs/
     │   └── SystemInvites/
@@ -454,6 +467,12 @@ public sealed class {Feature}Controller : ControllerBase
 | `PASSKEY_ALREADY_REGISTERED` | 409 | Passkey already registered |
 | `PASSKEY_CANNOT_DELETE_LAST` | 400 | Can't delete last passkey without password |
 
+### CAPTCHA Errors (Task 021)
+| Code | HTTP | Description |
+|------|------|-------------|
+| `CAPTCHA_REQUIRED` | 400 | CAPTCHA verification required |
+| `CAPTCHA_INVALID` | 400 | CAPTCHA verification failed |
+
 ### Account Errors
 | Code | HTTP | Description |
 |------|------|-------------|
@@ -493,39 +512,8 @@ Every new endpoint MUST have:
 3. **Application**: Commands/Queries + Handlers + Validators
 4. **API**: Controller + Endpoints
 5. **Tests**: Unit Tests
+6. **Update this Task-File** 
 6. **Update this memory file**
 
 ---
 
-## Last Updated
-- **Date:** 2026-01-06
-- **Tasks Completed:** 001-019 (356 Unit Tests)
-- **Task 019:** Passkeys (WebAuthn/FIDO2)
-  - New entity: Passkey (CredentialId, PublicKey, Counter, CredType, AaGuid, Name, LastUsedAt)
-  - SystemUser extended with Passkeys collection
-  - IPasskeyService interface with Fido2NetLib integration
-  - PasskeyService with Redis challenge storage (5-minute TTL)
-  - Auth API endpoints:
-    - POST /auth/passkeys/register/options (get registration challenge)
-    - POST /auth/passkeys/register (complete registration)
-    - POST /auth/passkeys/login/options (get authentication challenge)
-    - POST /auth/passkeys/login (passwordless login)
-    - GET /auth/passkeys (list user's passkeys)
-    - PATCH /auth/passkeys/{id} (rename passkey)
-    - DELETE /auth/passkeys/{id} (remove passkey)
-  - Passkey login creates trusted device automatically
-  - Email notifications: passkey-registered, passkey-removed
-  - Error codes: PASSKEY_NOT_FOUND, PASSKEY_INVALID_CREDENTIAL, PASSKEY_REGISTRATION_FAILED, 
-    PASSKEY_ALREADY_REGISTERED, PASSKEY_CANNOT_DELETE_LAST
-  - 41 new unit tests for passkey handlers
-- **Task 017:** Device Model Consolidation
-  - Consolidated DeviceSession, TrustedDevice, DeviceApprovalRequest → Device entity
-  - Consolidated IDeviceSessionService, ITrustedDeviceService, IDeviceApprovalService → IDeviceService
-  - Device.Id now serves as session ID
-  - DeviceStatus enum: PendingApproval, Trusted, Revoked
-  - Auth API: `/auth/devices` (replaces /sessions + /trusted-devices)
-  - Admin API: `/system-users/{id}/devices` (replaces /sessions)
-  - Auto-login after device approval (tokens returned)
-  - Approve device from existing trusted session
-  - Device.ResetToPending() for spoofing detection (reuses existing device record)
-  - IRevokedSessionService.ClearRevokedSessionAsync() clears Redis on device reuse

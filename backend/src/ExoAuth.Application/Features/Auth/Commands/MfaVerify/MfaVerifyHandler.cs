@@ -29,6 +29,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
     private readonly ILoginPatternService _loginPatternService;
     private readonly IGeoIpService _geoIpService;
     private readonly IDeviceDetectionService _deviceDetectionService;
+    private readonly ICaptchaService _captchaService;
 
     public MfaVerifyHandler(
         IAppDbContext context,
@@ -48,7 +49,8 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         IRiskScoringService riskScoringService,
         ILoginPatternService loginPatternService,
         IGeoIpService geoIpService,
-        IDeviceDetectionService deviceDetectionService)
+        IDeviceDetectionService deviceDetectionService,
+        ICaptchaService captchaService)
     {
         _context = context;
         _userRepository = userRepository;
@@ -68,10 +70,20 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
         _loginPatternService = loginPatternService;
         _geoIpService = geoIpService;
         _deviceDetectionService = deviceDetectionService;
+        _captchaService = captchaService;
     }
 
     public async ValueTask<AuthResponse> Handle(MfaVerifyCommand command, CancellationToken ct)
     {
+        // Check if CAPTCHA is required based on failed MFA attempts for this token
+        var captchaRequired = await _captchaService.IsRequiredForMfaVerifyAsync(command.MfaToken, ct);
+        await _captchaService.ValidateConditionalAsync(
+            command.CaptchaToken,
+            captchaRequired,
+            "mfa_verify",
+            command.IpAddress,
+            ct);
+
         // Validate MFA token
         var tokenData = _mfaService.ValidateMfaToken(command.MfaToken)
             ?? throw new MfaTokenInvalidException();

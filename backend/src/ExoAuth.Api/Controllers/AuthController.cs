@@ -61,6 +61,7 @@ public sealed class AuthController : ApiControllerBase
             request.Password,
             request.FirstName,
             request.LastName,
+            request.CaptchaToken,
             request.OrganizationName,
             request.DeviceId,
             request.DeviceFingerprint,
@@ -93,6 +94,7 @@ public sealed class AuthController : ApiControllerBase
         var command = new LoginCommand(
             request.Email,
             request.Password,
+            request.CaptchaToken,
             request.DeviceId,
             request.DeviceFingerprint,
             Request.Headers.UserAgent.ToString(),
@@ -255,7 +257,11 @@ public sealed class AuthController : ApiControllerBase
     [ProducesResponseType(typeof(ForgotPasswordResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct)
     {
-        var command = new ForgotPasswordCommand(request.Email);
+        var command = new ForgotPasswordCommand(
+            request.Email,
+            request.CaptchaToken,
+            HttpContext.Connection.RemoteIpAddress?.ToString()
+        );
 
         var result = await Mediator.Send(command, ct);
 
@@ -366,7 +372,12 @@ public sealed class AuthController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> ApproveDevice(ApproveDeviceRequest request, CancellationToken ct)
     {
-        var command = new ApproveDeviceCommand(request.ApprovalToken, request.Code);
+        var command = new ApproveDeviceCommand(
+            request.ApprovalToken,
+            request.Code,
+            request.CaptchaToken,
+            HttpContext.Connection.RemoteIpAddress?.ToString()
+        );
         var result = await Mediator.Send(command, ct);
         return ApiOk(result);
     }
@@ -471,6 +482,7 @@ public sealed class AuthController : ApiControllerBase
         var command = new MfaVerifyCommand(
             request.MfaToken,
             request.Code,
+            request.CaptchaToken,
             request.DeviceId,
             request.DeviceFingerprint,
             Request.Headers.UserAgent.ToString(),
@@ -709,6 +721,7 @@ public sealed record RegisterRequest(
     string Password,
     string FirstName,
     string LastName,
+    string? CaptchaToken = null,
     string? OrganizationName = null,
     string? DeviceId = null,
     string? DeviceFingerprint = null,
@@ -718,6 +731,7 @@ public sealed record RegisterRequest(
 public sealed record LoginRequest(
     string Email,
     string Password,
+    string? CaptchaToken = null,
     string? DeviceId = null,
     string? DeviceFingerprint = null,
     bool RememberMe = false
@@ -740,7 +754,8 @@ public sealed record AcceptInviteRequest(
 );
 
 public sealed record ForgotPasswordRequest(
-    string Email
+    string Email,
+    string? CaptchaToken = null
 );
 
 public sealed record ResetPasswordRequest(
@@ -765,6 +780,7 @@ public sealed record MfaConfirmRequest(
 public sealed record MfaVerifyRequest(
     string MfaToken,
     string Code,
+    string? CaptchaToken = null,
     string? DeviceId = null,
     string? DeviceFingerprint = null,
     bool RememberMe = false
@@ -784,7 +800,8 @@ public sealed record UpdatePreferencesRequest(
 
 public sealed record ApproveDeviceRequest(
     string ApprovalToken,
-    string Code
+    string Code,
+    string? CaptchaToken = null
 );
 
 public sealed record DenyDeviceRequest(
