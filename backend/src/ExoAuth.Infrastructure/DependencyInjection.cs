@@ -7,6 +7,7 @@ using ExoAuth.Infrastructure.Persistence.Repositories;
 using ExoAuth.Infrastructure.Persistence.Seeders;
 using ExoAuth.Infrastructure.Services;
 using ExoAuth.Infrastructure.Services.Captcha;
+using ExoAuth.Infrastructure.Services.Email;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,6 +65,16 @@ public static class DependencyInjection
         // Email Services
         services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
         services.AddScoped<IEmailService, EmailService>();
+        
+        // Email Sending Infrastructure (Task 025)
+        services.AddHttpClient("SendGrid");
+        services.AddHttpClient("Mailgun");
+        services.AddHttpClient("AmazonSES");
+        services.AddHttpClient("Resend");
+        services.AddHttpClient("Postmark");
+        services.AddScoped<IEmailProviderFactory, EmailProviderFactory>();
+        services.AddScoped<ICircuitBreakerService, CircuitBreakerService>();
+        services.AddScoped<IEmailSendingService, EmailSendingService>();
 
         // Password Reset
         services.AddScoped<IPasswordResetService, PasswordResetService>();

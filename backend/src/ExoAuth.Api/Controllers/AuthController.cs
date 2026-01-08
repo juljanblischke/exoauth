@@ -15,6 +15,8 @@ using ExoAuth.Application.Features.Auth.Commands.UpdatePreferences;
 using ExoAuth.Application.Features.Auth.Commands.ApproveDevice;
 using ExoAuth.Application.Features.Auth.Commands.ApproveDeviceLink;
 using ExoAuth.Application.Features.Auth.Commands.DenyDevice;
+using ExoAuth.Application.Features.Auth.Commands.ResendDeviceApproval;
+using ExoAuth.Application.Features.Auth.Commands.ResendPasswordReset;
 using ExoAuth.Application.Features.Auth.Models;
 using ExoAuth.Application.Features.Auth.Queries.GetCurrentUser;
 using ExoAuth.Application.Features.Auth.Queries.GetDevices;
@@ -269,6 +271,27 @@ public sealed class AuthController : ApiControllerBase
     }
 
     /// <summary>
+    /// Resend a password reset email.
+    /// Requires an existing password reset request.
+    /// </summary>
+    [HttpPost("forgot-password/resend")]
+    [RateLimit("forgot-password")]
+    [ProducesResponseType(typeof(ResendPasswordResetResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> ResendPasswordReset(ResendPasswordResetRequest request, CancellationToken ct)
+    {
+        var command = new ResendPasswordResetCommand(
+            request.Email,
+            request.CaptchaToken,
+            HttpContext.Connection.RemoteIpAddress?.ToString()
+        );
+
+        var result = await Mediator.Send(command, ct);
+
+        return ApiOk(result);
+    }
+
+    /// <summary>
     /// Reset password using token or code.
     /// </summary>
     [HttpPost("reset-password")]
@@ -410,6 +433,26 @@ public sealed class AuthController : ApiControllerBase
     public async Task<IActionResult> DenyDevice(DenyDeviceRequest request, CancellationToken ct)
     {
         var command = new DenyDeviceCommand(request.ApprovalToken);
+        var result = await Mediator.Send(command, ct);
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Resend a device approval email.
+    /// Requires the original approval token from the first email.
+    /// </summary>
+    [HttpPost("device-approval/resend")]
+    [RateLimit("mfa")]
+    [ProducesResponseType(typeof(ResendDeviceApprovalResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> ResendDeviceApproval(ResendDeviceApprovalRequest request, CancellationToken ct)
+    {
+        var command = new ResendDeviceApprovalCommand(
+            request.ApprovalToken,
+            request.CaptchaToken,
+            HttpContext.Connection.RemoteIpAddress?.ToString()
+        );
         var result = await Mediator.Send(command, ct);
         return ApiOk(result);
     }
@@ -758,6 +801,11 @@ public sealed record ForgotPasswordRequest(
     string? CaptchaToken = null
 );
 
+public sealed record ResendPasswordResetRequest(
+    string Email,
+    string? CaptchaToken = null
+);
+
 public sealed record ResetPasswordRequest(
     string? Token,
     string? Email,
@@ -806,6 +854,11 @@ public sealed record ApproveDeviceRequest(
 
 public sealed record DenyDeviceRequest(
     string ApprovalToken
+);
+
+public sealed record ResendDeviceApprovalRequest(
+    string ApprovalToken,
+    string? CaptchaToken = null
 );
 
 public sealed record RenameDeviceRequest(

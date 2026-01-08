@@ -435,23 +435,94 @@ public sealed class AnonymizeUserHandlerTests
         user.IsAnonymized.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task Handle_AnonymizesEmailLogs()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+
+        // Create email logs - one for this user, one for another user
+        var emailLog1 = EmailLog.Create("test@example.com", "Subject 1", "template", "en-US", userId, "{\"name\":\"Test\"}");
+        var emailLog2 = EmailLog.Create("other@example.com", "Subject 2", "template", "en-US", Guid.NewGuid(), "{\"name\":\"Other\"}");
+        var emailLogs = new List<EmailLog> { emailLog1, emailLog2 };
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>(), null, emailLogs);
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        var handler = CreateHandler();
+
+        // Act
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert - Only the email log for the anonymized user should be anonymized
+        emailLog1.RecipientEmail.Should().Be("anonymized@anonymized.local");
+        emailLog1.TemplateVariables.Should().BeNull();
+        emailLog1.RecipientUserId.Should().BeNull();
+
+        // The other user's email log should remain unchanged
+        emailLog2.RecipientEmail.Should().Be("other@example.com");
+        emailLog2.TemplateVariables.Should().Be("{\"name\":\"Other\"}");
+    }
+
+    [Fact]
+    public async Task Handle_AnonymizesAllEmailLogsForUser()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+
+        // Create multiple email logs for the same user
+        var emailLog1 = EmailLog.Create("test@example.com", "Subject 1", "password-reset", "en-US", userId, "{\"code\":\"123456\"}");
+        var emailLog2 = EmailLog.Create("test@example.com", "Subject 2", "welcome", "en-US", userId, "{\"name\":\"Test\"}");
+        var emailLog3 = EmailLog.Create("test@example.com", "Subject 3", "device-approval", "en-US", userId, "{\"device\":\"Chrome\"}");
+        var emailLogs = new List<EmailLog> { emailLog1, emailLog2, emailLog3 };
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>(), null, emailLogs);
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        var handler = CreateHandler();
+
+        // Act
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert - All email logs should be anonymized
+        foreach (var log in emailLogs)
+        {
+            log.RecipientEmail.Should().Be("anonymized@anonymized.local");
+            log.TemplateVariables.Should().BeNull();
+            log.RecipientUserId.Should().BeNull();
+        }
+    }
+
     private void SetupMockDbSets(
         List<SystemUser> users,
         List<RefreshToken> refreshTokens,
         List<MfaBackupCode> backupCodes,
-        List<SystemInvite>? invites = null)
+        List<SystemInvite>? invites = null,
+        List<EmailLog>? emailLogs = null)
     {
         var mockUsersDbSet = CreateAsyncMockDbSet(users);
         var mockRefreshTokensDbSet = CreateAsyncMockDbSet(refreshTokens);
         var mockBackupCodesDbSet = CreateAsyncMockDbSet(backupCodes);
         var mockPermissionsDbSet = CreateAsyncMockDbSet(new List<SystemUserPermission>());
         var mockInvitesDbSet = CreateAsyncMockDbSet(invites ?? new List<SystemInvite>());
+        var mockEmailLogsDbSet = CreateAsyncMockDbSet(emailLogs ?? new List<EmailLog>());
 
         _mockContext.Setup(x => x.SystemUsers).Returns(mockUsersDbSet.Object);
         _mockContext.Setup(x => x.RefreshTokens).Returns(mockRefreshTokensDbSet.Object);
         _mockContext.Setup(x => x.MfaBackupCodes).Returns(mockBackupCodesDbSet.Object);
         _mockContext.Setup(x => x.SystemUserPermissions).Returns(mockPermissionsDbSet.Object);
         _mockContext.Setup(x => x.SystemInvites).Returns(mockInvitesDbSet.Object);
+        _mockContext.Setup(x => x.EmailLogs).Returns(mockEmailLogsDbSet.Object);
     }
 
     private static SystemUser CreateUserWithPermissions(Guid userId, string email = "test@example.com")

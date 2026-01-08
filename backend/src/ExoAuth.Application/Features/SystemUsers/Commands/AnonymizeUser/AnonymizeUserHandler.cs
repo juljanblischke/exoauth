@@ -125,6 +125,16 @@ public sealed class AnonymizeUserHandler : ICommandHandler<AnonymizeUserCommand,
             _context.MfaBackupCodes.RemoveRange(backupCodes);
         }
 
+        // GDPR: Anonymize all email logs for this user
+        var emailLogs = await _context.EmailLogs
+            .Where(e => e.RecipientUserId == command.UserId)
+            .ToListAsync(ct);
+
+        foreach (var emailLog in emailLogs)
+        {
+            emailLog.Anonymize();
+        }
+
         // Remove all permissions
         var permissions = user.Permissions.ToList();
         _context.SystemUserPermissions.RemoveRange(permissions);

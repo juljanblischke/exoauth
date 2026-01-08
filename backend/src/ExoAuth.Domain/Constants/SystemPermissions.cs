@@ -43,6 +43,17 @@ public static class SystemPermissions
     public const string IpRestrictionsRead = "system:ip-restrictions:read";
     public const string IpRestrictionsManage = "system:ip-restrictions:manage";
 
+    // Email
+    public const string EmailProvidersRead = "email:providers:read";
+    public const string EmailProvidersManage = "email:providers:manage";
+    public const string EmailConfigRead = "email:config:read";
+    public const string EmailConfigManage = "email:config:manage";
+    public const string EmailLogsRead = "email:logs:read";
+    public const string EmailDlqManage = "email:dlq:manage";
+    public const string EmailAnnouncementsRead = "email:announcements:read";
+    public const string EmailAnnouncementsManage = "email:announcements:manage";
+    public const string EmailTest = "email:test";
+
     /// <summary>
     /// All system permissions for seeding and first user registration.
     /// </summary>
@@ -85,6 +96,17 @@ public static class SystemPermissions
         // IP Restrictions
         (IpRestrictionsRead, "View IP whitelist and blacklist", "Security"),
         (IpRestrictionsManage, "Manage IP whitelist and blacklist", "Security"),
+
+        // Email
+        (EmailProvidersRead, "View email providers", "Email"),
+        (EmailProvidersManage, "Create/update/delete email providers", "Email"),
+        (EmailConfigRead, "View email configuration", "Email"),
+        (EmailConfigManage, "Update email configuration", "Email"),
+        (EmailLogsRead, "View email logs", "Email"),
+        (EmailDlqManage, "Retry/delete from dead letter queue", "Email"),
+        (EmailAnnouncementsRead, "View email announcements", "Email"),
+        (EmailAnnouncementsManage, "Create/send email announcements", "Email"),
+        (EmailTest, "Send test emails", "Email"),
     };
 
     /// <summary>

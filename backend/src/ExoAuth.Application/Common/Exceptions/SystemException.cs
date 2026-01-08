@@ -217,3 +217,178 @@ public sealed class IpRestrictionAlreadyExistsException : SystemException
         IpAddress = ipAddress;
     }
 }
+
+// Email Exceptions
+
+/// <summary>
+/// Exception when email provider is not found.
+/// </summary>
+public sealed class EmailProviderNotFoundException : SystemException
+{
+    public Guid ProviderId { get; }
+
+    public EmailProviderNotFoundException(Guid providerId)
+        : base("EMAIL_PROVIDER_NOT_FOUND", $"Email provider with ID {providerId} was not found", 404)
+    {
+        ProviderId = providerId;
+    }
+}
+
+/// <summary>
+/// Exception when email provider configuration is invalid.
+/// </summary>
+public sealed class EmailProviderInvalidConfigException : SystemException
+{
+    public string Details { get; }
+
+    public EmailProviderInvalidConfigException(string details)
+        : base("EMAIL_PROVIDER_INVALID_CONFIG", $"Invalid provider configuration: {details}", 400)
+    {
+        Details = details;
+    }
+}
+
+/// <summary>
+/// Exception when test email fails to send.
+/// </summary>
+public sealed class EmailProviderTestFailedException : SystemException
+{
+    public string Error { get; }
+
+    public EmailProviderTestFailedException(string error)
+        : base("EMAIL_PROVIDER_TEST_FAILED", $"Test email failed: {error}", 400)
+    {
+        Error = error;
+    }
+}
+
+/// <summary>
+/// Exception when no email providers are configured.
+/// </summary>
+public sealed class EmailNoProvidersConfiguredException : SystemException
+{
+    public EmailNoProvidersConfiguredException()
+        : base("EMAIL_NO_PROVIDERS_CONFIGURED", "No email providers are configured", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when all email providers failed.
+/// </summary>
+public sealed class EmailAllProvidersFailedException : SystemException
+{
+    public string LastError { get; }
+
+    public EmailAllProvidersFailedException(string lastError)
+        : base("EMAIL_ALL_PROVIDERS_FAILED", $"All email providers failed. Last error: {lastError}", 500)
+    {
+        LastError = lastError;
+    }
+}
+
+/// <summary>
+/// Exception when email log is not found.
+/// </summary>
+public sealed class EmailLogNotFoundException : SystemException
+{
+    public Guid LogId { get; }
+
+    public EmailLogNotFoundException(Guid logId)
+        : base("EMAIL_LOG_NOT_FOUND", $"Email log with ID {logId} was not found", 404)
+    {
+        LogId = logId;
+    }
+}
+
+/// <summary>
+/// Exception when email is not in DLQ.
+/// </summary>
+public sealed class EmailNotInDlqException : SystemException
+{
+    public Guid LogId { get; }
+
+    public EmailNotInDlqException(Guid logId)
+        : base("EMAIL_NOT_IN_DLQ", $"Email with ID {logId} is not in the dead letter queue", 400)
+    {
+        LogId = logId;
+    }
+}
+
+/// <summary>
+/// Exception when email announcement is not found.
+/// </summary>
+public sealed class EmailAnnouncementNotFoundException : SystemException
+{
+    public Guid AnnouncementId { get; }
+
+    public EmailAnnouncementNotFoundException(Guid announcementId)
+        : base("EMAIL_ANNOUNCEMENT_NOT_FOUND", $"Announcement with ID {announcementId} was not found", 404)
+    {
+        AnnouncementId = announcementId;
+    }
+}
+
+/// <summary>
+/// Exception when trying to modify a sent announcement.
+/// </summary>
+public sealed class EmailAnnouncementAlreadySentException : SystemException
+{
+    public Guid AnnouncementId { get; }
+
+    public EmailAnnouncementAlreadySentException(Guid announcementId)
+        : base("EMAIL_ANNOUNCEMENT_ALREADY_SENT", $"Announcement with ID {announcementId} has already been sent and cannot be modified", 400)
+    {
+        AnnouncementId = announcementId;
+    }
+}
+
+/// <summary>
+/// Exception when announcement has no recipients.
+/// </summary>
+public sealed class EmailAnnouncementNoRecipientsException : SystemException
+{
+    public EmailAnnouncementNoRecipientsException()
+        : base("EMAIL_ANNOUNCEMENT_NO_RECIPIENTS", "No recipients match the announcement criteria", 400)
+    {
+    }
+}
+
+/// <summary>
+/// Exception when password reset resend is on cooldown.
+/// </summary>
+public sealed class PasswordResetResendCooldownException : SystemException
+{
+    public int RemainingSeconds { get; }
+
+    public PasswordResetResendCooldownException(int remainingSeconds)
+        : base("PASSWORD_RESET_RESEND_COOLDOWN", $"Please wait {remainingSeconds} seconds before requesting another password reset email", 429)
+    {
+        RemainingSeconds = remainingSeconds;
+    }
+}
+
+/// <summary>
+/// Exception when device approval resend is on cooldown.
+/// </summary>
+public sealed class DeviceApprovalResendCooldownException : SystemException
+{
+    public int RemainingSeconds { get; }
+
+    public DeviceApprovalResendCooldownException(int remainingSeconds)
+        : base("DEVICE_APPROVAL_RESEND_COOLDOWN", $"Please wait {remainingSeconds} seconds before requesting another device approval email", 429)
+    {
+        RemainingSeconds = remainingSeconds;
+    }
+}
+
+/// <summary>
+/// Exception when no pending device approval exists.
+/// </summary>
+public sealed class DeviceApprovalNotPendingException : SystemException
+{
+    public DeviceApprovalNotPendingException()
+        : base("DEVICE_APPROVAL_NOT_PENDING", "No pending device approval to resend", 400)
+    {
+    }
+}

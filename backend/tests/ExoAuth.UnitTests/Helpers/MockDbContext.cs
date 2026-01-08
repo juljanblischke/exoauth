@@ -22,6 +22,17 @@ public static class MockDbContext
         mockContext.Setup(x => x.SystemInvites).Returns(CreateAsyncMockDbSet<SystemInvite>(new List<SystemInvite>()).Object);
         mockContext.Setup(x => x.RefreshTokens).Returns(CreateAsyncMockDbSet<RefreshToken>(new List<RefreshToken>()).Object);
         mockContext.Setup(x => x.Devices).Returns(CreateAsyncMockDbSet<Device>(new List<Device>()).Object);
+        mockContext.Setup(x => x.PasswordResetTokens).Returns(CreateAsyncMockDbSet<PasswordResetToken>(new List<PasswordResetToken>()).Object);
+        mockContext.Setup(x => x.MfaBackupCodes).Returns(CreateAsyncMockDbSet<MfaBackupCode>(new List<MfaBackupCode>()).Object);
+        mockContext.Setup(x => x.LoginPatterns).Returns(CreateAsyncMockDbSet<LoginPattern>(new List<LoginPattern>()).Object);
+        mockContext.Setup(x => x.Passkeys).Returns(CreateAsyncMockDbSet<Passkey>(new List<Passkey>()).Object);
+        mockContext.Setup(x => x.IpRestrictions).Returns(CreateAsyncMockDbSet<IpRestriction>(new List<IpRestriction>()).Object);
+
+        // Email DbSets
+        mockContext.Setup(x => x.EmailProviders).Returns(CreateAsyncMockDbSet<EmailProvider>(new List<EmailProvider>()).Object);
+        mockContext.Setup(x => x.EmailConfigurations).Returns(CreateAsyncMockDbSet<EmailConfiguration>(new List<EmailConfiguration>()).Object);
+        mockContext.Setup(x => x.EmailLogs).Returns(CreateAsyncMockDbSet<EmailLog>(new List<EmailLog>()).Object);
+        mockContext.Setup(x => x.EmailAnnouncements).Returns(CreateAsyncMockDbSet<EmailAnnouncement>(new List<EmailAnnouncement>()).Object);
 
         mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);

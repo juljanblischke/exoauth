@@ -249,7 +249,8 @@ Examples:
 5. [ ] **Route**: Page/Route erstellen
 6. [ ] **i18n**: Translations hinzufügen (EN + DE!)
 7. [ ] **Tests**: Component + Hook tests
-8. [ ] **Memory updaten**: frontend_reference.md aktualisieren
+8. [ ] **Task updaten**: diesen Task aktualisieren
+9. [ ] **Memory updaten**: frontend_reference.md aktualisieren
 
 ## 9. Tests
 

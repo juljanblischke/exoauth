@@ -24,6 +24,12 @@ public sealed class AppDbContext : DbContext, IAppDbContext
     public DbSet<Passkey> Passkeys => Set<Passkey>();
     public DbSet<IpRestriction> IpRestrictions => Set<IpRestriction>();
 
+    // Email entities
+    public DbSet<EmailProvider> EmailProviders => Set<EmailProvider>();
+    public DbSet<EmailConfiguration> EmailConfigurations => Set<EmailConfiguration>();
+    public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
+    public DbSet<EmailAnnouncement> EmailAnnouncements => Set<EmailAnnouncement>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json;
 using ExoAuth.Domain.Entities;
 using ExoAuth.Domain.Enums;
 
@@ -118,5 +119,143 @@ public static class TestDataFactory
         var backingField = typeof(T).BaseType?.GetField("<Id>k__BackingField",
             BindingFlags.NonPublic | BindingFlags.Instance);
         backingField?.SetValue(entity, id);
+    }
+
+    public static void SetCreatedAt<T>(T entity, DateTime createdAt) where T : class
+    {
+        var property = typeof(T).BaseType?.GetProperty("CreatedAt");
+        property?.SetValue(entity, createdAt);
+    }
+
+    public static void SetUpdatedAt<T>(T entity, DateTime? updatedAt) where T : class
+    {
+        var property = typeof(T).BaseType?.GetProperty("UpdatedAt");
+        property?.SetValue(entity, updatedAt);
+    }
+
+    // Email Provider
+    public static EmailProvider CreateEmailProvider(
+        string name = "Test SMTP",
+        EmailProviderType type = EmailProviderType.Smtp,
+        int priority = 1,
+        string configurationEncrypted = "encrypted-config",
+        bool isEnabled = true)
+    {
+        return EmailProvider.Create(name, type, priority, configurationEncrypted, isEnabled);
+    }
+
+    public static EmailProvider CreateEmailProviderWithId(
+        Guid id,
+        string name = "Test SMTP",
+        EmailProviderType type = EmailProviderType.Smtp,
+        int priority = 1,
+        bool isEnabled = true)
+    {
+        var provider = CreateEmailProvider(name, type, priority, "encrypted-config", isEnabled);
+        SetEntityId(provider, id);
+        return provider;
+    }
+
+    // Email Configuration
+    public static EmailConfiguration CreateEmailConfiguration()
+    {
+        return EmailConfiguration.CreateDefault();
+    }
+
+    public static EmailConfiguration CreateEmailConfigurationWithId(Guid id)
+    {
+        var config = CreateEmailConfiguration();
+        SetEntityId(config, id);
+        return config;
+    }
+
+    // Email Log
+    public static EmailLog CreateEmailLog(
+        string recipientEmail = "test@example.com",
+        string subject = "Test Subject",
+        string templateName = "test-template",
+        string language = "en-US",
+        EmailStatus status = EmailStatus.Sent,
+        Guid? recipientUserId = null,
+        Guid? sentViaProviderId = null,
+        Guid? announcementId = null)
+    {
+        var log = EmailLog.Create(
+            recipientEmail,
+            subject,
+            templateName,
+            language,
+            recipientUserId,
+            null, // templateVariables
+            announcementId);
+
+        if (status == EmailStatus.Sent && sentViaProviderId.HasValue)
+        {
+            log.MarkSent(sentViaProviderId.Value);
+        }
+        else if (status == EmailStatus.Failed)
+        {
+            log.MarkFailed("Test error");
+        }
+        else if (status == EmailStatus.InDlq)
+        {
+            log.MoveToDlq("All providers failed");
+        }
+
+        return log;
+    }
+
+    public static EmailLog CreateEmailLogWithId(
+        Guid id,
+        string recipientEmail = "test@example.com",
+        EmailStatus status = EmailStatus.Sent,
+        Guid? sentViaProviderId = null)
+    {
+        var log = CreateEmailLog(recipientEmail, status: status, sentViaProviderId: sentViaProviderId);
+        SetEntityId(log, id);
+        return log;
+    }
+
+    // Email Announcement
+    public static EmailAnnouncement CreateEmailAnnouncement(
+        string subject = "Test Announcement",
+        string htmlBody = "<p>Test content</p>",
+        string? plainTextBody = "Test content",
+        EmailAnnouncementTarget targetType = EmailAnnouncementTarget.AllUsers,
+        string? targetPermission = null,
+        List<Guid>? targetUserIds = null,
+        Guid? createdByUserId = null)
+    {
+        var userId = createdByUserId ?? Guid.NewGuid();
+        
+        return targetType switch
+        {
+            EmailAnnouncementTarget.ByPermission when !string.IsNullOrEmpty(targetPermission) =>
+                EmailAnnouncement.CreateForPermission(subject, htmlBody, targetPermission, userId, plainTextBody),
+            EmailAnnouncementTarget.SelectedUsers when targetUserIds != null =>
+                EmailAnnouncement.CreateForSelectedUsers(subject, htmlBody, JsonSerializer.Serialize(targetUserIds), userId, plainTextBody),
+            _ => EmailAnnouncement.CreateForAllUsers(subject, htmlBody, userId, plainTextBody)
+        };
+    }
+
+    public static EmailAnnouncement CreateEmailAnnouncementWithId(
+        Guid id,
+        string subject = "Test Announcement",
+        EmailAnnouncementTarget targetType = EmailAnnouncementTarget.AllUsers,
+        Guid? createdByUserId = null)
+    {
+        var announcement = CreateEmailAnnouncement(subject, targetType: targetType, createdByUserId: createdByUserId);
+        SetEntityId(announcement, id);
+        return announcement;
+    }
+
+    // Password Reset Token
+    public static PasswordResetToken CreatePasswordResetToken(
+        Guid userId,
+        string token = "test-token",
+        string code = "ABCD-1234",
+        int expirationMinutes = 60)
+    {
+        return PasswordResetToken.Create(userId, token, code, expirationMinutes);
     }
 }

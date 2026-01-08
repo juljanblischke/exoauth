@@ -49,6 +49,33 @@ public sealed class EmailTemplateService : IEmailTemplateService
         return content;
     }
 
+    public string? RenderPlainText(string templateName, Dictionary<string, string> variables, string language = "en-US")
+    {
+        var templatePath = GetPlainTextTemplatePath(templateName, language);
+
+        if (!File.Exists(templatePath))
+        {
+            // Try fallback to en-US
+            templatePath = GetPlainTextTemplatePath(templateName, "en-US");
+        }
+
+        if (!File.Exists(templatePath))
+        {
+            // No plain text template exists
+            return null;
+        }
+
+        var content = File.ReadAllText(templatePath);
+
+        // Simple variable replacement using {{variable}} syntax
+        foreach (var (key, value) in variables)
+        {
+            content = content.Replace($"{{{{{key}}}}}", value);
+        }
+
+        return content;
+    }
+
     public bool TemplateExists(string templateName, string language)
     {
         var templatePath = GetTemplatePath(templateName, language);
@@ -58,5 +85,10 @@ public sealed class EmailTemplateService : IEmailTemplateService
     private string GetTemplatePath(string templateName, string language)
     {
         return Path.Combine(_templatesBasePath, language, $"{templateName}.html");
+    }
+
+    private string GetPlainTextTemplatePath(string templateName, string language)
+    {
+        return Path.Combine(_templatesBasePath, language, $"{templateName}.txt");
     }
 }

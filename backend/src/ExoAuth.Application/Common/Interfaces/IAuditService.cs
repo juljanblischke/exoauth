@@ -75,6 +75,7 @@ public static class AuditActions
 
     // Password reset actions
     public const string PasswordResetRequested = "system.password.reset_requested";
+    public const string PasswordResetResent = "system.password.reset_resent";
     public const string PasswordResetCompleted = "system.password.reset_completed";
     public const string PasswordChanged = "system.password.changed";
 
@@ -110,6 +111,7 @@ public static class AuditActions
 
     // Device approval actions
     public const string DeviceApprovalRequired = "system.device.approval_required";
+    public const string DeviceApprovalResent = "system.device.approval_resent";
     public const string DeviceApproved = "system.device.approved";
     public const string DeviceApprovedViaLink = "system.device.approved_via_link";
     public const string DeviceApprovedViaCode = "system.device.approved_via_code";

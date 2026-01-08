@@ -189,6 +189,391 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                     b.ToTable("devices", (string)null);
                 });
 
+            modelBuilder.Entity("ExoAuth.Domain.Entities.EmailAnnouncement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<int>("FailedCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("failed_count");
+
+                    b.Property<string>("HtmlBody")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("html_body");
+
+                    b.Property<string>("PlainTextBody")
+                        .HasColumnType("text")
+                        .HasColumnName("plain_text_body");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<int>("SentCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sent_count");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("subject");
+
+                    b.Property<string>("TargetPermission")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("target_permission");
+
+                    b.Property<int>("TargetType")
+                        .HasColumnType("integer")
+                        .HasColumnName("target_type");
+
+                    b.Property<string>("TargetUserIds")
+                        .HasColumnType("text")
+                        .HasColumnName("target_user_ids");
+
+                    b.Property<int>("TotalRecipients")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("total_recipients");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_email_announcements");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("i_x_email_announcements_created_at");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("i_x_email_announcements_created_by_user_id");
+
+                    b.HasIndex("SentAt")
+                        .HasDatabaseName("i_x_email_announcements_sent_at");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("i_x_email_announcements_status");
+
+                    b.ToTable("email_announcements", (string)null);
+                });
+
+            modelBuilder.Entity("ExoAuth.Domain.Entities.EmailConfiguration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("AutoRetryDlq")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("auto_retry_dlq");
+
+                    b.Property<double>("BackoffMultiplier")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("double precision")
+                        .HasDefaultValue(2.0)
+                        .HasColumnName("backoff_multiplier");
+
+                    b.Property<int>("CircuitBreakerFailureThreshold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(5)
+                        .HasColumnName("circuit_breaker_failure_threshold");
+
+                    b.Property<int>("CircuitBreakerOpenDurationMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(30)
+                        .HasColumnName("circuit_breaker_open_duration_minutes");
+
+                    b.Property<int>("CircuitBreakerWindowMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(10)
+                        .HasColumnName("circuit_breaker_window_minutes");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("DlqRetryIntervalHours")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(6)
+                        .HasColumnName("dlq_retry_interval_hours");
+
+                    b.Property<bool>("EmailsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("emails_enabled");
+
+                    b.Property<int>("InitialRetryDelayMs")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1000)
+                        .HasColumnName("initial_retry_delay_ms");
+
+                    b.Property<int>("MaxRetriesPerProvider")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(3)
+                        .HasColumnName("max_retries_per_provider");
+
+                    b.Property<int>("MaxRetryDelayMs")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(60000)
+                        .HasColumnName("max_retry_delay_ms");
+
+                    b.Property<bool>("TestMode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("test_mode");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_email_configuration");
+
+                    b.ToTable("email_configuration", (string)null);
+                });
+
+            modelBuilder.Entity("ExoAuth.Domain.Entities.EmailLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AnnouncementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("announcement_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("FailedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("failed_at");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("language");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("last_error");
+
+                    b.Property<DateTime?>("MovedToDlqAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("moved_to_dlq_at");
+
+                    b.Property<DateTime>("QueuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("queued_at");
+
+                    b.Property<string>("RecipientEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("recipient_email");
+
+                    b.Property<Guid?>("RecipientUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipient_user_id");
+
+                    b.Property<int>("RetryCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("retry_count");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<Guid?>("SentViaProviderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sent_via_provider_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("subject");
+
+                    b.Property<string>("TemplateName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("template_name");
+
+                    b.Property<string>("TemplateVariables")
+                        .HasColumnType("text")
+                        .HasColumnName("template_variables");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_email_logs");
+
+                    b.HasIndex("AnnouncementId")
+                        .HasDatabaseName("i_x_email_logs_announcement_id");
+
+                    b.HasIndex("QueuedAt")
+                        .HasDatabaseName("i_x_email_logs_queued_at");
+
+                    b.HasIndex("RecipientEmail")
+                        .HasDatabaseName("i_x_email_logs_recipient_email");
+
+                    b.HasIndex("RecipientUserId")
+                        .HasDatabaseName("i_x_email_logs_recipient_user_id");
+
+                    b.HasIndex("SentAt")
+                        .HasDatabaseName("i_x_email_logs_sent_at");
+
+                    b.HasIndex("SentViaProviderId")
+                        .HasDatabaseName("i_x_email_logs_sent_via_provider_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("i_x_email_logs_status");
+
+                    b.HasIndex("TemplateName")
+                        .HasDatabaseName("i_x_email_logs_template_name");
+
+                    b.HasIndex("Status", "QueuedAt")
+                        .HasDatabaseName("i_x_email_logs_status_queued_at");
+
+                    b.ToTable("email_logs", (string)null);
+                });
+
+            modelBuilder.Entity("ExoAuth.Domain.Entities.EmailProvider", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("CircuitBreakerOpenUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("circuit_breaker_open_until");
+
+                    b.Property<string>("ConfigurationEncrypted")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("configuration_encrypted");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("FailureCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("failure_count");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_enabled");
+
+                    b.Property<DateTime?>("LastFailureAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_failure_at");
+
+                    b.Property<DateTime?>("LastSuccessAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_success_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer")
+                        .HasColumnName("priority");
+
+                    b.Property<int>("TotalFailed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("total_failed");
+
+                    b.Property<int>("TotalSent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("total_sent");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_email_providers");
+
+                    b.HasIndex("IsEnabled")
+                        .HasDatabaseName("i_x_email_providers_is_enabled");
+
+                    b.HasIndex("Priority")
+                        .HasDatabaseName("i_x_email_providers_priority");
+
+                    b.HasIndex("Type")
+                        .HasDatabaseName("i_x_email_providers_type");
+
+                    b.HasIndex("IsEnabled", "Priority")
+                        .HasDatabaseName("i_x_email_providers_is_enabled_priority");
+
+                    b.ToTable("email_providers", (string)null);
+                });
+
             modelBuilder.Entity("ExoAuth.Domain.Entities.IpRestriction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -997,6 +1382,45 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ExoAuth.Domain.Entities.EmailAnnouncement", b =>
+                {
+                    b.HasOne("ExoAuth.Domain.Entities.SystemUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_email_announcements_system_users_created_by_user_id");
+
+                    b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("ExoAuth.Domain.Entities.EmailLog", b =>
+                {
+                    b.HasOne("ExoAuth.Domain.Entities.EmailAnnouncement", "Announcement")
+                        .WithMany("EmailLogs")
+                        .HasForeignKey("AnnouncementId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("f_k_email_logs_email_announcements_announcement_id");
+
+                    b.HasOne("ExoAuth.Domain.Entities.SystemUser", "RecipientUser")
+                        .WithMany()
+                        .HasForeignKey("RecipientUserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("f_k_email_logs_system_users_recipient_user_id");
+
+                    b.HasOne("ExoAuth.Domain.Entities.EmailProvider", "SentViaProvider")
+                        .WithMany()
+                        .HasForeignKey("SentViaProviderId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("f_k_email_logs_email_providers_sent_via_provider_id");
+
+                    b.Navigation("Announcement");
+
+                    b.Navigation("RecipientUser");
+
+                    b.Navigation("SentViaProvider");
+                });
+
             modelBuilder.Entity("ExoAuth.Domain.Entities.IpRestriction", b =>
                 {
                     b.HasOne("ExoAuth.Domain.Entities.SystemUser", "CreatedByUser")
@@ -1127,6 +1551,11 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ExoAuth.Domain.Entities.Device", b =>
                 {
                     b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("ExoAuth.Domain.Entities.EmailAnnouncement", b =>
+                {
+                    b.Navigation("EmailLogs");
                 });
 
             modelBuilder.Entity("ExoAuth.Domain.Entities.SystemPermission", b =>

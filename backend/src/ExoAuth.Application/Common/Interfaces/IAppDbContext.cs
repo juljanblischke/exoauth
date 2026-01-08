@@ -21,5 +21,11 @@ public interface IAppDbContext
     DbSet<Passkey> Passkeys { get; }
     DbSet<IpRestriction> IpRestrictions { get; }
 
+    // Email entities
+    DbSet<EmailProvider> EmailProviders { get; }
+    DbSet<EmailConfiguration> EmailConfigurations { get; }
+    DbSet<EmailLog> EmailLogs { get; }
+    DbSet<EmailAnnouncement> EmailAnnouncements { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -1,6 +1,7 @@
 using ExoAuth.EmailWorker;
 using ExoAuth.EmailWorker.Consumers;
 using ExoAuth.EmailWorker.Services;
+using ExoAuth.Infrastructure;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -19,7 +20,10 @@ try
         .WriteTo.Console(
             outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"));
 
-    // Register services
+    // Register Infrastructure services (includes DbContext, EmailSendingService, etc.)
+    builder.Services.AddInfrastructure(builder.Configuration);
+
+    // Register EmailWorker-specific services
     builder.Services.AddSingleton<RabbitMqConnectionFactory>();
     builder.Services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
 

@@ -638,7 +638,8 @@ import type { Feature } from '../types'
 5. **Route**: Page/Route
 6. **i18n**: Add translations (EN + DE!)
 7. **Tests**: Component + Hook tests
-8. **Update this memory file**
+8. **Update the Task file**
+9. **Update this memory file**
 
 ---
 

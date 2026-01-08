@@ -16,23 +16,21 @@ public static class AsyncQueryableExtensions
 
 internal class TestAsyncEnumerable<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>
 {
-    private readonly IEnumerable<T> _enumerable;
-
     public TestAsyncEnumerable(IEnumerable<T> enumerable)
         : base(enumerable)
     {
-        _enumerable = enumerable;
     }
 
     public TestAsyncEnumerable(Expression expression)
         : base(expression)
     {
-        _enumerable = this.AsEnumerable();
     }
 
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        return new TestAsyncEnumerator<T>(_enumerable.GetEnumerator());
+        // Materialize the query synchronously and wrap in async enumerator
+        var enumerable = this.AsEnumerable();
+        return new TestAsyncEnumerator<T>(enumerable.GetEnumerator());
     }
 
     IQueryProvider IQueryable.Provider => new TestAsyncQueryProvider<T>(this);
@@ -72,7 +70,10 @@ internal class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
 
     public IQueryable CreateQuery(Expression expression)
     {
-        return new TestAsyncEnumerable<TEntity>(expression);
+        // Create a new TestAsyncEnumerable with the expression to maintain async support
+        var elementType = expression.Type.GetGenericArguments().FirstOrDefault() ?? typeof(TEntity);
+        var queryableType = typeof(TestAsyncEnumerable<>).MakeGenericType(elementType);
+        return (IQueryable)Activator.CreateInstance(queryableType, expression)!;
     }
 
     public IQueryable<TElement> CreateQuery<TElement>(Expression expression)

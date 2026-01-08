@@ -1,10 +1,8 @@
 using System.Text;
 using System.Text.Json;
+using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.EmailWorker.Models;
 using ExoAuth.EmailWorker.Services;
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using MimeKit;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -13,9 +11,9 @@ namespace ExoAuth.EmailWorker.Consumers;
 public sealed class SendEmailConsumer : BackgroundService
 {
     private readonly RabbitMqConnectionFactory _connectionFactory;
-    private readonly IEmailTemplateService _templateService;
+    private readonly Services.IEmailTemplateService _templateService;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<SendEmailConsumer> _logger;
-    private readonly EmailSettings _emailSettings;
 
     private const string Exchange = "exoauth.events";
     private const string Queue = "email.send.queue";
@@ -28,16 +26,14 @@ public sealed class SendEmailConsumer : BackgroundService
 
     public SendEmailConsumer(
         RabbitMqConnectionFactory connectionFactory,
-        IEmailTemplateService templateService,
-        IConfiguration configuration,
+        Services.IEmailTemplateService templateService,
+        IServiceScopeFactory scopeFactory,
         ILogger<SendEmailConsumer> logger)
     {
         _connectionFactory = connectionFactory;
         _templateService = templateService;
+        _scopeFactory = scopeFactory;
         _logger = logger;
-
-        _emailSettings = new EmailSettings();
-        configuration.GetSection("Email").Bind(_emailSettings);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -86,9 +82,21 @@ public sealed class SendEmailConsumer : BackgroundService
 
                     if (message is not null)
                     {
-                        await ProcessEmailAsync(message, stoppingToken);
-                        await channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
-                        _logger.LogInformation("Email sent successfully to {To}", message.To);
+                        var result = await ProcessEmailAsync(message, stoppingToken);
+                        
+                        if (result.Success)
+                        {
+                            await channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
+                            _logger.LogInformation("Email sent successfully to {To} via provider {ProviderId}", 
+                                message.To, result.SentViaProviderId);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Email to {To} failed after all retries, moved to DLQ: {Error}", 
+                                message.To, result.Error);
+                            // Acknowledge even on failure since it's been logged and moved to DLQ
+                            await channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
+                        }
                     }
                     else
                     {
@@ -99,7 +107,7 @@ public sealed class SendEmailConsumer : BackgroundService
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to process email message");
-                    // Negative acknowledgment with requeue=false (send to dead letter queue if configured)
+                    // Negative acknowledgment with requeue=false (RabbitMQ dead letter queue)
                     await channel.BasicNackAsync(ea.DeliveryTag, false, false, stoppingToken);
                 }
             };
@@ -125,46 +133,33 @@ public sealed class SendEmailConsumer : BackgroundService
         }
     }
 
-    private async Task ProcessEmailAsync(SendEmailMessage message, CancellationToken ct)
+    private async Task<EmailSendResult> ProcessEmailAsync(SendEmailMessage message, CancellationToken ct)
     {
         // Render the email template
         var htmlBody = _templateService.Render(message.TemplateName, message.Variables, message.Language);
+        var plainTextBody = _templateService.RenderPlainText(message.TemplateName, message.Variables, message.Language);
 
-        // Create the email message
-        var mimeMessage = new MimeMessage();
-        mimeMessage.From.Add(new MailboxAddress(_emailSettings.FromName, _emailSettings.FromEmail));
-        mimeMessage.To.Add(MailboxAddress.Parse(message.To));
-        mimeMessage.Subject = message.Subject;
+        // Serialize template variables for logging
+        var templateVariablesJson = JsonSerializer.Serialize(message.Variables, JsonOptions);
 
-        var builder = new BodyBuilder
-        {
-            HtmlBody = htmlBody
-        };
+        // Use scoped service for database access
+        using var scope = _scopeFactory.CreateScope();
+        var emailSendingService = scope.ServiceProvider.GetRequiredService<IEmailSendingService>();
 
-        mimeMessage.Body = builder.ToMessageBody();
+        // Send with failover
+        var result = await emailSendingService.SendWithFailoverAsync(
+            recipientEmail: message.To,
+            recipientUserId: message.RecipientUserId,
+            subject: message.Subject,
+            htmlBody: htmlBody,
+            plainTextBody: plainTextBody,
+            templateName: message.TemplateName,
+            templateVariables: templateVariablesJson,
+            language: message.Language,
+            announcementId: message.AnnouncementId,
+            cancellationToken: ct
+        );
 
-        // Send the email
-        using var smtpClient = new SmtpClient();
-
-        var secureSocketOptions = _emailSettings.SmtpUseSsl
-            ? SecureSocketOptions.StartTls
-            : SecureSocketOptions.None;
-
-        await smtpClient.ConnectAsync(
-            _emailSettings.SmtpHost,
-            _emailSettings.SmtpPort,
-            secureSocketOptions,
-            ct);
-
-        if (!string.IsNullOrEmpty(_emailSettings.SmtpUsername))
-        {
-            await smtpClient.AuthenticateAsync(
-                _emailSettings.SmtpUsername,
-                _emailSettings.SmtpPassword,
-                ct);
-        }
-
-        await smtpClient.SendAsync(mimeMessage, ct);
-        await smtpClient.DisconnectAsync(true, ct);
+        return result;
     }
 }

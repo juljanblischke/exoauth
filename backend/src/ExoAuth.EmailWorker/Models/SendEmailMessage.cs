@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace ExoAuth.EmailWorker.Models;
 
 /// <summary>
@@ -8,5 +10,7 @@ public sealed record SendEmailMessage(
     string Subject,
     string TemplateName,
     string Language,
-    Dictionary<string, string> Variables
+    Dictionary<string, string> Variables,
+    [property: JsonPropertyName("recipientUserId")] Guid? RecipientUserId = null,
+    [property: JsonPropertyName("announcementId")] Guid? AnnouncementId = null
 );

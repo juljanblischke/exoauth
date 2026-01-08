@@ -25,12 +25,20 @@ backend/
 │   │   │   ├── Device.cs                        (Task 017 - consolidated from DeviceSession, TrustedDevice, DeviceApprovalRequest)
 │   │   │   ├── LoginPattern.cs                  (Task 013)
 │   │   │   ├── Passkey.cs                       (Task 019 - WebAuthn credentials)
-│   │   │   └── IpRestriction.cs                 (Task 023 - Whitelist/Blacklist)
+│   │   │   ├── IpRestriction.cs                 (Task 023 - Whitelist/Blacklist)
+│   │   │   ├── EmailProvider.cs                 (Task 025 - Multi-Provider Failover)
+│   │   │   ├── EmailConfiguration.cs            (Task 025 - Global Email Settings)
+│   │   │   ├── EmailLog.cs                      (Task 025 - Email Logging)
+│   │   │   └── EmailAnnouncement.cs             (Task 025 - Admin Announcements)
 │   │   ├── Enums/
 │   │   │   ├── UserType.cs
 │   │   │   ├── DeviceStatus.cs                  (Task 017 - PendingApproval, Trusted, Revoked)
 │   │   │   ├── IpRestrictionType.cs             (Task 023 - Whitelist, Blacklist)
-│   │   │   └── IpRestrictionSource.cs           (Task 023 - Manual, Automatic)
+│   │   │   ├── IpRestrictionSource.cs           (Task 023 - Manual, Automatic)
+│   │   │   ├── EmailProviderType.cs             (Task 025 - SMTP, SendGrid, AWS SES, Mailgun)
+│   │   │   ├── EmailStatus.cs                   (Task 025 - Queued, Sending, Sent, Failed, InDlq)
+│   │   │   ├── EmailAnnouncementTarget.cs       (Task 025 - AllUsers, ByPermission, SelectedUsers)
+│   │   │   └── EmailAnnouncementStatus.cs       (Task 025 - Draft, Sending, Sent, PartiallyFailed, Failed)
 │   │   └── Constants/
 │   │       └── SystemPermissions.cs
 │   │
@@ -69,7 +77,11 @@ backend/
 │   │   │   │   ├── ICaptchaProvider.cs          (Task 021)
 │   │   │   │   ├── ICaptchaService.cs           (Task 021)
 │   │   │   │   ├── IRateLimitService.cs         (Task 023)
-│   │   │   │   └── IIpRestrictionService.cs     (Task 023)
+│   │   │   │   ├── IIpRestrictionService.cs     (Task 023)
+│   │   │   │   ├── IEmailProviderImplementation.cs  (Task 025)
+│   │   │   │   ├── IEmailProviderFactory.cs     (Task 025)
+│   │   │   │   ├── ICircuitBreakerService.cs    (Task 025)
+│   │   │   │   └── IEmailSendingService.cs      (Task 025)
 │   │   │   └── Models/
 │   │   │       ├── ApiResponse.cs
 │   │   │       ├── ApiError.cs
@@ -115,7 +127,9 @@ backend/
 │   │       │   │   ├── PasskeyLoginOptions/     (Task 019)
 │   │       │   │   ├── PasskeyLogin/            (Task 019)
 │   │       │   │   ├── RenamePasskey/           (Task 019)
-│   │       │   │   └── DeletePasskey/           (Task 019)
+│   │       │   │   ├── DeletePasskey/           (Task 019)
+│   │       │   │   ├── ResendPasswordReset/     (Task 025)
+│   │       │   │   └── ResendDeviceApproval/    (Task 025)
 │   │       │   ├── Queries/
 │   │       │   │   ├── GetCurrentUser/
 │   │       │   │   ├── GetDevices/              (Task 017)
@@ -147,13 +161,34 @@ backend/
 │   │       ├── SystemPermissions/
 │   │       ├── SystemAuditLogs/
 │   │       ├── SystemInvites/
-│   │       └── IpRestrictions/                      (Task 023)
+│   │       ├── IpRestrictions/                      (Task 023)
 │   │           ├── Commands/
-│   │           │   ├── CreateIpRestriction/\n│   │           │   ├── UpdateIpRestriction/\n│   │           │   └── DeleteIpRestriction/
+│   │           │   ├── CreateIpRestriction/
+│   │           │   ├── UpdateIpRestriction/
+│   │           │   └── DeleteIpRestriction/
 │   │           ├── Queries/
 │   │           │   └── GetIpRestrictions/
 │   │           └── Models/
 │   │               └── IpRestrictionDto.cs              (includes CreatedByUserFullName)
+│   │       └── Email/                               (Task 025)
+│   │           ├── Providers/
+│   │           │   ├── Commands/ (Create, Update, Delete, ResetCircuitBreaker, ReorderProviders)
+│   │           │   └── Queries/ (GetEmailProviders, GetEmailProvider)
+│   │           ├── Configuration/
+│   │           │   ├── Commands/ (UpdateEmailConfiguration)
+│   │           │   └── Queries/ (GetEmailConfiguration)
+│   │           ├── Logs/
+│   │           │   └── Queries/ (GetEmailLogs, GetEmailLog)
+│   │           ├── Dlq/
+│   │           │   ├── Commands/ (RetryDlqEmail, RetryAllDlqEmails, DeleteDlqEmail)
+│   │           │   └── Queries/ (GetDlqEmails)
+│   │           ├── Announcements/
+│   │           │   ├── Commands/ (Create, Update, Delete, Send)
+│   │           │   └── Queries/ (GetEmailAnnouncements, GetEmailAnnouncement, Preview)
+│   │           ├── Test/
+│   │           │   └── Commands/ (SendTestEmail)
+│   │           └── Models/
+│   │               └── EmailDtos.cs                     (Provider, Config, Log, Announcement DTOs)
 │   │
 │   ├── ExoAuth.Infrastructure/
 │   │   ├── DependencyInjection.cs
@@ -216,7 +251,18 @@ backend/
 │       │   ├── HcaptchaProvider.cs          (Task 021)
 │       │   └── DisabledCaptchaProvider.cs   (Task 021)
 │       ├── RateLimitService.cs              (Task 023)
-│       └── IpRestrictionService.cs          (Task 023)
+│       ├── IpRestrictionService.cs          (Task 023)
+│       └── Email/                           (Task 025)
+│           ├── EmailProviderFactory.cs      (Creates provider instances)
+│           ├── EmailSendingService.cs       (Failover orchestration)
+│           ├── CircuitBreakerService.cs     (Provider health management)
+│           └── Providers/
+│               ├── SmtpEmailProvider.cs
+│               ├── SendGridEmailProvider.cs
+│               ├── MailgunEmailProvider.cs
+│               ├── AmazonSesEmailProvider.cs
+│               ├── ResendEmailProvider.cs
+│               └── PostmarkEmailProvider.cs
 │   │
 │   ├── ExoAuth.EmailWorker/                     (Separate Microservice)
 │   │   ├── Program.cs
@@ -237,7 +283,8 @@ backend/
 │       │   ├── SystemAuditLogsController.cs
 │       │   ├── SystemInvitesController.cs
 │       │   ├── CaptchaController.cs             (Task 021)
-│       │   └── IpRestrictionsController.cs      (Task 023)
+│       │   ├── IpRestrictionsController.cs      (Task 023)
+│       │   └── SystemEmailController.cs         (Task 025 - Providers, Config, Logs, DLQ, Announcements, Test)
 │       ├── Middleware/
 │       │   ├── ExceptionMiddleware.cs
 │       │   ├── RequestLoggingMiddleware.cs
@@ -278,11 +325,29 @@ backend/
     ├── Features/
     │   ├── Auth/
     │   │   ├── Passkeys/                        (Task 019 - 41 tests)
-│   │   └── Captcha/                         (Task 021 - 49 tests)
+    │   │   ├── Captcha/                         (Task 021 - 49 tests)
+    │   │   └── Resend/                          (Task 025 - 10 tests)
+    │   │       └── ResendDeviceApprovalHandlerTests.cs
     │   ├── SystemUsers/
     │   ├── SystemAuditLogs/
     │   ├── SystemInvites/
-    │   └── IpRestrictions/                      (Task 023 - 59 tests)
+    │   ├── IpRestrictions/                      (Task 023 - 59 tests)
+    │   └── Email/                               (Task 025 - 98 tests)
+    │       ├── Providers/
+    │       │   ├── CreateEmailProviderHandlerTests.cs
+    │       │   ├── UpdateEmailProviderHandlerTests.cs
+    │       │   ├── DeleteEmailProviderHandlerTests.cs
+    │       │   └── ResetCircuitBreakerHandlerTests.cs
+    │       ├── Configuration/
+    │       │   └── EmailConfigurationHandlerTests.cs
+    │       ├── Logs/
+    │       │   └── EmailLogsHandlerTests.cs
+    │       ├── Dlq/
+    │       │   └── DlqHandlerTests.cs
+    │       ├── Announcements/
+    │       │   └── EmailAnnouncementHandlerTests.cs
+    │       └── Test/
+    │           └── SendTestEmailHandlerTests.cs
     ├── Services/
     │   ├── RateLimitServiceTests.cs             (Task 023 - 15 tests)
     │   └── IpRestrictionServiceTests.cs         (Task 023 - 9 tests)
@@ -502,6 +567,18 @@ public sealed class {Feature}Controller : ControllerBase
 | `IP_RESTRICTION_ALREADY_EXISTS` | 409 | IP restriction already exists |
 | `IP_RESTRICTION_INVALID_CIDR` | 400 | Invalid IP address or CIDR notation |
 
+### Email Errors (Task 025)
+| Code | HTTP | Description |
+|------|------|-------------|
+| `EMAIL_PROVIDER_NOT_FOUND` | 404 | Email provider not found |
+| `EMAIL_PROVIDER_NAME_EXISTS` | 409 | Provider name already exists |
+| `EMAIL_NO_PROVIDERS_CONFIGURED` | 400 | No enabled email providers |
+| `EMAIL_LOG_NOT_FOUND` | 404 | Email log entry not found |
+| `EMAIL_NOT_IN_DLQ` | 400 | Email is not in DLQ |
+| `EMAIL_ANNOUNCEMENT_NOT_FOUND` | 404 | Announcement not found |
+| `EMAIL_ANNOUNCEMENT_ALREADY_SENT` | 400 | Cannot modify sent announcement |
+| `EMAIL_ANNOUNCEMENT_NO_RECIPIENTS` | 400 | No recipients for announcement |
+
 ### Account Errors
 | Code | HTTP | Description |
 |------|------|-------------|
@@ -552,97 +629,52 @@ Every new endpoint MUST have:
 3. **Application**: Commands/Queries + Handlers + Validators
 4. **API**: Controller + Endpoints
 5. **Tests**: Unit Tests
-6. **Update this memory file**
+6. **Update the Task file**
+7. **Update this memory file**
 
 ---
 
 ## Last Updated
 
-- **Date:** 2026-01-07
-- **Task:** 023 - Advanced Rate Limiting (Backend Complete)
-- **Tests:** 456 total tests passing (51 Rate Limiting/IP Restriction-specific)
+- **Date:** 2026-01-08
+- **Task:** 025 - Email System Enhancement (Complete with Tests)
+- **Tests:** 584 total (134 email-related tests)
 - **Notes:** 
-  - Sliding window rate limiting with multi-window support (per-minute, per-hour, per-day)
-  - IP whitelist/blacklist with auto-blacklist on rate limit violations
-  - Configurable presets: strict, sensitive, default, lenient, admin
-  - All controllers migrated from numeric limits to preset names
+  - **GDPR Fix:** Email logs are anonymized when user is anonymized (EmailLog.Anonymize method)
+  - **Phase 1 Complete:** Core Infrastructure
+    - Entities: EmailProvider, EmailConfiguration, EmailLog, EmailAnnouncement
+    - Enums: EmailProviderType, EmailStatus, EmailAnnouncementTarget, EmailAnnouncementStatus
+    - EF Configurations + Migration
+  - **Phase 2 Complete:** Admin API
+    - Email Provider CRUD with encrypted configuration
+    - Email Configuration management (retry, circuit breaker, DLQ settings)
+    - Email Logs with filtering and pagination
+    - Dead Letter Queue management (retry, delete)
+    - Email Announcements (create, update, delete, send, preview)
+    - Test email functionality
+    - SystemEmailController with all endpoints
+  - **Phase 3 Complete:** Email Sending Service
+    - IEmailProviderImplementation interface + provider-specific configs
+    - Provider implementations: SMTP, SendGrid, Mailgun, Amazon SES, Resend, Postmark
+    - IEmailProviderFactory for creating provider instances
+    - ICircuitBreakerService for provider health management
+    - IEmailSendingService for failover orchestration with exponential backoff retry
+    - EmailSendingService with multi-provider failover chain
+  - **Phase 4 Complete:** Resend Features & EmailWorker Update
+    - ResendPasswordReset command (POST /api/auth/forgot-password/resend)
+    - ResendDeviceApproval command (POST /api/auth/device-approval/resend)
+    - Updated SendEmailConsumer to use IEmailSendingService with failover
+    - Added RenderPlainText method to IEmailTemplateService
+    - Added AuditActions: PasswordResetResent, DeviceApprovalResent
+  - **Phase 5 Complete:** Unit Tests
+    - Email Provider tests (Create, Update, Delete, ResetCircuitBreaker)
+    - Email Configuration tests (Get, Update)
+    - Email Logs tests (Get, GetList with filters)
+    - DLQ tests (Retry, Delete, GetList)
+    - Announcements tests (Create, Update, Delete, Send)
+    - Test Email tests (with failover scenarios)
+    - Resend Device Approval tests
+  - **Permissions:** Already seeded (email:providers:read, email:providers:manage, etc.)
 
 ---
 
-## Last Updated
-- **Date:** 2026-01-07
-- **Tasks Completed:** 001-023 (456 Unit Tests)
-- **Task 019:** Passkeys (WebAuthn/FIDO2)
-  - New entity: Passkey (CredentialId, PublicKey, Counter, CredType, AaGuid, Name, LastUsedAt)
-  - SystemUser extended with Passkeys collection
-  - IPasskeyService interface with Fido2NetLib integration
-  - PasskeyService with Redis challenge storage (5-minute TTL)
-  - Auth API endpoints:
-    - POST /auth/passkeys/register/options (get registration challenge)
-    - POST /auth/passkeys/register (complete registration)
-    - POST /auth/passkeys/login/options (get authentication challenge)
-    - POST /auth/passkeys/login (passwordless login)
-    - GET /auth/passkeys (list user's passkeys)
-    - PATCH /auth/passkeys/{id} (rename passkey)
-    - DELETE /auth/passkeys/{id} (remove passkey)
-  - Passkey login creates trusted device automatically
-  - Email notifications: passkey-registered, passkey-removed
-  - Error codes: PASSKEY_NOT_FOUND, PASSKEY_INVALID_CREDENTIAL, PASSKEY_REGISTRATION_FAILED, 
-    PASSKEY_ALREADY_REGISTERED, PASSKEY_CANNOT_DELETE_LAST
-  - 41 new unit tests for passkey handlers
-- **Task 023:** Advanced Rate Limiting
-  - IpRestriction entity: IP-based whitelist/blacklist with manual/automatic sources
-  - Enums: IpRestrictionType (Whitelist, Blacklist), IpRestrictionSource (Manual, Automatic)
-  - IRateLimitService interface with sliding window algorithm
-  - IIpRestrictionService interface for whitelist/blacklist + auto-blacklist
-  - RateLimitService with:
-    - Sliding window rate limiting (Redis-based)
-    - Multi-window support: per-minute, per-hour, per-day limits
-    - Configurable presets: strict (3/min), sensitive (5/min), default (30/min), lenient (60/min), admin (100/min)
-  - IpRestrictionService with:
-    - IP whitelist (bypass rate limiting) and blacklist (block all requests)
-    - CIDR notation support (e.g., 10.0.0.0/8, 192.168.1.0/24)
-    - Auto-blacklist on rate limit violations (configurable threshold)
-    - 15-minute cache with Redis invalidation
-  - RateLimitSettings model with window configuration
-  - RateLimitAttribute refactored to use preset names (string) instead of numeric values
-  - RateLimitFilter checks IP whitelist/blacklist before rate limiting
-  - IpRestrictionsController (Admin API):
-    - GET /ip-restrictions (list with cursor pagination, filtering, sorting)
-    - POST /ip-restrictions (create whitelist/blacklist entry)
-    - DELETE /ip-restrictions/{id} (remove restriction)
-  - IpRestrictionDto with full audit info (CreatedByUserId, CreatedByUserEmail)
-  - Error codes: RATE_LIMIT_EXCEEDED, IP_BLACKLISTED, IP_RESTRICTION_NOT_FOUND, 
-    IP_RESTRICTION_ALREADY_EXISTS, IP_RESTRICTION_INVALID_CIDR
-  - appsettings.json configuration for presets, auto-blacklist, windows
-  - 51 new unit tests (24 IpRestrictionService, 15 RateLimitService, 27 handlers)
-- **Task 021:** CAPTCHA Integration
-  - ICaptchaProvider interface for provider abstraction
-  - ICaptchaService interface for validation and smart triggering
-  - Providers: TurnstileProvider, RecaptchaV3Provider, HcaptchaProvider, DisabledCaptchaProvider
-  - CaptchaService with smart triggering based on:
-    - Failed login attempts threshold (Redis counter)
-    - Risk score threshold
-    - Per-context thresholds: Login, ApproveDevice, MfaVerify
-  - Models: CaptchaSettings, CaptchaResult, CaptchaPublicConfig, SmartTriggerSettings
-  - API endpoint: GET /captcha/config (returns provider + siteKey)
-  - Commands updated with CAPTCHA validation:
-    - Register: Always required (if CAPTCHA enabled)
-    - ForgotPassword: Always required (if CAPTCHA enabled)
-    - Login: Smart triggered (failed attempts or risk score)
-    - ApproveDevice: Smart triggered
-    - MfaVerify: Smart triggered
-  - Error codes: CAPTCHA_REQUIRED, CAPTCHA_INVALID
-  - appsettings.json configuration for provider selection
-  - 49 new unit tests for CAPTCHA functionality
-- **Task 017:** Device Model Consolidation
-  - Consolidated DeviceSession, TrustedDevice, DeviceApprovalRequest → Device entity
-  - Consolidated IDeviceSessionService, ITrustedDeviceService, IDeviceApprovalService → IDeviceService
-  - Device.Id now serves as session ID
-  - DeviceStatus enum: PendingApproval, Trusted, Revoked
-  - Auth API: `/auth/devices` (replaces /sessions + /trusted-devices)
-  - Admin API: `/system-users/{id}/devices` (replaces /sessions)
-  - Auto-login after device approval (tokens returned)
-  - Approve device from existing trusted session
-  - Device.ResetToPending() for spoofing detection (reuses existing device record)
-  - IRevokedSessionService.ClearRevokedSessionAsync() clears Redis on device reuse

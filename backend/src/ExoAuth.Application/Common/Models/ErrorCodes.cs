@@ -119,6 +119,21 @@ public static class ErrorCodes
     public const string UserAlreadyAnonymized = "USER_ALREADY_ANONYMIZED";
     public const string CannotAnonymizeSelf = "CANNOT_ANONYMIZE_SELF";
 
+    // Email Errors (400/404/429/500)
+    public const string EmailProviderNotFound = "EMAIL_PROVIDER_NOT_FOUND";
+    public const string EmailProviderInvalidConfig = "EMAIL_PROVIDER_INVALID_CONFIG";
+    public const string EmailProviderTestFailed = "EMAIL_PROVIDER_TEST_FAILED";
+    public const string EmailNoProvidersConfigured = "EMAIL_NO_PROVIDERS_CONFIGURED";
+    public const string EmailAllProvidersFailed = "EMAIL_ALL_PROVIDERS_FAILED";
+    public const string EmailLogNotFound = "EMAIL_LOG_NOT_FOUND";
+    public const string EmailNotInDlq = "EMAIL_NOT_IN_DLQ";
+    public const string EmailAnnouncementNotFound = "EMAIL_ANNOUNCEMENT_NOT_FOUND";
+    public const string EmailAnnouncementAlreadySent = "EMAIL_ANNOUNCEMENT_ALREADY_SENT";
+    public const string EmailAnnouncementNoRecipients = "EMAIL_ANNOUNCEMENT_NO_RECIPIENTS";
+    public const string PasswordResetResendCooldown = "PASSWORD_RESET_RESEND_COOLDOWN";
+    public const string DeviceApprovalResendCooldown = "DEVICE_APPROVAL_RESEND_COOLDOWN";
+    public const string DeviceApprovalNotPending = "DEVICE_APPROVAL_NOT_PENDING";
+
     // Server Errors (500)
     public const string InternalError = "INTERNAL_ERROR";
 }

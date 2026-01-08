@@ -39,20 +39,19 @@ services:
     container_name: exoauth-email-worker
     environment:
       - DOTNET_ENVIRONMENT=Development
+      - ConnectionStrings__Database=Host=postgres;Database=exoauth;Username=exoauth;Password=exoauth_secret
+      - ConnectionStrings__Redis=redis:6379
       - ConnectionStrings__RabbitMq=amqp://guest:guest@rabbitmq:5672
-      - Email__SmtpHost=mailhog
-      - Email__SmtpPort=1025
-      - Email__SmtpUseSsl=false
-      - Email__FromEmail=noreply@exoauth.dev
-      - Email__FromName=ExoAuth Dev
       - Templates__BasePath=/app/templates/emails
     volumes:
       - ./backend/templates:/app/templates:ro
+      # Data Protection keys - MUST match API's keys for encryption/decryption to work!
+      - dataprotection-keys:/app/data/keys
     depends_on:
+      postgres:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      mailhog:
-        condition: service_started
     restart: unless-stopped
     networks:
       - exoauth-network
