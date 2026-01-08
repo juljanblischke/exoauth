@@ -25,7 +25,8 @@
       "Bash(dotnet restore:*)",
       "mcp__plugin_serena_serena__think_about_whether_you_are_done",
       "mcp__plugin_serena_serena__list_memories",
-      "Bash(yarn build)"
+      "Bash(yarn build)",
+      "mcp__plugin_serena_serena__execute_shell_command"
     ]
   }
 }

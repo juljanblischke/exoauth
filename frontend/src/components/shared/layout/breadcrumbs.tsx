@@ -21,6 +21,7 @@ const routeLabels: Record<string, string> = {
   organizations: 'navigation:breadcrumb.organizations',
   projects: 'navigation:breadcrumb.projects',
   settings: 'navigation:breadcrumb.settings',
+  email: 'navigation:breadcrumb.email',
   create: 'navigation:breadcrumb.createUser',
   edit: 'navigation:breadcrumb.editUser',
 }

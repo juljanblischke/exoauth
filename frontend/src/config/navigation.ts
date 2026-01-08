@@ -6,6 +6,7 @@ import {
   Building2,
   FolderKanban,
   Shield,
+  Mail,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -49,6 +50,12 @@ export const navigation: NavSection[] = [
         href: '/ip-restrictions',
         icon: Shield,
         permission: 'system:ip-restrictions:read',
+      },
+      {
+        label: 'navigation:items.email',
+        href: '/email',
+        icon: Mail,
+        permission: 'email:providers:read',
       },
     ],
   },

@@ -11,7 +11,7 @@ RUN dotnet restore ./ExoAuth.Api/ExoAuth.Api.csproj
 
 # Copy everything and build
 COPY src/ ./
-RUN dotnet publish ./ExoAuth.Api/ExoAuth.Api.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish ./ExoAuth.Api/ExoAuth.Api.csproj -c Release -o /app/publish
 
 # Development stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS development

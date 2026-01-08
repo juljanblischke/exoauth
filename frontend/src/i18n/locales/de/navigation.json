@@ -11,6 +11,7 @@
     "permissions": "Berechtigungen",
     "auditLogs": "Audit-Protokolle",
     "ipRestrictions": "IP-Einschränkungen",
+    "email": "E-Mail System",
     "organizations": "Organisationen",
     "projects": "Projekte",
     "settings": "Einstellungen"
@@ -25,6 +26,7 @@
     "permissions": "Berechtigungen",
     "auditLogs": "Audit-Protokolle",
     "ipRestrictions": "IP-Einschränkungen",
+    "email": "E-Mail System",
     "organizations": "Organisationen",
     "projects": "Projekte",
     "settings": "Einstellungen"

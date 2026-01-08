@@ -11,6 +11,7 @@
     "permissions": "Permissions",
     "auditLogs": "Audit Logs",
     "ipRestrictions": "IP Restrictions",
+    "email": "Email System",
     "organizations": "Organizations",
     "projects": "Projects",
     "settings": "Settings"
@@ -25,6 +26,7 @@
     "permissions": "Permissions",
     "auditLogs": "Audit Logs",
     "ipRestrictions": "IP Restrictions",
+    "email": "Email System",
     "organizations": "Organizations",
     "projects": "Projects",
     "settings": "Settings"

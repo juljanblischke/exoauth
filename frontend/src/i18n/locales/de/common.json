@@ -184,6 +184,7 @@
     "activity": "Aktivität",
     "created": "Erstellt",
     "security": "Sicherheit",
-    "riskScore": "Risikobewertung"
+    "riskScore": "Risikobewertung",
+    "email": "E-Mail"
   }
 }

@@ -20,7 +20,8 @@ frontend/src/i18n/
     │   ├── mfa.json            # Two-factor auth
     │   ├── sessions.json       # Device sessions
     │   ├── errors.json         # Error messages
-    │   └── validation.json     # Form validation
+    │   ├── validation.json     # Form validation
+    │   └── email.json          # Email System (Task 026)
     └── de/
         └── (same files)
 ```
@@ -42,6 +43,7 @@ frontend/src/i18n/
 | sessions | sessions.json | `t('sessions:title')` |
 | errors | errors.json | `t('errors:codes.AUTH_INVALID_CREDENTIALS')` |
 | validation | validation.json | `t('validation:required')` |
+| email | email.json | `t('email:providers.title')` |
 
 ---
 
@@ -179,6 +181,46 @@ required, email, minLength, maxLength, min, max, pattern, url, number
 password.*         - minLength, lowercase, uppercase, number, special, mismatch, weak
 password.strength.* - weak, fair, good, strong
 unique.*, confirmation.*
+invalidEmail       - Email validation error message
+```
+
+### email.json (Task 026)
+
+```
+providers.*        - title, subtitle, empty.*, loading, createSuccess, updateSuccess, deleteSuccess, resetSuccess
+providers.fields.* - name, type, isDefault, isActive, priority, rateLimit
+providers.form.*   - createTitle, editTitle, name, type, isDefault, isActive, priority, rateLimit, submitCreate, submitUpdate
+providers.type.*   - smtp, sendgrid, mailgun, ses, resend, postmark
+providers.test.*   - title, description, toEmail, toEmailPlaceholder, send, success, error
+providers.reorder.* - title, description, success
+providers.reset.*  - title, description, success
+
+configuration.*    - title, subtitle, form.*, success, error
+configuration.fields.* - defaultFromEmail, defaultFromName, defaultReplyTo, maxRetryAttempts, retryDelayMinutes, dailyLimit
+configuration.form.* - title, description, submit, emailPlaceholder, namePlaceholder, replyToPlaceholder
+
+logs.*             - title, subtitle, empty.*, loading, table.*, filters.*
+logs.fields.*      - recipientEmail, subject, provider, status, sentAt, errorMessage
+logs.status.*      - pending, sent, failed, bounced, retrying
+logs.table.*       - noResults, noResultsDescription
+logs.filters.*     - search, status, provider, dateRange, allStatuses, allProviders
+logs.details.*     - title, recipientEmail, subject, provider, status, sentAt, errorMessage, retryCount, metadata
+
+dlq.*              - title, subtitle, empty.*, loading, table.*, retry.*, delete.*
+dlq.fields.*       - recipientEmail, subject, originalProvider, errorMessage, failedAt, retryCount
+dlq.table.*        - noResults, noResultsDescription, selected
+dlq.retry.*        - button, title, description, success, bulkSuccess
+dlq.delete.*       - button, title, description, success
+
+announcements.*    - title, subtitle, empty.*, loading, createSuccess, updateSuccess, deleteSuccess, sendSuccess
+announcements.fields.* - title, content, status, targetType, createdAt, sentAt, recipientCount
+announcements.status.* - draft, scheduled, sending, sent, cancelled
+announcements.target.* - all, organization, project, custom
+announcements.form.* - createTitle, editTitle, title, content, targetType, targetIds, scheduledAt, submit
+announcements.actions.* - edit, delete, send, cancel, duplicate
+announcements.details.* - title, status, targetType, targetIds, scheduledAt, sentAt, recipientCount, content
+
+userSelect.*       - title, description, search, selected, noResults, loading, confirm, cancel
 ```
 
 ---
@@ -257,5 +299,5 @@ function Component() {
 ---
 
 ## Last Updated
-- **Date:** 2026-01-07
-- **Latest Additions:** Task 024 - Added ipRestrictions namespace (create/edit/update/delete), rateLimited/ipBlacklisted error toasts, IP_BLACKLISTED/IP_RESTRICTION_* error codes (including IP_RESTRICTION_ALREADY_EXISTS), navigation breadcrumb.ipRestrictions, details.temporary key
+- **Date:** 2026-01-08
+- **Latest Additions:** Task 026 - Added email namespace with providers (CRUD, test, reorder, reset), configuration (form, fields), logs (table, filters, details, status badges), DLQ (retry, delete, bulk operations), announcements (CRUD, status/target badges, user selection modal), validation.invalidEmail key, common.labels.email key, navigation.breadcrumb.email key

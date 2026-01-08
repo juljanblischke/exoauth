@@ -17,6 +17,7 @@ import { SettingsPage } from './settings'
 import { ImprintPage, PrivacyPage, TermsPage } from './legal'
 import { ResetPasswordPage } from './reset-password'
 import { ApproveDevicePage } from './approve-device'
+import { EmailPage } from './email'
 
 // Permission-protected page wrapper
 function withPermission(Component: React.ComponentType, permission: string) {
@@ -177,6 +178,13 @@ const ipRestrictionsRoute = createRoute({
   component: withPermission(IpRestrictionsPage, 'system:ip-restrictions:read'),
 })
 
+// Email route (requires any email permission - tabs check individual permissions)
+const emailRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/email',
+  component: EmailPage,
+})
+
 // Settings route
 const settingsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
@@ -203,6 +211,7 @@ export const routeTree = rootRoute.addChildren([
     usersRoute,
     auditLogsRoute,
     ipRestrictionsRoute,
+    emailRoute,
     settingsRoute,
   ]),
 ])

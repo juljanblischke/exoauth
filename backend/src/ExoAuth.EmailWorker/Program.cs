@@ -2,6 +2,7 @@ using ExoAuth.EmailWorker;
 using ExoAuth.EmailWorker.Consumers;
 using ExoAuth.EmailWorker.Services;
 using ExoAuth.Infrastructure;
+using Microsoft.AspNetCore.DataProtection;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -20,8 +21,13 @@ try
         .WriteTo.Console(
             outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"));
 
-    // Register Infrastructure services (includes DbContext, EmailSendingService, etc.)
-    builder.Services.AddInfrastructure(builder.Configuration);
+    // Add Data Protection (required for EncryptionService which decrypts email provider configs)
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo("/app/data/keys"))
+        .SetApplicationName("ExoAuth");
+
+    // Register Infrastructure services with worker context (skips web-specific services like AuditService, PasskeyService)
+    builder.Services.AddInfrastructure(builder.Configuration, isWorkerContext: true);
 
     // Register EmailWorker-specific services
     builder.Services.AddSingleton<RabbitMqConnectionFactory>();

@@ -11,7 +11,7 @@ RUN dotnet restore ./ExoAuth.EmailWorker/ExoAuth.EmailWorker.csproj
 
 # Copy everything and build
 COPY src/ ./
-RUN dotnet publish ./ExoAuth.EmailWorker/ExoAuth.EmailWorker.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish ./ExoAuth.EmailWorker/ExoAuth.EmailWorker.csproj -c Release -o /app/publish
 
 # Development stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS development

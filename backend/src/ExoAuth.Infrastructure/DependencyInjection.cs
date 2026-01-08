@@ -16,7 +16,17 @@ namespace ExoAuth.Infrastructure;
 
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Adds infrastructure services for web applications (API).
+    /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        => AddInfrastructure(services, configuration, isWorkerContext: false);
+
+    /// <summary>
+    /// Adds infrastructure services with optional worker context support.
+    /// Worker context skips services that require ASP.NET Core dependencies (IHttpContextAccessor, IFido2).
+    /// </summary>
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, bool isWorkerContext)
     {
         // Database
         services.AddDbContext<AppDbContext>(options =>
@@ -49,7 +59,12 @@ public static class DependencyInjection
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<ITokenService, TokenService>();
-        services.AddScoped<IAuditService, AuditService>();
+
+        // AuditService requires IHttpContextAccessor (only available in web context)
+        if (!isWorkerContext)
+        {
+            services.AddScoped<IAuditService, AuditService>();
+        }
 
         // Redis Services
         services.AddSingleton<IPermissionCacheService, PermissionCacheService>();
@@ -96,8 +111,11 @@ public static class DependencyInjection
         services.AddSingleton<IMfaService, MfaService>();
         services.AddSingleton<IBackupCodeService, BackupCodeService>();
 
-        // Passkey Services
-        services.AddScoped<IPasskeyService, PasskeyService>();
+        // Passkey Services (requires IFido2 - only available in web context)
+        if (!isWorkerContext)
+        {
+            services.AddScoped<IPasskeyService, PasskeyService>();
+        }
 
         // Rate Limiting Services
         services.Configure<RateLimitSettings>(configuration.GetSection("RateLimiting"));

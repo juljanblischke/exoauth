@@ -183,6 +183,7 @@
     "activity": "Activity",
     "created": "Created",
     "security": "Security",
-    "riskScore": "Risk Score"
+    "riskScore": "Risk Score",
+    "email": "Email"
   }
 }

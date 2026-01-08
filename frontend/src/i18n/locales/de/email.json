@@ -1,0 +1,311 @@
+{
+  "title": "E-Mail System",
+  "subtitle": "E-Mail-Provider verwalten, Logs ansehen und Ankündigungen senden",
+  "tabs": {
+    "providers": "Provider",
+    "configuration": "Konfiguration",
+    "logs": "Logs",
+    "dlq": "Dead Letter Queue",
+    "announcements": "Ankündigungen"
+  },
+  "providers": {
+    "title": "E-Mail Provider",
+    "description": "E-Mail-Provider zum Versenden von E-Mails konfigurieren. Provider werden in Prioritätsreihenfolge verwendet.",
+    "empty": {
+      "title": "Keine E-Mail Provider konfiguriert",
+      "description": "Richten Sie mindestens einen E-Mail-Provider ein, um E-Mails zu versenden."
+    },
+    "create": {
+      "title": "E-Mail Provider hinzufügen",
+      "description": "Neuen E-Mail-Provider für den E-Mail-Versand konfigurieren."
+    },
+    "edit": {
+      "title": "E-Mail Provider bearbeiten",
+      "description": "Provider-Konfiguration aktualisieren."
+    },
+    "form": {
+      "name": "Provider Name",
+      "namePlaceholder": "z.B. Primärer SendGrid",
+      "nameDescription": "Ein freundlicher Name zur Identifikation dieses Providers",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Optionale Beschreibung für diesen Provider...",
+      "type": "Provider Typ",
+      "typePlaceholder": "Provider Typ auswählen",
+      "enabled": "Aktiviert",
+      "enabledDescription": "Deaktivierte Provider werden nicht zum Senden verwendet",
+      "configuration": "Konfiguration",
+      "senderSettings": "Absender-Einstellungen",
+      "smtpHost": "SMTP Host",
+      "smtpPort": "SMTP Port",
+      "smtpUsername": "Benutzername",
+      "smtpUsernamePlaceholder": "ihr-benutzername",
+      "smtpPassword": "Passwort",
+      "smtpUseSsl": "SSL/TLS verwenden",
+      "apiKey": "API-Schlüssel",
+      "apiKeyHint": "Leer lassen um bestehenden Schlüssel zu behalten",
+      "domain": "Domain",
+      "region": "Region",
+      "fromEmail": "Absender E-Mail",
+      "fromName": "Absender Name",
+      "passwordHint": "Leer lassen um bestehendes Passwort zu behalten"
+    },
+    "types": {
+      "smtp": "SMTP",
+      "sendGrid": "SendGrid",
+      "mailgun": "Mailgun",
+      "amazonSes": "Amazon SES",
+      "resend": "Resend",
+      "postmark": "Postmark"
+    },
+    "status": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "circuitOpen": "Circuit offen"
+    },
+    "actions": {
+      "add": "Provider hinzufügen",
+      "test": "Test-E-Mail senden",
+      "testSuccess": "Test-E-Mail erfolgreich gesendet",
+      "testFailed": "Test-E-Mail fehlgeschlagen: {{error}}",
+      "resetCircuitBreaker": "Circuit Breaker zurücksetzen",
+      "resetSuccess": "Circuit Breaker erfolgreich zurückgesetzt",
+      "reorderSuccess": "Provider-Reihenfolge erfolgreich aktualisiert"
+    },
+    "stats": {
+      "sent": "Gesendet",
+      "failed": "Fehlgeschlagen",
+      "successRate": "Erfolgsrate",
+      "lastSuccess": "Letzter Erfolg"
+    },
+    "delete": {
+      "title": "Provider löschen",
+      "description": "Sind Sie sicher, dass Sie \"{{name}}\" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "test": {
+      "title": "Test-E-Mail senden",
+      "description": "Test-E-Mail mit {{name}} senden um die Konfiguration zu überprüfen.",
+      "toEmail": "Empfänger E-Mail",
+      "toEmailPlaceholder": "test@beispiel.de",
+      "send": "Test-E-Mail senden"
+    },
+    "createSuccess": "E-Mail Provider erfolgreich erstellt",
+    "updateSuccess": "E-Mail Provider erfolgreich aktualisiert",
+    "deleteSuccess": "E-Mail Provider erfolgreich gelöscht"
+  },
+  "testEmail": {
+    "title": "Test-E-Mail senden",
+    "description": "Test-E-Mail mit {{name}} senden um die Konfiguration zu überprüfen.",
+    "recipient": "Empfänger E-Mail",
+    "recipientPlaceholder": "test@beispiel.de",
+    "send": "Test-E-Mail senden"
+  },
+  "configuration": {
+    "title": "E-Mail Konfiguration",
+    "sections": {
+      "general": "Allgemeine Einstellungen",
+      "retry": "Wiederholungs-Einstellungen",
+      "circuitBreaker": "Circuit Breaker Einstellungen",
+      "dlq": "Dead Letter Queue Einstellungen"
+    },
+    "fields": {
+      "emailsEnabled": "E-Mails aktiviert",
+      "emailsEnabledDescription": "E-Mail-Versand aktivieren oder deaktivieren",
+      "testMode": "Testmodus",
+      "testModeDescription": "Im Testmodus werden E-Mails protokolliert aber nicht gesendet",
+      "maxRetriesPerProvider": "Max. Wiederholungen pro Provider",
+      "maxRetriesPerProviderDescription": "Anzahl der Wiederholungsversuche pro Provider bevor zum nächsten gewechselt wird",
+      "initialRetryDelayMs": "Initiale Verzögerung (ms)",
+      "initialRetryDelayMsDescription": "Initiale Verzögerung vor dem ersten Wiederholungsversuch",
+      "maxRetryDelayMs": "Max. Verzögerung (ms)",
+      "maxRetryDelayMsDescription": "Maximale Verzögerung zwischen Wiederholungen",
+      "backoffMultiplier": "Backoff-Multiplikator",
+      "backoffMultiplierDescription": "Multiplikator für exponentielles Backoff",
+      "circuitBreakerFailureThreshold": "Fehlerschwelle",
+      "circuitBreakerFailureThresholdDescription": "Anzahl der Fehler bis zum Öffnen des Circuit",
+      "circuitBreakerWindowMinutes": "Fehlerfenster (Minuten)",
+      "circuitBreakerWindowMinutesDescription": "Zeitfenster für die Fehlerzählung",
+      "circuitBreakerOpenDurationMinutes": "Offen-Dauer (Minuten)",
+      "circuitBreakerOpenDurationMinutesDescription": "Wie lange der Circuit offen bleibt",
+      "autoRetryDlq": "DLQ Auto-Retry",
+      "autoRetryDlqDescription": "E-Mails in der Dead Letter Queue automatisch wiederholen",
+      "dlqRetryIntervalHours": "DLQ Retry-Intervall (Stunden)",
+      "dlqRetryIntervalHoursDescription": "Stunden zwischen automatischen DLQ-Wiederholungen"
+    },
+    "actions": {
+      "updateSuccess": "Konfiguration erfolgreich gespeichert",
+      "testSent": "Test-E-Mail erfolgreich gesendet"
+    }
+  },
+  "logs": {
+    "title": "E-Mail Logs",
+    "empty": {
+      "title": "Keine E-Mail Logs",
+      "description": "E-Mail-Logs erscheinen hier sobald E-Mails gesendet werden."
+    },
+    "columns": {
+      "recipient": "Empfänger",
+      "subject": "Betreff",
+      "template": "Template",
+      "status": "Status",
+      "provider": "Provider",
+      "sentAt": "Gesendet am",
+      "queuedAt": "Eingereiht am"
+    },
+    "filters": {
+      "status": "Status",
+      "statusPlaceholder": "Alle Status",
+      "template": "Template",
+      "templatePlaceholder": "Alle Templates",
+      "dateRange": "Zeitraum",
+      "search": "Empfänger suchen..."
+    },
+    "details": {
+      "title": "E-Mail Details",
+      "recipientUser": "Empfänger (Benutzer)",
+      "recipientEmail": "Empfänger E-Mail",
+      "language": "Sprache",
+      "retryCount": "Wiederholungen",
+      "lastError": "Letzter Fehler",
+      "templateVariables": "Template-Variablen",
+      "noError": "Kein Fehler",
+      "noVariables": "Keine Variablen"
+    },
+    "status": {
+      "queued": "Eingereiht",
+      "sending": "Wird gesendet",
+      "sent": "Gesendet",
+      "failed": "Fehlgeschlagen",
+      "inDlq": "In DLQ",
+      "retriedFromDlq": "Aus DLQ wiederholt"
+    },
+    "actions": {
+      "retrySuccess": "E-Mail zur Wiederholung eingereiht"
+    }
+  },
+  "dlq": {
+    "title": "Dead Letter Queue",
+    "empty": {
+      "title": "DLQ ist leer",
+      "description": "Keine fehlgeschlagenen E-Mails in der Dead Letter Queue."
+    },
+    "count": "{{count}} E-Mails in der Warteschlange",
+    "retryAll": "Alle wiederholen",
+    "retryAllConfirm": {
+      "title": "Alle E-Mails wiederholen",
+      "description": "Sind Sie sicher, dass Sie alle {{count}} E-Mails in der DLQ wiederholen möchten?"
+    },
+    "retrySuccess": "E-Mail zur Wiederholung eingereiht",
+    "retryAllSuccess": "{{count}} E-Mails zur Wiederholung eingereiht",
+    "deleteSuccess": "E-Mail aus DLQ entfernt",
+    "columns": {
+      "recipient": "Empfänger",
+      "subject": "Betreff",
+      "template": "Template",
+      "lastError": "Letzter Fehler",
+      "movedAt": "In DLQ verschoben",
+      "retryCount": "Wiederholungen"
+    },
+    "actions": {
+      "retry": "Wiederholen",
+      "delete": "Aufgeben",
+      "deleteSuccess": "E-Mail aus DLQ entfernt",
+      "processSuccess": "E-Mail zur Wiederholung eingereiht"
+    },
+    "delete": {
+      "title": "Aus DLQ entfernen",
+      "description": "Sind Sie sicher, dass Sie diese E-Mail aufgeben möchten? Sie wird nicht gesendet."
+    }
+  },
+  "announcements": {
+    "title": "Ankündigungen",
+    "create": "Ankündigung erstellen",
+    "empty": {
+      "title": "Keine Ankündigungen",
+      "description": "Erstellen Sie Ankündigungen, um E-Mails an Ihre Benutzer zu senden."
+    },
+    "form": {
+      "create": "Ankündigung erstellen",
+      "edit": "Ankündigung bearbeiten",
+      "subject": "Betreff",
+      "subjectPlaceholder": "E-Mail-Betreff eingeben",
+      "body": "E-Mail Inhalt",
+      "bodyPlaceholder": "Schreiben Sie Ihre Ankündigung hier...",
+      "target": "Empfänger",
+      "targetType": {
+        "allUsers": "Alle aktiven Benutzer",
+        "byPermission": "Benutzer mit Berechtigung",
+        "selectedUsers": "Ausgewählte Benutzer"
+      },
+      "selectPermission": "Berechtigung auswählen",
+      "selectPermissionPlaceholder": "Berechtigung wählen",
+      "selectUsers": "Benutzer auswählen",
+      "selectedCount": "{{count}} Benutzer ausgewählt",
+      "noUsersSelected": "Keine Benutzer ausgewählt"
+    },
+    "preview": {
+      "title": "Ankündigung Vorschau",
+      "button": "Vorschau",
+      "subject": "Betreff",
+      "body": "Inhalt",
+      "recipients": "Geschätzte Empfänger"
+    },
+    "send": {
+      "title": "Ankündigung senden",
+      "description": "Sind Sie sicher, dass Sie diese Ankündigung an {{count}} Empfänger senden möchten?",
+      "button": "Senden",
+      "success": "Ankündigung wird gesendet"
+    },
+    "status": {
+      "draft": "Entwurf",
+      "sending": "Wird gesendet",
+      "sent": "Gesendet",
+      "partiallyFailed": "Teilweise fehlgeschlagen"
+    },
+    "target": {
+      "allUsers": "Alle Benutzer",
+      "byPermission": "Nach Berechtigung",
+      "selectedUsers": "Ausgewählt"
+    },
+    "columns": {
+      "subject": "Betreff",
+      "target": "Ziel",
+      "recipients": "Empfänger",
+      "status": "Status",
+      "progress": "Fortschritt",
+      "sentAt": "Gesendet am",
+      "createdAt": "Erstellt am",
+      "createdBy": "Erstellt von"
+    },
+    "stats": {
+      "total": "Gesamt",
+      "sent": "Gesendet",
+      "failed": "Fehlgeschlagen"
+    },
+    "delete": {
+      "title": "Ankündigung löschen",
+      "description": "Sind Sie sicher, dass Sie diesen Entwurf löschen möchten?"
+    },
+    "actions": {
+      "createSuccess": "Ankündigung erfolgreich erstellt",
+      "updateSuccess": "Ankündigung erfolgreich aktualisiert",
+      "deleteSuccess": "Ankündigung erfolgreich gelöscht",
+      "sendSuccess": "Ankündigung wird gesendet"
+    }
+  },
+  "userSelect": {
+    "title": "Benutzer auswählen",
+    "search": "Benutzer suchen...",
+    "selected": "{{count}} ausgewählt",
+    "noResults": "Keine Benutzer gefunden",
+    "loadMore": "Mehr laden",
+    "selectAll": "Alle auswählen",
+    "deselectAll": "Alle abwählen"
+  },
+  "errors": {
+    "loadProviders": "E-Mail Provider konnten nicht geladen werden",
+    "loadConfiguration": "E-Mail Konfiguration konnte nicht geladen werden",
+    "loadLogs": "E-Mail Logs konnten nicht geladen werden",
+    "loadDlq": "DLQ E-Mails konnten nicht geladen werden",
+    "loadAnnouncements": "Ankündigungen konnten nicht geladen werden"
+  }
+}

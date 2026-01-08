@@ -87,6 +87,7 @@ frontend/
 │   │       │   ├── form-modal.tsx
 │   │       │   ├── date-range-picker.tsx
 │   │       │   ├── select-filter.tsx
+│   │       │   ├── rich-text-editor.tsx       (Task 026 - TipTap wrapper)
 │   │       │   └── index.ts
 │   │       ├── user-avatar.tsx
 │   │       ├── status-badge.tsx
@@ -288,6 +289,60 @@ frontend/
 │   │   │   ├── types/index.ts
 │   │   │   └── index.ts
 │   │   │
+│   │   ├── email/                               (Task 026)
+│   │   │   ├── api/email-api.ts
+│   │   │   ├── hooks/                           (24 hooks)
+│   │   │   │   ├── use-email-providers.ts
+│   │   │   │   ├── use-email-provider.ts
+│   │   │   │   ├── use-create-email-provider.ts
+│   │   │   │   ├── use-update-email-provider.ts
+│   │   │   │   ├── use-delete-email-provider.ts
+│   │   │   │   ├── use-test-email-provider.ts
+│   │   │   │   ├── use-reset-circuit-breaker.ts
+│   │   │   │   ├── use-reorder-email-providers.ts
+│   │   │   │   ├── use-email-configuration.ts
+│   │   │   │   ├── use-update-email-configuration.ts
+│   │   │   │   ├── use-email-logs.ts
+│   │   │   │   ├── use-retry-email.ts
+│   │   │   │   ├── use-dead-letter-queue.ts
+│   │   │   │   ├── use-process-dlq-message.ts
+│   │   │   │   ├── use-delete-dlq-message.ts
+│   │   │   │   ├── use-email-announcements.ts
+│   │   │   │   ├── use-email-announcement.ts
+│   │   │   │   ├── use-create-email-announcement.ts
+│   │   │   │   ├── use-update-email-announcement.ts
+│   │   │   │   ├── use-delete-email-announcement.ts
+│   │   │   │   ├── use-send-email-announcement.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── components/                      (27 components)
+│   │   │   │   ├── provider-list.tsx
+│   │   │   │   ├── provider-card.tsx
+│   │   │   │   ├── provider-form-dialog.tsx
+│   │   │   │   ├── email-provider-type-badge.tsx
+│   │   │   │   ├── email-provider-status-badge.tsx
+│   │   │   │   ├── test-email-dialog.tsx
+│   │   │   │   ├── email-configuration-form.tsx
+│   │   │   │   ├── email-configuration-tab.tsx
+│   │   │   │   ├── email-status-badge.tsx
+│   │   │   │   ├── email-logs-table-columns.tsx
+│   │   │   │   ├── email-log-details-sheet.tsx
+│   │   │   │   ├── email-logs-table.tsx
+│   │   │   │   ├── email-logs-tab.tsx
+│   │   │   │   ├── email-dlq-table-columns.tsx
+│   │   │   │   ├── email-dlq-table.tsx
+│   │   │   │   ├── email-dlq-tab.tsx
+│   │   │   │   ├── announcement-status-badge.tsx
+│   │   │   │   ├── announcement-target-badge.tsx
+│   │   │   │   ├── announcements-table-columns.tsx
+│   │   │   │   ├── announcements-table.tsx
+│   │   │   │   ├── announcement-form-modal.tsx
+│   │   │   │   ├── announcement-details-sheet.tsx
+│   │   │   │   ├── user-select-modal.tsx
+│   │   │   │   ├── email-announcements-tab.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── types/index.ts
+│   │   │   └── index.ts
+│   │   │
 │   │   └── roles/                 [PLACEHOLDER - Empty]
 │   │
 │   ├── hooks/
@@ -336,7 +391,8 @@ frontend/
 │   │   ├── approve-device.tsx     (Task 014)
 │   │   ├── legal.tsx
 │   │   ├── not-found.tsx
-│   │   ├── ip-restrictions.tsx          (Task 024)
+│   │   ├── ip-restrictions.tsx    (Task 024)
+│   │   ├── email.tsx              (Task 026)
 │   │   ├── forbidden.tsx
 │   │   └── server-error.tsx
 │   │
@@ -499,6 +555,7 @@ frontend/
 | sessions | sessions.json | Sessions texts |
 | auditLogs | auditLogs.json | Audit Logs |
 | ipRestrictions | ipRestrictions.json | IP Restrictions (Task 024) |
+| email | email.json | Email System (Task 026) |
 
 ---
 
@@ -644,5 +701,5 @@ import type { Feature } from '../types'
 ---
 
 ## Last Updated
-- **Date:** 2026-01-07
-- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016, 018, 020, 022, 024
+- **Date:** 2026-01-08
+- **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016, 018, 020, 022, 024, 026

@@ -1,0 +1,311 @@
+{
+  "title": "Email System",
+  "subtitle": "Manage email providers, view logs, and send announcements",
+  "tabs": {
+    "providers": "Providers",
+    "configuration": "Configuration",
+    "logs": "Logs",
+    "dlq": "Dead Letter Queue",
+    "announcements": "Announcements"
+  },
+  "providers": {
+    "title": "Email Providers",
+    "description": "Configure email providers for sending emails. Providers are tried in priority order.",
+    "empty": {
+      "title": "No Email Providers Configured",
+      "description": "Set up at least one email provider to start sending emails."
+    },
+    "create": {
+      "title": "Add Email Provider",
+      "description": "Configure a new email provider for sending emails."
+    },
+    "edit": {
+      "title": "Edit Email Provider",
+      "description": "Update the provider configuration."
+    },
+    "form": {
+      "name": "Provider Name",
+      "namePlaceholder": "e.g., Primary SendGrid",
+      "nameDescription": "A friendly name to identify this provider",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional description for this provider...",
+      "type": "Provider Type",
+      "typePlaceholder": "Select provider type",
+      "enabled": "Enabled",
+      "enabledDescription": "Disabled providers will not be used for sending",
+      "configuration": "Configuration",
+      "senderSettings": "Sender Settings",
+      "smtpHost": "SMTP Host",
+      "smtpPort": "SMTP Port",
+      "smtpUsername": "Username",
+      "smtpUsernamePlaceholder": "your-username",
+      "smtpPassword": "Password",
+      "smtpUseSsl": "Use SSL/TLS",
+      "apiKey": "API Key",
+      "apiKeyHint": "Leave empty to keep existing key",
+      "domain": "Domain",
+      "region": "Region",
+      "fromEmail": "From Email",
+      "fromName": "From Name",
+      "passwordHint": "Leave empty to keep existing password"
+    },
+    "types": {
+      "smtp": "SMTP",
+      "sendGrid": "SendGrid",
+      "mailgun": "Mailgun",
+      "amazonSes": "Amazon SES",
+      "resend": "Resend",
+      "postmark": "Postmark"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "circuitOpen": "Circuit Open"
+    },
+    "actions": {
+      "add": "Add Provider",
+      "test": "Send Test Email",
+      "testSuccess": "Test email sent successfully",
+      "testFailed": "Test email failed: {{error}}",
+      "resetCircuitBreaker": "Reset Circuit Breaker",
+      "resetSuccess": "Circuit breaker reset successfully",
+      "reorderSuccess": "Provider order updated successfully"
+    },
+    "stats": {
+      "sent": "Sent",
+      "failed": "Failed",
+      "successRate": "Success Rate",
+      "lastSuccess": "Last Success"
+    },
+    "delete": {
+      "title": "Delete Provider",
+      "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+    },
+    "test": {
+      "title": "Send Test Email",
+      "description": "Send a test email using {{name}} to verify the configuration.",
+      "toEmail": "Recipient Email",
+      "toEmailPlaceholder": "test@example.com",
+      "send": "Send Test Email"
+    },
+    "createSuccess": "Email provider created successfully",
+    "updateSuccess": "Email provider updated successfully",
+    "deleteSuccess": "Email provider deleted successfully"
+  },
+  "testEmail": {
+    "title": "Send Test Email",
+    "description": "Send a test email using {{name}} to verify the configuration.",
+    "recipient": "Recipient Email",
+    "recipientPlaceholder": "test@example.com",
+    "send": "Send Test Email"
+  },
+  "configuration": {
+    "title": "Email Configuration",
+    "sections": {
+      "general": "General Settings",
+      "retry": "Retry Settings",
+      "circuitBreaker": "Circuit Breaker Settings",
+      "dlq": "Dead Letter Queue Settings"
+    },
+    "fields": {
+      "emailsEnabled": "Emails Enabled",
+      "emailsEnabledDescription": "Enable or disable all email sending",
+      "testMode": "Test Mode",
+      "testModeDescription": "In test mode, emails are logged but not actually sent",
+      "maxRetriesPerProvider": "Max Retries Per Provider",
+      "maxRetriesPerProviderDescription": "Number of times to retry each provider before moving to next",
+      "initialRetryDelayMs": "Initial Retry Delay (ms)",
+      "initialRetryDelayMsDescription": "Initial delay before first retry",
+      "maxRetryDelayMs": "Max Retry Delay (ms)",
+      "maxRetryDelayMsDescription": "Maximum delay between retries",
+      "backoffMultiplier": "Backoff Multiplier",
+      "backoffMultiplierDescription": "Multiplier for exponential backoff",
+      "circuitBreakerFailureThreshold": "Failure Threshold",
+      "circuitBreakerFailureThresholdDescription": "Number of failures before opening circuit",
+      "circuitBreakerWindowMinutes": "Failure Window (minutes)",
+      "circuitBreakerWindowMinutesDescription": "Time window for counting failures",
+      "circuitBreakerOpenDurationMinutes": "Open Duration (minutes)",
+      "circuitBreakerOpenDurationMinutesDescription": "How long circuit stays open",
+      "autoRetryDlq": "Auto-Retry DLQ",
+      "autoRetryDlqDescription": "Automatically retry emails in dead letter queue",
+      "dlqRetryIntervalHours": "DLQ Retry Interval (hours)",
+      "dlqRetryIntervalHoursDescription": "Hours between automatic DLQ retry attempts"
+    },
+    "actions": {
+      "updateSuccess": "Configuration saved successfully",
+      "testSent": "Test email sent successfully"
+    }
+  },
+  "logs": {
+    "title": "Email Logs",
+    "empty": {
+      "title": "No Email Logs",
+      "description": "Email logs will appear here once emails are sent."
+    },
+    "columns": {
+      "recipient": "Recipient",
+      "subject": "Subject",
+      "template": "Template",
+      "status": "Status",
+      "provider": "Provider",
+      "sentAt": "Sent At",
+      "queuedAt": "Queued At"
+    },
+    "filters": {
+      "status": "Status",
+      "statusPlaceholder": "All statuses",
+      "template": "Template",
+      "templatePlaceholder": "All templates",
+      "dateRange": "Date Range",
+      "search": "Search recipient..."
+    },
+    "details": {
+      "title": "Email Details",
+      "recipientUser": "Recipient User",
+      "recipientEmail": "Recipient Email",
+      "language": "Language",
+      "retryCount": "Retry Count",
+      "lastError": "Last Error",
+      "templateVariables": "Template Variables",
+      "noError": "No error",
+      "noVariables": "No variables"
+    },
+    "status": {
+      "queued": "Queued",
+      "sending": "Sending",
+      "sent": "Sent",
+      "failed": "Failed",
+      "inDlq": "In DLQ",
+      "retriedFromDlq": "Retried from DLQ"
+    },
+    "actions": {
+      "retrySuccess": "Email queued for retry"
+    }
+  },
+  "dlq": {
+    "title": "Dead Letter Queue",
+    "empty": {
+      "title": "DLQ is Empty",
+      "description": "No failed emails in the dead letter queue."
+    },
+    "count": "{{count}} emails in queue",
+    "retryAll": "Retry All",
+    "retryAllConfirm": {
+      "title": "Retry All Emails",
+      "description": "Are you sure you want to retry all {{count}} emails in the DLQ?"
+    },
+    "retrySuccess": "Email queued for retry",
+    "retryAllSuccess": "{{count}} emails queued for retry",
+    "deleteSuccess": "Email removed from DLQ",
+    "columns": {
+      "recipient": "Recipient",
+      "subject": "Subject",
+      "template": "Template",
+      "lastError": "Last Error",
+      "movedAt": "Moved to DLQ",
+      "retryCount": "Retries"
+    },
+    "actions": {
+      "retry": "Retry",
+      "delete": "Give Up",
+      "deleteSuccess": "Email removed from DLQ",
+      "processSuccess": "Email queued for retry"
+    },
+    "delete": {
+      "title": "Remove from DLQ",
+      "description": "Are you sure you want to give up on this email? It will not be sent."
+    }
+  },
+  "announcements": {
+    "title": "Announcements",
+    "create": "Create Announcement",
+    "empty": {
+      "title": "No Announcements",
+      "description": "Create announcements to send emails to your users."
+    },
+    "form": {
+      "create": "Create Announcement",
+      "edit": "Edit Announcement",
+      "subject": "Subject",
+      "subjectPlaceholder": "Enter email subject",
+      "body": "Email Body",
+      "bodyPlaceholder": "Write your announcement here...",
+      "target": "Recipients",
+      "targetType": {
+        "allUsers": "All Active Users",
+        "byPermission": "Users with Permission",
+        "selectedUsers": "Selected Users"
+      },
+      "selectPermission": "Select Permission",
+      "selectPermissionPlaceholder": "Choose a permission",
+      "selectUsers": "Select Users",
+      "selectedCount": "{{count}} users selected",
+      "noUsersSelected": "No users selected"
+    },
+    "preview": {
+      "title": "Preview Announcement",
+      "button": "Preview",
+      "subject": "Subject",
+      "body": "Body",
+      "recipients": "Estimated Recipients"
+    },
+    "send": {
+      "title": "Send Announcement",
+      "description": "Are you sure you want to send this announcement to {{count}} recipients?",
+      "button": "Send",
+      "success": "Announcement is being sent"
+    },
+    "status": {
+      "draft": "Draft",
+      "sending": "Sending",
+      "sent": "Sent",
+      "partiallyFailed": "Partially Failed"
+    },
+    "target": {
+      "allUsers": "All Users",
+      "byPermission": "By Permission",
+      "selectedUsers": "Selected"
+    },
+    "columns": {
+      "subject": "Subject",
+      "target": "Target",
+      "recipients": "Recipients",
+      "status": "Status",
+      "progress": "Progress",
+      "sentAt": "Sent At",
+      "createdAt": "Created At",
+      "createdBy": "Created By"
+    },
+    "stats": {
+      "total": "Total",
+      "sent": "Sent",
+      "failed": "Failed"
+    },
+    "delete": {
+      "title": "Delete Announcement",
+      "description": "Are you sure you want to delete this draft announcement?"
+    },
+    "actions": {
+      "createSuccess": "Announcement created successfully",
+      "updateSuccess": "Announcement updated successfully",
+      "deleteSuccess": "Announcement deleted successfully",
+      "sendSuccess": "Announcement is being sent"
+    }
+  },
+  "userSelect": {
+    "title": "Select Users",
+    "search": "Search users...",
+    "selected": "{{count}} selected",
+    "noResults": "No users found",
+    "loadMore": "Load more",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all"
+  },
+  "errors": {
+    "loadProviders": "Failed to load email providers",
+    "loadConfiguration": "Failed to load email configuration",
+    "loadLogs": "Failed to load email logs",
+    "loadDlq": "Failed to load DLQ emails",
+    "loadAnnouncements": "Failed to load announcements"
+  }
+}

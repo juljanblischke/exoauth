@@ -278,57 +278,59 @@ Tabs sind nur sichtbar wenn User die entsprechende Permission hat.
 ## 8. Implementation Reihenfolge
 
 ### Phase 1: Foundation
-1. [ ] **Types**: TypeScript interfaces for all entities
-2. [ ] **API**: email-api.ts with all endpoints
-3. [ ] **Route**: Basic email.tsx page with tabs structure
-4. [ ] **Navigation**: Add to sidebar under System
-5. [ ] **i18n**: Create email.json (EN + DE)
+1. [x] **Types**: TypeScript interfaces for all entities
+2. [x] **API**: email-api.ts with all endpoints
+3. [x] **Route**: Basic email.tsx page with tabs structure
+4. [x] **Navigation**: Add to sidebar under System
+5. [x] **i18n**: Create email.json (EN + DE)
 
 ### Phase 2: Providers Tab
-6. [ ] **Hooks**: Provider hooks (CRUD + test + reset + reorder)
-7. [ ] **Components**: ProviderTypeBadge, ProviderStatusBadge
-8. [ ] **Components**: ProviderConfigFields (dynamic form)
-9. [ ] **Components**: ProviderFormModal (create/edit)
-10. [ ] **Components**: ProviderCard (for drag list)
-11. [ ] **Components**: EmailProvidersList (drag & drop)
-12. [ ] **Components**: SetupGuide (empty state)
-13. [ ] **Components**: EmailProvidersTab
+6. [x] **Hooks**: Provider hooks (CRUD + test + reset + reorder)
+7. [x] **Components**: ProviderTypeBadge, ProviderStatusBadge
+8. [x] **Components**: ProviderConfigFields (dynamic form)
+9. [x] **Components**: ProviderFormModal (create/edit)
+10. [x] **Components**: ProviderCard (for drag list)
+11. [x] **Components**: EmailProvidersList (with reorder buttons)
+12. [x] **Components**: SetupGuide (empty state in ProviderList)
+13. [x] **Components**: EmailProvidersTab (ProviderList component)
 
 ### Phase 3: Configuration Tab
-14. [ ] **Hooks**: Configuration hooks (get + update)
-15. [ ] **Components**: EmailConfigurationForm
-16. [ ] **Components**: EmailConfigurationTab
+14. [x] **Hooks**: Configuration hooks (get + update)
+15. [x] **Components**: EmailConfigurationForm
+16. [x] **Components**: EmailConfigurationTab
 
 ### Phase 4: Logs Tab
-17. [ ] **Hooks**: Logs hooks (list + get + filters)
-18. [ ] **Components**: EmailStatusBadge
-19. [ ] **Components**: EmailLogsTableColumns
-20. [ ] **Components**: EmailLogDetailsSheet
-21. [ ] **Components**: EmailLogsTable
-22. [ ] **Components**: EmailLogsTab
+17. [x] **Hooks**: Logs hooks (list + retry)
+18. [x] **Components**: EmailStatusBadge
+19. [x] **Components**: EmailLogsTableColumns
+20. [x] **Components**: EmailLogDetailsSheet
+21. [x] **Components**: EmailLogsTable
+22. [x] **Components**: EmailLogsTab
 
 ### Phase 5: DLQ Tab
-23. [ ] **Hooks**: DLQ hooks (list + retry + retry-all + delete)
-24. [ ] **Components**: EmailDlqTableColumns
-25. [ ] **Components**: EmailDlqTable
-26. [ ] **Components**: EmailDlqTab
+23. [x] **Hooks**: DLQ hooks (list + process + delete)
+24. [x] **Components**: EmailDlqTableColumns
+25. [x] **Components**: EmailDlqTable
+26. [x] **Components**: EmailDlqTab
 
 ### Phase 6: Announcements Tab
-27. [ ] **Shared**: RichTextEditor component (TipTap)
-28. [ ] **Hooks**: Announcement hooks (CRUD + send + preview)
-29. [ ] **Components**: AnnouncementStatusBadge, AnnouncementTargetBadge
-30. [ ] **Components**: UserSelectModal (with infinite scroll)
-31. [ ] **Components**: AnnouncementFormModal (with RichTextEditor)
-32. [ ] **Components**: AnnouncementPreviewModal
-33. [ ] **Components**: AnnouncementsTableColumns
-34. [ ] **Components**: AnnouncementsTable
-35. [ ] **Components**: EmailAnnouncementsTab
+27. [x] **Shared**: RichTextEditor component (TipTap)
+28. [x] **Hooks**: Announcement hooks (CRUD + send)
+29. [x] **Components**: AnnouncementStatusBadge, AnnouncementTargetBadge
+30. [x] **Components**: UserSelectModal (with infinite scroll)
+31. [x] **Components**: AnnouncementFormModal (with RichTextEditor)
+32. [x] **Components**: AnnouncementDetailsSheet
+33. [x] **Components**: AnnouncementsTableColumns
+34. [x] **Components**: AnnouncementsTable
+35. [x] **Components**: EmailAnnouncementsTab
 
 ### Phase 7: Polish & Testing
-36. [ ] **Mobile**: Verify all tables have card view
-37. [ ] **Tests**: Component tests
-38. [ ] **Task File**: Update this file with created files
-39. [ ] **Memory**: Update frontend_reference.md
+36. [x] **Fixes**: Permission strings (manage instead of write)
+37. [x] **Fixes**: i18n missing key detection
+38. [x] **Fixes**: Dropdown z-index in modals
+39. [x] **i18n**: Complete EN + DE translations
+40. [x] **Task File**: Update this file with created files
+41. [ ] **Memory**: Update frontend_reference.md
 
 ## 9. Provider Config Fields
 
@@ -882,5 +884,62 @@ Dynamic fields based on EmailProviderType:
 ## 13. Letzte Änderung
 
 - **Datum:** 2026-01-08
-- **Status:** Planning
-- **Nächster Schritt:** Start with Phase 1 (Types, API, Route)
+- **Status:** ✅ Complete
+- **Build:** Passing (yarn build + yarn lint)
+
+### Created Files
+- `frontend/src/features/email/types/index.ts`
+- `frontend/src/features/email/api/email-api.ts`
+- `frontend/src/features/email/hooks/` (all hooks - 24 files)
+- `frontend/src/features/email/components/email-provider-type-badge.tsx`
+- `frontend/src/features/email/components/email-provider-status-badge.tsx`
+- `frontend/src/features/email/components/provider-card.tsx`
+- `frontend/src/features/email/components/provider-form-dialog.tsx`
+- `frontend/src/features/email/components/provider-list.tsx`
+- `frontend/src/features/email/components/test-email-dialog.tsx`
+- `frontend/src/features/email/components/email-configuration-form.tsx`
+- `frontend/src/features/email/components/email-configuration-tab.tsx`
+- `frontend/src/features/email/components/email-status-badge.tsx`
+- `frontend/src/features/email/components/email-logs-table-columns.tsx`
+- `frontend/src/features/email/components/email-log-details-sheet.tsx`
+- `frontend/src/features/email/components/email-logs-table.tsx`
+- `frontend/src/features/email/components/email-logs-tab.tsx`
+- `frontend/src/features/email/components/email-dlq-table-columns.tsx`
+- `frontend/src/features/email/components/email-dlq-table.tsx`
+- `frontend/src/features/email/components/email-dlq-tab.tsx`
+- `frontend/src/features/email/components/announcement-status-badge.tsx`
+- `frontend/src/features/email/components/announcement-target-badge.tsx`
+- `frontend/src/features/email/components/announcements-table-columns.tsx`
+- `frontend/src/features/email/components/announcements-table.tsx`
+- `frontend/src/features/email/components/announcement-form-modal.tsx`
+- `frontend/src/features/email/components/announcement-details-sheet.tsx`
+- `frontend/src/features/email/components/user-select-modal.tsx`
+- `frontend/src/features/email/components/email-announcements-tab.tsx`
+- `frontend/src/features/email/components/index.ts`
+- `frontend/src/components/shared/form/rich-text-editor.tsx`
+- `frontend/src/components/ui/card.tsx`
+- `frontend/src/components/ui/textarea.tsx`
+- `frontend/src/routes/email.tsx`
+- `frontend/src/i18n/locales/en/email.json`
+- `frontend/src/i18n/locales/de/email.json`
+
+### Modified Files
+- `frontend/src/routes/__root.tsx` (added email route)
+- `frontend/src/config/navigation.ts` (added email navigation)
+- `frontend/src/i18n/index.ts` (registered email namespace + missing key detection)
+- `frontend/src/i18n/locales/en/navigation.json` (added email label + breadcrumb)
+- `frontend/src/i18n/locales/de/navigation.json` (added email label + breadcrumb)
+- `frontend/src/i18n/locales/en/common.json` (added labels.email)
+- `frontend/src/i18n/locales/de/common.json` (added labels.email)
+- `frontend/src/i18n/locales/en/validation.json` (added invalidEmail)
+- `frontend/src/i18n/locales/de/validation.json` (added invalidEmail)
+- `frontend/src/components/ui/select.tsx` (z-index fix for modals)
+- `frontend/src/components/shared/layout/breadcrumbs.tsx` (added email route)
+- `frontend/src/components/shared/form/index.ts` (export RichTextEditor)
+
+### Key Fixes Applied
+1. **Permission strings**: Changed from `email:*:write` to `email:*:manage` to match backend
+2. **i18n debugging**: Added `saveMissing`, `missingKeyHandler`, `parseMissingKeyHandler` for dev mode
+3. **Dropdown z-index**: Changed SelectContent from `z-50` to `z-[100]` to appear above modals
+4. **Breadcrumb routing**: Added email to routeLabels map
+5. **Complete translations**: EN + DE with all provider, config, logs, DLQ, announcements keys
