@@ -25,7 +25,6 @@ const STATUS_OPTIONS = [
   { value: String(EmailStatus.Sent), labelKey: 'email:logs.status.sent' },
   { value: String(EmailStatus.Failed), labelKey: 'email:logs.status.failed' },
   { value: String(EmailStatus.InDlq), labelKey: 'email:logs.status.inDlq' },
-  { value: String(EmailStatus.RetriedFromDlq), labelKey: 'email:logs.status.retriedFromDlq' },
 ]
 
 export function EmailLogsTab() {

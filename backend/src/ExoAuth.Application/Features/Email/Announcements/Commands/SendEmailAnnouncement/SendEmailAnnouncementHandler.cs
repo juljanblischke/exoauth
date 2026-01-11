@@ -1,7 +1,9 @@
 using System.Text.Json;
 using ExoAuth.Application.Common.Exceptions;
 using ExoAuth.Application.Common.Interfaces;
+using ExoAuth.Application.Common.Messages;
 using ExoAuth.Application.Features.Email.Models;
+using ExoAuth.Domain.Entities;
 using ExoAuth.Domain.Enums;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -11,9 +13,12 @@ namespace ExoAuth.Application.Features.Email.Announcements.Commands.SendEmailAnn
 
 public sealed class SendEmailAnnouncementHandler(
     IAppDbContext dbContext,
+    IMessageBus messageBus,
     ILogger<SendEmailAnnouncementHandler> logger
 ) : ICommandHandler<SendEmailAnnouncementCommand, EmailAnnouncementDto>
 {
+    private const string EmailRoutingKey = "email.send";
+
     public async ValueTask<EmailAnnouncementDto> Handle(
         SendEmailAnnouncementCommand request,
         CancellationToken cancellationToken)
@@ -32,24 +37,44 @@ public sealed class SendEmailAnnouncementHandler(
             throw new EmailAnnouncementAlreadySentException(request.Id);
         }
 
-        // Calculate total recipients based on target type
-        var totalRecipients = await CalculateTotalRecipientsAsync(announcement, cancellationToken);
+        // Get recipient users based on target type
+        var recipients = await GetRecipientsAsync(announcement, cancellationToken);
 
-        if (totalRecipients == 0)
+        if (recipients.Count == 0)
         {
             throw new EmailAnnouncementNoRecipientsException();
         }
 
         // Start sending
-        announcement.StartSending(totalRecipients);
+        announcement.StartSending(recipients.Count);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(
             "Announcement {AnnouncementId} started sending to {TotalRecipients} recipients",
-            announcement.Id, totalRecipients);
+            announcement.Id, recipients.Count);
 
-        // TODO: Queue announcement emails for background processing
-        // This will be implemented in Phase 4 when email queue infrastructure is added
+        // Queue emails for each recipient
+        // Note: EmailLog is created by EmailSendingService when processing the message
+        foreach (var recipient in recipients)
+        {
+            var message = new SendEmailMessage(
+                To: recipient.Email,
+                Subject: announcement.Subject,
+                TemplateName: "announcement",
+                Language: recipient.PreferredLanguage,
+                Variables: new Dictionary<string, string>(),
+                RecipientUserId: recipient.Id,
+                AnnouncementId: announcement.Id,
+                HtmlBody: announcement.HtmlBody,
+                PlainTextBody: announcement.PlainTextBody
+            );
+
+            await messageBus.PublishAsync(message, EmailRoutingKey, cancellationToken);
+        }
+
+        logger.LogInformation(
+            "Announcement {AnnouncementId} queued {Count} emails for sending",
+            announcement.Id, recipients.Count);
 
         var createdByName = announcement.CreatedByUser is not null
             ? $"{announcement.CreatedByUser.FirstName} {announcement.CreatedByUser.LastName}"
@@ -71,43 +96,51 @@ public sealed class SendEmailAnnouncementHandler(
             announcement.CreatedAt);
     }
 
-    private async Task<int> CalculateTotalRecipientsAsync(
+    private async Task<List<SystemUser>> GetRecipientsAsync(
         Domain.Entities.EmailAnnouncement announcement,
         CancellationToken cancellationToken)
     {
         return announcement.TargetType switch
         {
             EmailAnnouncementTarget.AllUsers => await dbContext.SystemUsers
-                .CountAsync(u => u.IsActive && !u.IsAnonymized, cancellationToken),
+                .Where(u => u.IsActive && !u.IsAnonymized)
+                .ToListAsync(cancellationToken),
 
-            EmailAnnouncementTarget.ByPermission => await CountUsersByPermissionAsync(
+            EmailAnnouncementTarget.ByPermission => await GetUsersByPermissionAsync(
                 announcement.TargetPermission!, cancellationToken),
 
-            EmailAnnouncementTarget.SelectedUsers => CountSelectedUsers(announcement.TargetUserIds),
+            EmailAnnouncementTarget.SelectedUsers => await GetSelectedUsersAsync(
+                announcement.TargetUserIds, cancellationToken),
 
-            _ => 0
+            _ => new List<SystemUser>()
         };
     }
 
-    private async Task<int> CountUsersByPermissionAsync(
+    private async Task<List<SystemUser>> GetUsersByPermissionAsync(
         string permission,
         CancellationToken cancellationToken)
     {
-        // Count users who have the specified permission via the join table
         return await dbContext.SystemUsers
             .Where(u => u.IsActive && !u.IsAnonymized)
             .Where(u => dbContext.SystemUserPermissions
                 .Any(up => up.SystemUserId == u.Id &&
                            dbContext.SystemPermissions.Any(p => p.Id == up.SystemPermissionId && p.Name == permission)))
-            .CountAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
     }
 
-    private static int CountSelectedUsers(string? targetUserIds)
+    private async Task<List<SystemUser>> GetSelectedUsersAsync(
+        string? targetUserIds,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(targetUserIds))
-            return 0;
+            return new List<SystemUser>();
 
         var userIds = JsonSerializer.Deserialize<List<Guid>>(targetUserIds);
-        return userIds?.Count ?? 0;
+        if (userIds is null || userIds.Count == 0)
+            return new List<SystemUser>();
+
+        return await dbContext.SystemUsers
+            .Where(u => userIds.Contains(u.Id) && u.IsActive && !u.IsAnonymized)
+            .ToListAsync(cancellationToken);
     }
 }

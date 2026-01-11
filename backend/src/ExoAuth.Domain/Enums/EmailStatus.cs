@@ -28,10 +28,5 @@ public enum EmailStatus
     /// <summary>
     /// Email is in the dead letter queue after all providers failed.
     /// </summary>
-    InDlq = 4,
-
-    /// <summary>
-    /// Email was retried from the dead letter queue.
-    /// </summary>
-    RetriedFromDlq = 5
+    InDlq = 4
 }

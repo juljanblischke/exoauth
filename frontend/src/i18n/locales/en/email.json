@@ -175,8 +175,7 @@
       "sending": "Sending",
       "sent": "Sent",
       "failed": "Failed",
-      "inDlq": "In DLQ",
-      "retriedFromDlq": "Retried from DLQ"
+      "inDlq": "In DLQ"
     },
     "actions": {
       "retrySuccess": "Email queued for retry"

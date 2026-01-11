@@ -47,11 +47,6 @@ function getStatusConfig(status: EmailStatus): { label: string; className: strin
         label: 'logs.status.inDlq',
         className: 'border-orange-500 text-orange-700 dark:text-orange-300',
       }
-    case EmailStatus.RetriedFromDlq:
-      return {
-        label: 'logs.status.retriedFromDlq',
-        className: 'border-purple-500 text-purple-700 dark:text-purple-300',
-      }
     default:
       return {
         label: 'logs.status.queued',

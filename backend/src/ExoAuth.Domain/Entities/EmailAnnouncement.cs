@@ -203,6 +203,7 @@ public sealed class EmailAnnouncement : BaseEntity
     public void IncrementSentCount()
     {
         SentCount++;
+        UpdateStatusIfComplete();
         SetUpdated();
     }
 
@@ -212,7 +213,21 @@ public sealed class EmailAnnouncement : BaseEntity
     public void IncrementFailedCount()
     {
         FailedCount++;
+        UpdateStatusIfComplete();
         SetUpdated();
+    }
+
+    /// <summary>
+    /// Updates the status if all emails have been processed.
+    /// </summary>
+    private void UpdateStatusIfComplete()
+    {
+        if (SentCount + FailedCount >= TotalRecipients)
+        {
+            Status = FailedCount > 0
+                ? EmailAnnouncementStatus.PartiallyFailed
+                : EmailAnnouncementStatus.Sent;
+        }
     }
 
     /// <summary>

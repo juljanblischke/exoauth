@@ -135,9 +135,21 @@ public sealed class SendEmailConsumer : BackgroundService
 
     private async Task<EmailSendResult> ProcessEmailAsync(SendEmailMessage message, CancellationToken ct)
     {
-        // Render the email template
-        var htmlBody = _templateService.Render(message.TemplateName, message.Variables, message.Language);
-        var plainTextBody = _templateService.RenderPlainText(message.TemplateName, message.Variables, message.Language);
+        string htmlBody;
+        string? plainTextBody;
+
+        // If raw HTML is provided (announcements), use it directly
+        // Otherwise, render from template
+        if (!string.IsNullOrEmpty(message.HtmlBody))
+        {
+            htmlBody = message.HtmlBody;
+            plainTextBody = message.PlainTextBody;
+        }
+        else
+        {
+            htmlBody = _templateService.Render(message.TemplateName, message.Variables, message.Language);
+            plainTextBody = _templateService.RenderPlainText(message.TemplateName, message.Variables, message.Language);
+        }
 
         // Serialize template variables for logging
         var templateVariablesJson = JsonSerializer.Serialize(message.Variables, JsonOptions);
@@ -157,6 +169,7 @@ public sealed class SendEmailConsumer : BackgroundService
             templateVariables: templateVariablesJson,
             language: message.Language,
             announcementId: message.AnnouncementId,
+            existingEmailLogId: message.ExistingEmailLogId,
             cancellationToken: ct
         );
 

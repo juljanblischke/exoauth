@@ -175,8 +175,7 @@
       "sending": "Wird gesendet",
       "sent": "Gesendet",
       "failed": "Fehlgeschlagen",
-      "inDlq": "In DLQ",
-      "retriedFromDlq": "Aus DLQ wiederholt"
+      "inDlq": "In DLQ"
     },
     "actions": {
       "retrySuccess": "E-Mail zur Wiederholung eingereiht"

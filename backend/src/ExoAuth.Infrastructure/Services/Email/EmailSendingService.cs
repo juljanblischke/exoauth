@@ -38,6 +38,7 @@ public sealed class EmailSendingService : IEmailSendingService
         string? templateVariables,
         string language,
         Guid? announcementId = null,
+        Guid? existingEmailLogId = null,
         CancellationToken cancellationToken = default)
     {
         var config = await GetConfigurationAsync(cancellationToken);
@@ -49,17 +50,38 @@ public sealed class EmailSendingService : IEmailSendingService
             return new EmailSendResult(false, Guid.Empty, null, "Email sending is disabled");
         }
 
-        // Create email log
-        var emailLog = EmailLog.Create(
-            recipientEmail,
-            subject,
-            templateName,
-            language,
-            recipientUserId,
-            templateVariables,
-            announcementId);
+        // Track if this is a DLQ retry (for announcement count updates)
+        var isDlqRetry = existingEmailLogId.HasValue;
 
-        _dbContext.EmailLogs.Add(emailLog);
+        // Either fetch existing log (DLQ retry) or create new one
+        EmailLog emailLog;
+        if (existingEmailLogId.HasValue)
+        {
+            emailLog = await _dbContext.EmailLogs
+                .FirstOrDefaultAsync(x => x.Id == existingEmailLogId.Value, cancellationToken)
+                ?? throw new InvalidOperationException($"EmailLog {existingEmailLogId} not found");
+            
+            // Use the announcement ID from the existing log if not provided
+            announcementId ??= emailLog.AnnouncementId;
+            
+            // Reset for retry
+            emailLog.MarkSending();
+        }
+        else
+        {
+            // Create new email log
+            emailLog = EmailLog.Create(
+                recipientEmail,
+                subject,
+                templateName,
+                language,
+                recipientUserId,
+                templateVariables,
+                announcementId);
+
+            _dbContext.EmailLogs.Add(emailLog);
+        }
+        
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // Test mode - just log, don't send
@@ -101,6 +123,31 @@ public sealed class EmailSendingService : IEmailSendingService
             if (success)
             {
                 emailLog.MarkSent(provider.Id);
+                
+                // Update announcement counts if applicable
+                if (announcementId.HasValue)
+                {
+                    var announcement = await _dbContext.EmailAnnouncements
+                        .FirstOrDefaultAsync(x => x.Id == announcementId.Value, cancellationToken);
+                    
+                    if (announcement is not null)
+                    {
+                        if (isDlqRetry)
+                        {
+                            // DLQ retry succeeded: move from failed to sent
+                            // (FailedCount was already incremented when first moved to DLQ)
+                            // Note: We don't decrement FailedCount below 0
+                            var newFailedCount = Math.Max(0, announcement.FailedCount - 1);
+                            announcement.UpdateStats(announcement.SentCount + 1, newFailedCount);
+                        }
+                        else
+                        {
+                            // First-time success
+                            announcement.IncrementSentCount();
+                        }
+                    }
+                }
+                
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation(
@@ -113,6 +160,19 @@ public sealed class EmailSendingService : IEmailSendingService
 
         // All providers failed - move to DLQ
         emailLog.MoveToDlq(emailLog.LastError ?? "All providers exhausted");
+        
+        // Update announcement counts if applicable (only for first-time failures, not DLQ retries)
+        if (announcementId.HasValue && !isDlqRetry)
+        {
+            var announcement = await _dbContext.EmailAnnouncements
+                .FirstOrDefaultAsync(x => x.Id == announcementId.Value, cancellationToken);
+            
+            if (announcement is not null)
+            {
+                announcement.IncrementFailedCount();
+            }
+        }
+        
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogError(
@@ -134,7 +194,7 @@ public sealed class EmailSendingService : IEmailSendingService
     {
         var providerImplementation = _providerFactory.CreateProvider(provider);
 
-        for (int retry = 0; retry <= config.MaxRetriesPerProvider; retry++)
+        for (int retry = 0; retry < config.MaxRetriesPerProvider; retry++)
         {
             try
             {
@@ -151,7 +211,7 @@ public sealed class EmailSendingService : IEmailSendingService
 
                 _logger.LogWarning(ex,
                     "Provider {ProviderId} failed attempt {Attempt}/{MaxRetries} for email {EmailLogId}",
-                    provider.Id, retry + 1, config.MaxRetriesPerProvider + 1, emailLog.Id);
+                    provider.Id, retry + 1, config.MaxRetriesPerProvider, emailLog.Id);
 
                 if (retry < config.MaxRetriesPerProvider)
                 {

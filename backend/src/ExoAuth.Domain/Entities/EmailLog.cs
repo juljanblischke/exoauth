@@ -163,15 +163,6 @@ public sealed class EmailLog : BaseEntity
     }
 
     /// <summary>
-    /// Marks the email as retried from the DLQ (ready for re-processing).
-    /// </summary>
-    public void MarkRetriedFromDlq()
-    {
-        Status = EmailStatus.RetriedFromDlq;
-        SetUpdated();
-    }
-
-    /// <summary>
     /// Requeues the email for sending (used when retrying from DLQ).
     /// </summary>
     public void Requeue()

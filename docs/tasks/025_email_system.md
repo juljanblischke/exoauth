@@ -138,7 +138,7 @@ public sealed class EmailLog : BaseEntity
     public string Language { get; private set; }                // "en-US", "de-DE"
     
     // Status tracking
-    public EmailStatus Status { get; private set; }             // Queued, Sending, Sent, Failed, InDlq, RetriedFromDlq
+    public EmailStatus Status { get; private set; }             // Queued, Sending, Sent, Failed, InDlq
     public int RetryCount { get; private set; }
     public string? LastError { get; private set; }
     public Guid? SentViaProviderId { get; private set; }        // Which provider succeeded
@@ -206,8 +206,7 @@ public enum EmailStatus
     Sending = 1,
     Sent = 2,
     Failed = 3,
-    InDlq = 4,
-    RetriedFromDlq = 5
+    InDlq = 4
 }
 
 public enum EmailAnnouncementTarget
@@ -579,6 +578,24 @@ The `EmailLog.Anonymize()` method handles this, and `AnonymizeUserHandlerTests` 
 
 ## 20. Letzte Änderung
 
-- **Datum:** 2026-01-08
+- **Datum:** 2026-01-11
 - **Status:** ✅ Complete
-- **Notes:** All unit tests implemented and passing. GDPR compliance added for email log anonymization.
+- **Notes:** 
+  - All unit tests implemented and passing (577 total, email-related tests included)
+  - GDPR compliance added for email log anonymization
+  - Removed unused `RetriedFromDlq` status - emails retried from DLQ go back to `Queued` status
+  - Test emails are now logged to EmailLog with `templateName: "test-email"`
+  - **2026-01-11 Fixes (Batch 1):**
+    - SendEmailAnnouncementHandler now queues emails to RabbitMQ for each recipient
+    - RetryDlqEmailHandler now re-queues emails to RabbitMQ (supports announcement HTML)
+    - RetryAllDlqEmailsHandler now re-queues all DLQ emails to RabbitMQ
+    - SendTestEmailHandler now actually sends emails via IEmailProviderFactory
+    - SendEmailMessage extended with HtmlBody/PlainTextBody for raw HTML support
+    - EmailWorker SendEmailConsumer updated to use raw HTML when provided
+  - **2026-01-11 Fixes (Batch 2):**
+    - Fixed retry count off-by-one error: changed `<= MaxRetriesPerProvider` to `< MaxRetriesPerProvider` in TrySendWithRetriesAsync
+    - Fixed DLQ retry creating duplicate EmailLogs: added `ExistingEmailLogId` field to SendEmailMessage, EmailSendingService now reuses existing log when retrying from DLQ
+    - Fixed announcement progress not updating: EmailSendingService now increments SentCount/FailedCount on EmailAnnouncement when emails succeed/fail
+    - DLQ retry success now correctly adjusts counts (decrements FailedCount, increments SentCount)
+    - Fixed SendEmailAnnouncementHandler creating duplicate logs: removed EmailLog creation from handler, now only EmailSendingService creates logs (single source of truth)
+    - Fixed announcement status not updating: `IncrementSentCount()` and `IncrementFailedCount()` now call `UpdateStatusIfComplete()` to set status to Sent/PartiallyFailed when all emails are processed

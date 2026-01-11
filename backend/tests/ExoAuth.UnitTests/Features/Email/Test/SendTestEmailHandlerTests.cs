@@ -13,27 +13,45 @@ namespace ExoAuth.UnitTests.Features.Email.Test;
 public sealed class SendTestEmailHandlerTests
 {
     private readonly Mock<IAppDbContext> _mockContext;
-    private readonly Mock<IEncryptionService> _mockEncryptionService;
+    private readonly Mock<IEmailProviderFactory> _mockProviderFactory;
+    private readonly Mock<ICircuitBreakerService> _mockCircuitBreaker;
     private readonly Mock<ILogger<SendTestEmailHandler>> _mockLogger;
     private readonly SendTestEmailHandler _handler;
     private readonly List<EmailProvider> _providers;
+    private readonly List<EmailLog> _emailLogs;
 
     public SendTestEmailHandlerTests()
     {
         _mockContext = MockDbContext.Create();
-        _mockEncryptionService = new Mock<IEncryptionService>();
+        _mockProviderFactory = new Mock<IEmailProviderFactory>();
+        _mockCircuitBreaker = new Mock<ICircuitBreakerService>();
         _mockLogger = new Mock<ILogger<SendTestEmailHandler>>();
         _providers = new List<EmailProvider>();
+        _emailLogs = new List<EmailLog>();
 
         _mockContext.Setup(x => x.EmailProviders)
             .Returns(MockDbContext.CreateAsyncMockDbSet(_providers).Object);
 
-        _mockEncryptionService.Setup(x => x.Decrypt(It.IsAny<string>()))
-            .Returns("{\"host\":\"smtp.example.com\"}");
+        _mockContext.Setup(x => x.EmailLogs)
+            .Returns(MockDbContext.CreateAsyncMockDbSet(_emailLogs).Object);
+
+        // Default: circuit breaker allows all providers
+        _mockCircuitBreaker.Setup(x => x.CanUseProviderAsync(It.IsAny<EmailProvider>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        // Default: provider sends successfully
+        var mockProviderImpl = new Mock<IEmailProviderImplementation>();
+        mockProviderImpl.Setup(x => x.SendAsync(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _mockProviderFactory.Setup(x => x.CreateProvider(It.IsAny<EmailProvider>()))
+            .Returns(mockProviderImpl.Object);
 
         _handler = new SendTestEmailHandler(
             _mockContext.Object,
-            _mockEncryptionService.Object,
+            _mockProviderFactory.Object,
+            _mockCircuitBreaker.Object,
             _mockLogger.Object);
     }
 
@@ -155,14 +173,17 @@ public sealed class SendTestEmailHandlerTests
         var provider2Id = Guid.NewGuid();
 
         var provider1 = TestDataFactory.CreateEmailProviderWithId(provider1Id, "Circuit Open", priority: 1);
-        provider1.OpenCircuitBreaker(30);
-
         var provider2 = TestDataFactory.CreateEmailProviderWithId(provider2Id, "Available", priority: 2);
 
         _providers.AddRange(new[] { provider1, provider2 });
 
         _mockContext.Setup(x => x.EmailProviders)
             .Returns(MockDbContext.CreateAsyncMockDbSet(_providers).Object);
+
+        // First provider has circuit breaker open
+        _mockCircuitBreaker.Setup(x => x.CanUseProviderAsync(
+            It.Is<EmailProvider>(p => p.Id == provider1Id), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
 
         var command = new SendTestEmailCommand(
             RecipientEmail: "test@example.com",
@@ -177,7 +198,7 @@ public sealed class SendTestEmailHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ReturnsFailure_WhenDecryptionFails()
+    public async Task Handle_ReturnsFailure_WhenProviderThrowsException()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -187,8 +208,14 @@ public sealed class SendTestEmailHandlerTests
         _mockContext.Setup(x => x.EmailProviders)
             .Returns(MockDbContext.CreateAsyncMockDbSet(_providers).Object);
 
-        _mockEncryptionService.Setup(x => x.Decrypt(It.IsAny<string>()))
-            .Throws(new InvalidOperationException("Decryption failed"));
+        // Provider throws exception
+        var mockProviderImpl = new Mock<IEmailProviderImplementation>();
+        mockProviderImpl.Setup(x => x.SendAsync(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Connection failed"));
+
+        _mockProviderFactory.Setup(x => x.CreateProvider(It.IsAny<EmailProvider>()))
+            .Returns(mockProviderImpl.Object);
 
         var command = new SendTestEmailCommand(
             RecipientEmail: "test@example.com",
@@ -199,11 +226,11 @@ public sealed class SendTestEmailHandlerTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("decrypt");
+        result.Error.Should().Contain("Connection failed");
     }
 
     [Fact]
-    public async Task Handle_ReturnsFailure_WhenConfigurationEmpty()
+    public async Task Handle_RecordsCircuitBreakerSuccess_WhenSendSucceeds()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -213,19 +240,48 @@ public sealed class SendTestEmailHandlerTests
         _mockContext.Setup(x => x.EmailProviders)
             .Returns(MockDbContext.CreateAsyncMockDbSet(_providers).Object);
 
-        _mockEncryptionService.Setup(x => x.Decrypt(It.IsAny<string>()))
-            .Returns(string.Empty);
+        var command = new SendTestEmailCommand(
+            RecipientEmail: "test@example.com",
+            ProviderId: providerId);
+
+        // Act
+        await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        _mockCircuitBreaker.Verify(x => x.RecordSuccessAsync(
+            It.Is<EmailProvider>(p => p.Id == providerId), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_RecordsCircuitBreakerFailure_WhenSendFails()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var provider = TestDataFactory.CreateEmailProviderWithId(providerId, "Test Provider");
+        _providers.Add(provider);
+
+        _mockContext.Setup(x => x.EmailProviders)
+            .Returns(MockDbContext.CreateAsyncMockDbSet(_providers).Object);
+
+        // Provider throws exception
+        var mockProviderImpl = new Mock<IEmailProviderImplementation>();
+        mockProviderImpl.Setup(x => x.SendAsync(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Send failed"));
+
+        _mockProviderFactory.Setup(x => x.CreateProvider(It.IsAny<EmailProvider>()))
+            .Returns(mockProviderImpl.Object);
 
         var command = new SendTestEmailCommand(
             RecipientEmail: "test@example.com",
             ProviderId: providerId);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        result.Success.Should().BeFalse();
-        result.Error.Should().Contain("empty");
+        _mockCircuitBreaker.Verify(x => x.RecordFailureAsync(
+            It.Is<EmailProvider>(p => p.Id == providerId), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

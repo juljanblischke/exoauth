@@ -12,6 +12,7 @@ public interface IEmailSendingService
         string? templateVariables,
         string language,
         Guid? announcementId = null,
+        Guid? existingEmailLogId = null,
         CancellationToken cancellationToken = default);
 }
 

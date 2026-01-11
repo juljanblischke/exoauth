@@ -1,7 +1,7 @@
 using ExoAuth.Application.Common.Exceptions;
 using ExoAuth.Application.Common.Interfaces;
 using ExoAuth.Application.Features.Email.Models;
-using ExoAuth.Domain.Enums;
+using ExoAuth.Domain.Entities;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,15 +10,55 @@ namespace ExoAuth.Application.Features.Email.Test.Commands.SendTestEmail;
 
 public sealed class SendTestEmailHandler(
     IAppDbContext dbContext,
-    IEncryptionService encryptionService,
+    IEmailProviderFactory providerFactory,
+    ICircuitBreakerService circuitBreaker,
     ILogger<SendTestEmailHandler> logger
 ) : IRequestHandler<SendTestEmailCommand, TestEmailResultDto>
 {
+    private const string TestEmailTemplateName = "test-email";
+    private const string TestEmailSubject = "ExoAuth Test Email";
+    private const string TestEmailHtmlBody = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>ExoAuth Test Email</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #333;">ExoAuth Test Email</h1>
+            <p>This is a test email to verify your email provider configuration is working correctly.</p>
+            <p style="color: #666; font-size: 14px;">If you received this email, your email provider is configured properly.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="color: #999; font-size: 12px;">Sent by ExoAuth Email System</p>
+        </body>
+        </html>
+        """;
+    private const string TestEmailPlainTextBody = """
+        ExoAuth Test Email
+        
+        This is a test email to verify your email provider configuration is working correctly.
+        
+        If you received this email, your email provider is configured properly.
+        
+        --
+        Sent by ExoAuth Email System
+        """;
+
     public async ValueTask<TestEmailResultDto> Handle(SendTestEmailCommand request, CancellationToken cancellationToken)
     {
         var providersQuery = dbContext.EmailProviders
             .Where(p => p.IsEnabled)
             .OrderBy(p => p.Priority);
+
+        // Create email log entry
+        var emailLog = EmailLog.Create(
+            recipientEmail: request.RecipientEmail,
+            subject: TestEmailSubject,
+            templateName: TestEmailTemplateName,
+            language: "en-US"
+        );
+        dbContext.EmailLogs.Add(emailLog);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         // If a specific provider is requested, test only that one
         if (request.ProviderId.HasValue)
@@ -28,40 +68,26 @@ public sealed class SendTestEmailHandler(
 
             if (provider is null)
             {
+                emailLog.MarkFailed("Provider not found");
+                await dbContext.SaveChangesAsync(cancellationToken);
                 throw new EmailProviderNotFoundException(request.ProviderId!.Value);
             }
 
-            // Validate configuration can be decrypted
-            try
-            {
-                var configJson = encryptionService.Decrypt(provider.ConfigurationEncrypted);
-                if (string.IsNullOrWhiteSpace(configJson))
-                {
-                    return new TestEmailResultDto(
-                        Success: false,
-                        Error: "Provider configuration is empty or corrupted",
-                        ProviderUsedId: provider.Id,
-                        ProviderUsedName: provider.Name,
-                        AttemptCount: 1,
-                        TotalProvidersAttempted: 1
-                    );
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Failed to decrypt configuration for provider {ProviderId}", provider.Id);
-                return new TestEmailResultDto(
-                    Success: false,
-                    Error: "Failed to decrypt provider configuration",
-                    ProviderUsedId: provider.Id,
-                    ProviderUsedName: provider.Name,
-                    AttemptCount: 1,
-                    TotalProvidersAttempted: 1
-                );
-            }
+            emailLog.MarkSending();
+            await dbContext.SaveChangesAsync(cancellationToken);
 
-            // Attempt to send test email
-            var result = await SendTestEmailViaProviderAsync(provider.Id, provider.Name, provider.Type, request.RecipientEmail, cancellationToken);
+            var result = await SendTestEmailViaProviderAsync(provider, request.RecipientEmail, emailLog, cancellationToken);
+            
+            if (result.Success)
+            {
+                emailLog.MarkSent(provider.Id);
+            }
+            else
+            {
+                emailLog.MarkFailed(result.Error ?? "Unknown error");
+            }
+            await dbContext.SaveChangesAsync(cancellationToken);
+
             return result with { TotalProvidersAttempted = 1 };
         }
 
@@ -70,8 +96,13 @@ public sealed class SendTestEmailHandler(
 
         if (providers.Count == 0)
         {
+            emailLog.MarkFailed("No email providers configured");
+            await dbContext.SaveChangesAsync(cancellationToken);
             throw new EmailNoProvidersConfiguredException();
         }
+
+        emailLog.MarkSending();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         var attemptCount = 0;
         string? lastError = null;
@@ -81,41 +112,31 @@ public sealed class SendTestEmailHandler(
             attemptCount++;
 
             // Check circuit breaker
-            if (provider.CircuitBreakerOpenUntil.HasValue && provider.CircuitBreakerOpenUntil > DateTime.UtcNow)
+            if (!await circuitBreaker.CanUseProviderAsync(provider, cancellationToken))
             {
                 logger.LogDebug("Skipping provider {ProviderName} due to open circuit breaker", provider.Name);
+                lastError = $"Provider {provider.Name}: circuit breaker open";
                 continue;
             }
 
-            // Validate configuration
-            try
-            {
-                var configJson = encryptionService.Decrypt(provider.ConfigurationEncrypted);
-                if (string.IsNullOrWhiteSpace(configJson))
-                {
-                    lastError = $"Provider {provider.Name}: configuration is empty or corrupted";
-                    continue;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Failed to decrypt configuration for provider {ProviderId}", provider.Id);
-                lastError = $"Provider {provider.Name}: failed to decrypt configuration";
-                continue;
-            }
-
-            // Attempt to send
-            var result = await SendTestEmailViaProviderAsync(provider.Id, provider.Name, provider.Type, request.RecipientEmail, cancellationToken);
+            var result = await SendTestEmailViaProviderAsync(provider, request.RecipientEmail, emailLog, cancellationToken);
             
             if (result.Success)
             {
+                emailLog.MarkSent(provider.Id);
+                await dbContext.SaveChangesAsync(cancellationToken);
                 return result with { AttemptCount = attemptCount, TotalProvidersAttempted = providers.Count };
             }
 
             lastError = result.Error;
+            emailLog.RecordRetryAttempt(lastError ?? "Unknown error");
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
         // All providers failed
+        emailLog.MarkFailed(lastError ?? "All providers failed to send test email");
+        await dbContext.SaveChangesAsync(cancellationToken);
+
         return new TestEmailResultDto(
             Success: false,
             Error: lastError ?? "All providers failed to send test email",
@@ -127,31 +148,53 @@ public sealed class SendTestEmailHandler(
     }
 
     private async ValueTask<TestEmailResultDto> SendTestEmailViaProviderAsync(
-        Guid providerId,
-        string providerName,
-        EmailProviderType providerType,
+        EmailProvider provider,
         string recipientEmail,
+        EmailLog emailLog,
         CancellationToken cancellationToken)
     {
-        // TODO: Implement actual email sending via provider when provider implementations are complete
-        // For now, this validates the provider is configured and returns success
-        // Actual provider implementations will be added in Phase 5
-        
-        logger.LogInformation(
-            "Test email would be sent to {RecipientEmail} via provider {ProviderName} ({ProviderType})",
-            recipientEmail, providerName, providerType);
+        try
+        {
+            var providerImpl = providerFactory.CreateProvider(provider);
 
-        // Simulate sending - in production, this would call the actual provider
-        // This placeholder allows testing the API flow while providers are being implemented
-        await Task.CompletedTask;
+            await providerImpl.SendAsync(
+                recipientEmail,
+                TestEmailSubject,
+                TestEmailHtmlBody,
+                TestEmailPlainTextBody,
+                cancellationToken);
 
-        return new TestEmailResultDto(
-            Success: true,
-            Error: null,
-            ProviderUsedId: providerId,
-            ProviderUsedName: providerName,
-            AttemptCount: 1,
-            TotalProvidersAttempted: 1
-        );
+            await circuitBreaker.RecordSuccessAsync(provider, cancellationToken);
+
+            logger.LogInformation(
+                "Test email sent successfully to {RecipientEmail} via provider {ProviderName}",
+                recipientEmail, provider.Name);
+
+            return new TestEmailResultDto(
+                Success: true,
+                Error: null,
+                ProviderUsedId: provider.Id,
+                ProviderUsedName: provider.Name,
+                AttemptCount: 1,
+                TotalProvidersAttempted: 1
+            );
+        }
+        catch (Exception ex)
+        {
+            await circuitBreaker.RecordFailureAsync(provider, cancellationToken);
+
+            logger.LogWarning(ex,
+                "Failed to send test email via provider {ProviderName}: {Error}",
+                provider.Name, ex.Message);
+
+            return new TestEmailResultDto(
+                Success: false,
+                Error: $"Provider {provider.Name}: {ex.Message}",
+                ProviderUsedId: provider.Id,
+                ProviderUsedName: provider.Name,
+                AttemptCount: 1,
+                TotalProvidersAttempted: 1
+            );
+        }
     }
 }

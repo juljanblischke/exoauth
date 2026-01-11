@@ -71,6 +71,7 @@ public sealed class GetDlqEmailsHandlerTests
 public sealed class RetryDlqEmailHandlerTests
 {
     private readonly Mock<IAppDbContext> _mockContext;
+    private readonly Mock<IMessageBus> _mockMessageBus;
     private readonly Mock<IAuditService> _mockAuditService;
     private readonly RetryDlqEmailHandler _handler;
     private readonly List<EmailLog> _logs;
@@ -78,13 +79,14 @@ public sealed class RetryDlqEmailHandlerTests
     public RetryDlqEmailHandlerTests()
     {
         _mockContext = MockDbContext.Create();
+        _mockMessageBus = new Mock<IMessageBus>();
         _mockAuditService = new Mock<IAuditService>();
         _logs = new List<EmailLog>();
 
         _mockContext.Setup(x => x.EmailLogs)
             .Returns(MockDbContext.CreateAsyncMockDbSet(_logs).Object);
 
-        _handler = new RetryDlqEmailHandler(_mockContext.Object, _mockAuditService.Object);
+        _handler = new RetryDlqEmailHandler(_mockContext.Object, _mockMessageBus.Object, _mockAuditService.Object);
     }
 
     [Fact]

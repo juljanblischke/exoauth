@@ -310,24 +310,30 @@ public sealed class UpdateEmailAnnouncementHandlerTests
 public sealed class SendEmailAnnouncementHandlerTests
 {
     private readonly Mock<IAppDbContext> _mockContext;
+    private readonly Mock<IMessageBus> _mockMessageBus;
     private readonly Mock<ILogger<SendEmailAnnouncementHandler>> _mockLogger;
     private readonly SendEmailAnnouncementHandler _handler;
     private readonly List<EmailAnnouncement> _announcements;
     private readonly List<SystemUser> _users;
+    private readonly List<EmailLog> _emailLogs;
 
     public SendEmailAnnouncementHandlerTests()
     {
         _mockContext = MockDbContext.Create();
+        _mockMessageBus = new Mock<IMessageBus>();
         _mockLogger = new Mock<ILogger<SendEmailAnnouncementHandler>>();
         _announcements = new List<EmailAnnouncement>();
         _users = new List<SystemUser>();
+        _emailLogs = new List<EmailLog>();
 
         _mockContext.Setup(x => x.EmailAnnouncements)
             .Returns(MockDbContext.CreateAsyncMockDbSet(_announcements).Object);
         _mockContext.Setup(x => x.SystemUsers)
             .Returns(MockDbContext.CreateAsyncMockDbSet(_users).Object);
+        _mockContext.Setup(x => x.EmailLogs)
+            .Returns(MockDbContext.CreateAsyncMockDbSet(_emailLogs).Object);
 
-        _handler = new SendEmailAnnouncementHandler(_mockContext.Object, _mockLogger.Object);
+        _handler = new SendEmailAnnouncementHandler(_mockContext.Object, _mockMessageBus.Object, _mockLogger.Object);
     }
 
     [Fact]

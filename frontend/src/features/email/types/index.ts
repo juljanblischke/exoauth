@@ -17,7 +17,6 @@ export const EmailStatus = {
   Sent: 2,
   Failed: 3,
   InDlq: 4,
-  RetriedFromDlq: 5,
 } as const
 
 export type EmailStatus = (typeof EmailStatus)[keyof typeof EmailStatus]

@@ -636,11 +636,13 @@ Every new endpoint MUST have:
 
 ## Last Updated
 
-- **Date:** 2026-01-08
+- **Date:** 2026-01-11
 - **Task:** 025 - Email System Enhancement (Complete with Tests)
-- **Tests:** 584 total (134 email-related tests)
+- **Tests:** 577 total (127 email-related tests)
 - **Notes:** 
   - **GDPR Fix:** Email logs are anonymized when user is anonymized (EmailLog.Anonymize method)
+  - **Cleanup:** Removed unused `RetriedFromDlq` status - DLQ retries go back to `Queued`
+  - **Test Email Logging:** Test emails now logged with `templateName: "test-email"`
   - **Phase 1 Complete:** Core Infrastructure
     - Entities: EmailProvider, EmailConfiguration, EmailLog, EmailAnnouncement
     - Enums: EmailProviderType, EmailStatus, EmailAnnouncementTarget, EmailAnnouncementStatus
@@ -666,15 +668,23 @@ Every new endpoint MUST have:
     - Updated SendEmailConsumer to use IEmailSendingService with failover
     - Added RenderPlainText method to IEmailTemplateService
     - Added AuditActions: PasswordResetResent, DeviceApprovalResent
-  - **Phase 5 Complete:** Unit Tests
-    - Email Provider tests (Create, Update, Delete, ResetCircuitBreaker)
-    - Email Configuration tests (Get, Update)
-    - Email Logs tests (Get, GetList with filters)
-    - DLQ tests (Retry, Delete, GetList)
-    - Announcements tests (Create, Update, Delete, Send)
-    - Test Email tests (with failover scenarios)
-    - Resend Device Approval tests
+  - **Phase 5 Complete:** Unit Tests (all passing)
+  - **2026-01-11 Implementation Completion (Batch 1):**
+    - SendEmailAnnouncementHandler: Queues emails to RabbitMQ for each recipient
+    - RetryDlqEmailHandler: Re-queues emails to RabbitMQ (with announcement HTML support)
+    - RetryAllDlqEmailsHandler: Re-queues all DLQ emails to RabbitMQ
+    - SendTestEmailHandler: Actually sends via IEmailProviderFactory with circuit breaker
+    - SendEmailMessage: Extended with HtmlBody/PlainTextBody for raw HTML announcements
+    - SendEmailConsumer: Uses raw HTML when provided, otherwise renders templates
+  - **2026-01-11 Bug Fixes (Batch 2):**
+    - Fixed retry count off-by-one: `<= MaxRetriesPerProvider` → `< MaxRetriesPerProvider`
+    - Fixed DLQ retry creating duplicate logs: Added `ExistingEmailLogId` to message flow, EmailSendingService reuses existing log
+    - Fixed announcement progress not updating: EmailSendingService now updates SentCount/FailedCount on EmailAnnouncement
+    - DLQ retry success correctly adjusts counts (decrements FailedCount, increments SentCount)
+    - Fixed SendEmailAnnouncementHandler duplicate logs: Removed EmailLog creation, only EmailSendingService creates logs now
+    - Fixed announcement status not auto-updating: `IncrementSentCount()`/`IncrementFailedCount()` now call `UpdateStatusIfComplete()` → status changes to Sent/PartiallyFailed when done
   - **Permissions:** Already seeded (email:providers:read, email:providers:manage, etc.)
 
+---
 ---
 
