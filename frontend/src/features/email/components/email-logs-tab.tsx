@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AlertCircle, Search } from 'lucide-react'
+import { toast } from 'sonner'
+import { AlertCircle, Search, RefreshCw } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -52,6 +54,8 @@ export function EmailLogsTab() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
+    isRefetching,
   } = useEmailLogs(queryParams)
 
   const logs = data?.pages.flatMap((page) => page.logs) ?? []
@@ -61,6 +65,11 @@ export function EmailLogsTab() {
       fetchNextPage()
     }
   }, [fetchNextPage, hasNextPage, isFetchingNextPage])
+
+  const handleRefresh = useCallback(async () => {
+    await refetch()
+    toast.success(t('email:logs.refreshed'))
+  }, [refetch, t])
 
   if (error) {
     return (
@@ -75,38 +84,51 @@ export function EmailLogsTab() {
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        {/* Search */}
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t('email:logs.filters.search')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center flex-1">
+          {/* Search */}
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t('email:logs.filters.search')}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder={t('email:logs.filters.status')} />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {t(option.labelKey)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Date Range */}
+          <DateRangePicker
+            value={dateRange}
+            onChange={setDateRange}
+            placeholder={t('email:logs.filters.dateRange')}
           />
         </div>
 
-        {/* Status Filter */}
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder={t('email:logs.filters.status')} />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {t(option.labelKey)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Date Range */}
-        <DateRangePicker
-          value={dateRange}
-          onChange={setDateRange}
-          placeholder={t('email:logs.filters.dateRange')}
-        />
+        {/* Refresh Button */}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={isRefetching}
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+          <span className="sr-only">{t('common:actions.refresh')}</span>
+        </Button>
       </div>
 
       {/* Table */}

@@ -3,6 +3,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal, RotateCcw, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { UserAvatar } from '@/components/shared/user-avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,13 +33,22 @@ export function useDlqColumns({
       cell: ({ row }) => {
         const email = row.original
         return (
-          <div className="min-w-0">
-            <div className="font-medium truncate">{email.recipientEmail}</div>
-            {email.recipientUserFullName && (
-              <div className="text-sm text-muted-foreground truncate">
-                {email.recipientUserFullName}
-              </div>
-            )}
+          <div className="flex items-center gap-3">
+            <UserAvatar
+              name={email.recipientUserFullName || ''}
+              email={email.recipientEmail}
+              size="sm"
+            />
+            <div className="flex flex-col min-w-0">
+              <span className="font-medium truncate">
+                {email.recipientUserFullName || email.recipientEmail}
+              </span>
+              {email.recipientUserFullName && (
+                <span className="text-xs text-muted-foreground truncate">
+                  {email.recipientEmail}
+                </span>
+              )}
+            </div>
           </div>
         )
       },

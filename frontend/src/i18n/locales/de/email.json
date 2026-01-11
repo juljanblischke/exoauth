@@ -10,6 +10,7 @@
   },
   "providers": {
     "title": "E-Mail Provider",
+    "refreshed": "Provider aktualisiert",
     "description": "E-Mail-Provider zum Versenden von E-Mails konfigurieren. Provider werden in Prioritätsreihenfolge verwendet.",
     "empty": {
       "title": "Keine E-Mail Provider konfiguriert",
@@ -77,6 +78,24 @@
       "successRate": "Erfolgsrate",
       "lastSuccess": "Letzter Erfolg"
     },
+    "dragHandle": "Ziehen zum Neuordnen",
+    "circuitBreakerOpen": "Circuit Breaker ist offen - Provider vorübergehend deaktiviert",
+    "details": {
+      "description": "E-Mail Provider Details",
+      "statistics": "Statistiken",
+      "configuration": "Konfiguration",
+      "health": "Zustand",
+      "timestamps": "Zeitstempel",
+      "priority": "Priorität",
+      "enabled": "Status",
+      "failureCount": "Aufeinanderfolgende Fehler",
+      "openUntil": "Offen bis",
+      "createdAt": "Erstellt",
+      "updatedAt": "Zuletzt aktualisiert",
+      "lastSuccess": "Letzter erfolgreicher Versand",
+      "lastFailure": "Letzter Fehler",
+      "successRate": "Erfolgsrate"
+    },
     "delete": {
       "title": "Provider löschen",
       "description": "Sind Sie sicher, dass Sie \"{{name}}\" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
@@ -138,6 +157,7 @@
   },
   "logs": {
     "title": "E-Mail Logs",
+    "refreshed": "E-Mail Logs aktualisiert",
     "empty": {
       "title": "Keine E-Mail Logs",
       "description": "E-Mail-Logs erscheinen hier sobald E-Mails gesendet werden."
@@ -161,11 +181,16 @@
     },
     "details": {
       "title": "E-Mail Details",
-      "recipientUser": "Empfänger (Benutzer)",
+      "recipientUser": "Empfänger",
       "recipientEmail": "Empfänger E-Mail",
+      "noUser": "Externer Empfänger",
+      "emailInfo": "E-Mail Informationen",
       "language": "Sprache",
+      "sentVia": "Gesendet über",
       "retryCount": "Wiederholungen",
-      "lastError": "Letzter Fehler",
+      "timeline": "Zeitverlauf",
+      "failedAt": "Fehlgeschlagen am",
+      "lastError": "Fehler",
       "templateVariables": "Template-Variablen",
       "noError": "Kein Fehler",
       "noVariables": "Keine Variablen"
@@ -183,6 +208,7 @@
   },
   "dlq": {
     "title": "Dead Letter Queue",
+    "refreshed": "Dead Letter Queue aktualisiert",
     "empty": {
       "title": "DLQ ist leer",
       "description": "Keine fehlgeschlagenen E-Mails in der Dead Letter Queue."
@@ -217,7 +243,12 @@
   },
   "announcements": {
     "title": "Ankündigungen",
+    "refreshed": "Ankündigungen aktualisiert",
     "create": "Ankündigung erstellen",
+    "details": {
+      "description": "Ankündigungsdetails",
+      "timestamps": "Zeitstempel"
+    },
     "empty": {
       "title": "Keine Ankündigungen",
       "description": "Erstellen Sie Ankündigungen, um E-Mails an Ihre Benutzer zu senden."

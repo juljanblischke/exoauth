@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   flexRender,
@@ -22,7 +22,11 @@ import { DataTableCard } from '@/components/shared/data-table'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { useDlqColumns } from './email-dlq-table-columns'
-import type { EmailLogDto } from '../types'
+import { EmailLogDetailsSheet } from './email-log-details-sheet'
+import { UserDetailsSheet } from '@/features/users/components/user-details-sheet'
+import { emailApi } from '../api/email-api'
+import type { EmailLogDto, EmailLogDetailDto } from '../types'
+import type { SystemUserDto } from '@/features/users/types'
 
 interface EmailDlqTableProps {
   emails: EmailLogDto[]
@@ -47,6 +51,10 @@ export function EmailDlqTable({
 }: EmailDlqTableProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
+  const [selectedLog, setSelectedLog] = useState<EmailLogDetailDto | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<SystemUserDto | null>(null)
+  const [userSheetOpen, setUserSheetOpen] = useState(false)
 
   const { ref: loadMoreRef } = useInView({
     onChange: (inView) => {
@@ -55,6 +63,28 @@ export function EmailDlqTable({
       }
     },
   })
+
+  const handleViewDetails = useCallback(async (email: EmailLogDto) => {
+    setSheetOpen(true)
+    try {
+      const details = await emailApi.getLog(email.id)
+      setSelectedLog(details)
+    } catch {
+      // Error handling done via toast in api layer
+    }
+  }, [])
+
+  const handleUserClick = useCallback((userId: string) => {
+    // Find user info from the selected log
+    if (selectedLog?.recipientUserId === userId) {
+      setSelectedUser({
+        id: userId,
+        fullName: selectedLog.recipientUserFullName || null,
+        email: selectedLog.recipientEmail,
+      } as SystemUserDto)
+      setUserSheetOpen(true)
+    }
+  }, [selectedLog])
 
   const columns = useDlqColumns({
     onRetry,
@@ -75,9 +105,17 @@ export function EmailDlqTable({
         key={email.id}
         data={email}
         primaryField="recipientEmail"
-        secondaryField="subject"
-        icon={<MailX className="h-4 w-4" />}
+        secondaryField={(row) => row.recipientUserFullName || row.subject}
+        avatar={{
+          name: email.recipientUserFullName || undefined,
+          email: email.recipientEmail,
+        }}
+        onClick={() => handleViewDetails(email)}
         tertiaryFields={[
+          {
+            key: 'subject',
+            label: t('email:dlq.columns.subject'),
+          },
           {
             key: 'templateName',
             label: t('email:dlq.columns.template'),
@@ -112,7 +150,7 @@ export function EmailDlqTable({
         }
       />
     ),
-    [t, canManage, onRetry, onDelete]
+    [t, canManage, onRetry, onDelete, handleViewDetails]
   )
 
   if (isLoading && emails.length === 0) {
@@ -135,62 +173,101 @@ export function EmailDlqTable({
     )
   }
 
-  return isMobile ? (
-    <div className="space-y-3">
-      {emails.map(renderCard)}
-      {(hasMore || isFetchingMore) && (
-        <div ref={loadMoreRef} className="py-4">
-          {isFetchingMore && (
-            <div className="space-y-3">
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
+  return (
+    <>
+      {isMobile ? (
+        <div className="space-y-3">
+          {emails.map(renderCard)}
+          {(hasMore || isFetchingMore) && (
+            <div ref={loadMoreRef} className="py-4">
+              {isFetchingMore && (
+                <div className="space-y-3">
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </div>
+              )}
             </div>
           )}
         </div>
+      ) : (
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleViewDetails(row.original)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      onClick={(e) => {
+                        // Prevent row click when clicking on actions
+                        if (cell.column.id === 'actions') {
+                          e.stopPropagation()
+                        }
+                      }}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+              {(hasMore || isFetchingMore) && (
+                <TableRow ref={loadMoreRef}>
+                  <TableCell colSpan={columns.length}>
+                    {isFetchingMore && (
+                      <div className="flex justify-center py-4">
+                        <Skeleton className="h-8 w-32" />
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       )}
-    </div>
-  ) : (
-    <div className="border rounded-md">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-          {(hasMore || isFetchingMore) && (
-            <TableRow ref={loadMoreRef}>
-              <TableCell colSpan={columns.length}>
-                {isFetchingMore && (
-                  <div className="flex justify-center py-4">
-                    <Skeleton className="h-8 w-32" />
-                  </div>
-                )}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+
+      <EmailLogDetailsSheet
+        log={selectedLog}
+        open={sheetOpen}
+        onOpenChange={(open) => {
+          setSheetOpen(open)
+          if (!open) {
+            setSelectedLog(null)
+          }
+        }}
+        onUserClick={handleUserClick}
+      />
+
+      <UserDetailsSheet
+        user={selectedUser}
+        open={userSheetOpen}
+        onOpenChange={(open) => {
+          setUserSheetOpen(open)
+          if (!open) {
+            setSelectedUser(null)
+          }
+        }}
+      />
+    </>
   )
 }

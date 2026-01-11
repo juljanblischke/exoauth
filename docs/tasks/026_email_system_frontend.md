@@ -883,9 +883,20 @@ Dynamic fields based on EmailProviderType:
 
 ## 13. Letzte Änderung
 
-- **Datum:** 2026-01-08
-- **Status:** ✅ Complete
-- **Build:** Passing (yarn build + yarn lint)
+- **Datum:** 2026-01-11
+- **Status:** ✅ Complete (with polish fixes)
+- **Build:** Passing (yarn typecheck)
+
+### Recent Changes (2026-01-11)
+1. **Missing translation fix**: Added `common:actions.openMenu` EN + DE
+2. **Toast feedback on refresh**: All refresh buttons now show toast notification on success
+3. **Provider details sheet**: Clickable provider cards now open details sheet
+4. **User avatar in tables**: Added UserAvatar to email logs and DLQ recipient columns
+5. **Announcement details sheet redesign**: Matches audit-log-details-sheet pattern with icons, scroll area
+6. **Drag & drop**: Enabled @dnd-kit for provider list with drag handle
+7. **User click in detail sheets**: Clicking user in EmailLogDetailsSheet opens UserDetailsSheet (like audit logs)
+8. **Mobile card avatars**: Logs and DLQ tables use avatar prop in DataTableCard for consistent UX
+9. **Specific refresh toasts**: Each tab shows specific message (e.g., "Providers refreshed" instead of generic "Refreshed")
 
 ### Created Files
 - `frontend/src/features/email/types/index.ts`
@@ -923,6 +934,9 @@ Dynamic fields based on EmailProviderType:
 - `frontend/src/i18n/locales/en/email.json`
 - `frontend/src/i18n/locales/de/email.json`
 
+### Additional Created Files (2026-01-11)
+- `frontend/src/features/email/components/provider-details-sheet.tsx`
+
 ### Modified Files
 - `frontend/src/routes/__root.tsx` (added email route)
 - `frontend/src/config/navigation.ts` (added email navigation)
@@ -943,3 +957,7 @@ Dynamic fields based on EmailProviderType:
 3. **Dropdown z-index**: Changed SelectContent from `z-50` to `z-[100]` to appear above modals
 4. **Breadcrumb routing**: Added email to routeLabels map
 5. **Complete translations**: EN + DE with all provider, config, logs, DLQ, announcements keys
+6. **Toast on refresh**: All refresh buttons show success toast
+7. **Provider details sheet**: Clickable cards open detailed view
+8. **UserAvatar in tables**: Recipient columns show avatar like audit logs
+9. **Announcement details sheet**: Redesigned to match audit pattern with icons

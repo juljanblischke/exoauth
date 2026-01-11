@@ -1,6 +1,22 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Mail, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import { Plus, Mail, AlertCircle, RefreshCw } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -15,8 +31,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ProviderCard } from './provider-card'
+import { SortableProviderCard } from './provider-card'
 import { ProviderFormDialog } from './provider-form-dialog'
+import { ProviderDetailsSheet } from './provider-details-sheet'
 import { TestEmailDialog } from './test-email-dialog'
 import {
   useEmailProviders,
@@ -40,9 +57,11 @@ export function ProviderList() {
   const [editingProvider, setEditingProvider] = useState<EmailProviderDto | null>(null)
   const [deletingProvider, setDeletingProvider] = useState<EmailProviderDto | null>(null)
   const [testingProvider, setTestingProvider] = useState<EmailProviderDto | null>(null)
+  const [detailsProvider, setDetailsProvider] = useState<EmailProviderDto | null>(null)
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false)
 
   // Queries & mutations
-  const { data: providers, isLoading, error } = useEmailProviders()
+  const { data: providers, isLoading, error, refetch, isRefetching } = useEmailProviders()
   const createProvider = useCreateEmailProvider()
   const updateProvider = useUpdateEmailProvider()
   const deleteProvider = useDeleteEmailProvider()
@@ -50,10 +69,32 @@ export function ProviderList() {
   const resetCircuitBreaker = useResetCircuitBreaker()
   const reorderProviders = useReorderEmailProviders()
 
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
   // Handlers
+  const handleRefresh = useCallback(async () => {
+    await refetch()
+    toast.success(t('email:providers.refreshed'))
+  }, [refetch, t])
+
   const handleCreate = useCallback(() => {
     setEditingProvider(null)
     setFormOpen(true)
+  }, [])
+
+  const handleViewDetails = useCallback((provider: EmailProviderDto) => {
+    setDetailsProvider(provider)
+    setDetailsSheetOpen(true)
   }, [])
 
   const handleEdit = useCallback((provider: EmailProviderDto) => {
@@ -104,29 +145,24 @@ export function ProviderList() {
     [resetCircuitBreaker]
   )
 
-  const handleMoveUp = useCallback(
-    async (provider: EmailProviderDto) => {
-      if (!providers) return
-      const index = providers.findIndex((p) => p.id === provider.id)
-      if (index <= 0) return
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event
 
-      const newOrder = [...providers]
-      ;[newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]]
-      await reorderProviders.mutateAsync({
-        providers: newOrder.map((p, i) => ({ providerId: p.id, priority: i })),
-      })
-    },
-    [providers, reorderProviders]
-  )
+      if (!over || active.id === over.id || !providers) {
+        return
+      }
 
-  const handleMoveDown = useCallback(
-    async (provider: EmailProviderDto) => {
-      if (!providers) return
-      const index = providers.findIndex((p) => p.id === provider.id)
-      if (index < 0 || index >= providers.length - 1) return
+      const sortedProviders = [...providers].sort((a, b) => a.priority - b.priority)
+      const oldIndex = sortedProviders.findIndex((p) => p.id === active.id)
+      const newIndex = sortedProviders.findIndex((p) => p.id === over.id)
 
-      const newOrder = [...providers]
-      ;[newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]]
+      if (oldIndex === -1 || newIndex === -1) {
+        return
+      }
+
+      const newOrder = arrayMove(sortedProviders, oldIndex, newIndex)
+
       await reorderProviders.mutateAsync({
         providers: newOrder.map((p, i) => ({ providerId: p.id, priority: i })),
       })
@@ -170,12 +206,23 @@ export function ProviderList() {
             {t('email:providers.description')}
           </p>
         </div>
-        {canManage && (
-          <Button onClick={handleCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            {t('email:providers.actions.add')}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isRefetching}
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+            <span className="sr-only">{t('common:actions.refresh')}</span>
           </Button>
-        )}
+          {canManage && (
+            <Button onClick={handleCreate}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('email:providers.actions.add')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Empty state */}
@@ -195,24 +242,34 @@ export function ProviderList() {
         </div>
       )}
 
-      {/* Provider list */}
-      <div className="space-y-3">
-        {sortedProviders.map((provider, index) => (
-          <ProviderCard
-            key={provider.id}
-            provider={provider}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onTest={handleTest}
-            onResetCircuitBreaker={handleResetCircuitBreaker}
-            onMoveUp={handleMoveUp}
-            onMoveDown={handleMoveDown}
-            isFirst={index === 0}
-            isLast={index === sortedProviders.length - 1}
-            canManage={canManage}
-          />
-        ))}
-      </div>
+      {/* Provider list with DnD */}
+      {sortedProviders.length > 0 && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={sortedProviders.map((p) => p.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-3">
+              {sortedProviders.map((provider) => (
+                <SortableProviderCard
+                  key={provider.id}
+                  provider={provider}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onTest={handleTest}
+                  onResetCircuitBreaker={handleResetCircuitBreaker}
+                  onViewDetails={handleViewDetails}
+                  canManage={canManage}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
 
       {/* Create/Edit Dialog */}
       <ProviderFormDialog
@@ -230,6 +287,16 @@ export function ProviderList() {
         provider={testingProvider}
         onSubmit={handleTestSubmit}
         isLoading={testProvider.isPending}
+      />
+
+      {/* Provider Details Sheet */}
+      <ProviderDetailsSheet
+        provider={detailsProvider}
+        open={detailsSheetOpen}
+        onOpenChange={(open) => {
+          setDetailsSheetOpen(open)
+          if (!open) setDetailsProvider(null)
+        }}
       />
 
       {/* Delete Confirmation */}

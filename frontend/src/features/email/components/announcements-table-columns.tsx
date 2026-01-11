@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal, Edit, Send, Eye, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Edit, Send, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -27,7 +27,6 @@ interface UseAnnouncementsColumnsOptions {
 export function useAnnouncementsColumns({
   onEdit,
   onSend,
-  onViewDetails,
   onDelete,
   canManage,
 }: UseAnnouncementsColumnsOptions): ColumnDef<EmailAnnouncementDto>[] {
@@ -102,52 +101,50 @@ export function useAnnouncementsColumns({
     },
   ]
 
-  // Actions column
-  columns.push({
-    id: 'actions',
-    cell: ({ row }) => {
-      const announcement = row.original
-      const isDraft = announcement.status === EmailAnnouncementStatus.Draft
+  // Actions column - only show for drafts that can be managed
+  if (canManage) {
+    columns.push({
+      id: 'actions',
+      cell: ({ row }) => {
+        const announcement = row.original
+        const isDraft = announcement.status === EmailAnnouncementStatus.Draft
 
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">{t('common:actions.openMenu')}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onViewDetails(announcement)}>
-              <Eye className="mr-2 h-4 w-4" />
-              {t('common:actions.viewDetails')}
-            </DropdownMenuItem>
+        // Only show actions for drafts
+        if (!isDraft) {
+          return null
+        }
 
-            {canManage && isDraft && (
-              <>
-                <DropdownMenuItem onClick={() => onEdit(announcement)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  {t('common:actions.edit')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSend(announcement)}>
-                  <Send className="mr-2 h-4 w-4" />
-                  {t('email:announcements.send.button')}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => onDelete(announcement)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {t('common:actions.delete')}
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
-  })
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">{t('common:actions.openMenu')}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEdit(announcement)}>
+                <Edit className="mr-2 h-4 w-4" />
+                {t('common:actions.edit')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onSend(announcement)}>
+                <Send className="mr-2 h-4 w-4" />
+                {t('email:announcements.send.button')}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onDelete(announcement)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t('common:actions.delete')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    })
+  }
 
   return columns
 }

@@ -53,13 +53,15 @@ export function EmailPage() {
         onValueChange={value => setActiveTab(value as TabValue)}
         className="space-y-4"
       >
-        <TabsList>
-          {visibleTabs.map(tab => (
-            <TabsTrigger key={tab.value} value={tab.value}>
-              {t(tab.label)}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="w-full overflow-x-auto pb-1">
+          <TabsList className="w-max md:w-auto">
+            {visibleTabs.map(tab => (
+              <TabsTrigger key={tab.value} value={tab.value}>
+                {t(tab.label)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         {hasPermission('email:providers:read') && (
           <TabsContent value="providers" className="space-y-4">

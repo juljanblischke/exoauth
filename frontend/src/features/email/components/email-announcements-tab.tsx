@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AlertCircle, Plus } from 'lucide-react'
+import { toast } from 'sonner'
+import { AlertCircle, Plus, RefreshCw } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -55,6 +56,8 @@ export function EmailAnnouncementsTab() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
+    isRefetching,
   } = useEmailAnnouncements({})
 
   const createAnnouncement = useCreateEmailAnnouncement()
@@ -69,6 +72,11 @@ export function EmailAnnouncementsTab() {
       fetchNextPage()
     }
   }, [fetchNextPage, hasNextPage, isFetchingNextPage])
+
+  const handleRefresh = useCallback(async () => {
+    await refetch()
+    toast.success(t('email:announcements.refreshed'))
+  }, [refetch, t])
 
   // Handlers
   const handleCreate = useCallback(() => {
@@ -154,15 +162,24 @@ export function EmailAnnouncementsTab() {
 
   return (
     <div className="space-y-4">
-      {/* Header with Create button */}
-      {canManage && (
-        <div className="flex justify-end">
+      {/* Header with Create and Refresh buttons */}
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={isRefetching}
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+          <span className="sr-only">{t('common:actions.refresh')}</span>
+        </Button>
+        {canManage && (
           <Button onClick={handleCreate}>
             <Plus className="h-4 w-4 mr-2" />
             {t('email:announcements.create')}
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Table */}
       <AnnouncementsTable

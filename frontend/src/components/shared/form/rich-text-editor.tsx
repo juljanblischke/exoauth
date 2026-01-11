@@ -49,6 +49,8 @@ export function RichTextEditor({
         heading: {
           levels: [1, 2],
         },
+        // Disable link from StarterKit, we use our own configured Link extension
+        link: false,
       }),
       Link.configure({
         openOnClick: false,

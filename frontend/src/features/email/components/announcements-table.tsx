@@ -5,7 +5,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { Megaphone, Edit, Send, Trash2, Eye } from 'lucide-react'
+import { Megaphone, Edit, Send, Trash2 } from 'lucide-react'
 import { useInView } from 'react-intersection-observer'
 
 import {
@@ -101,13 +101,6 @@ export function AnnouncementsTable({
             variant: 'destructive' as const,
           }
         )
-      }
-      if (!isDraft) {
-        actions.push({
-          label: t('common:actions.viewDetails'),
-          icon: <Eye className="h-4 w-4" />,
-          onClick: () => onViewDetails(announcement),
-        })
       }
 
       return (
@@ -212,9 +205,21 @@ export function AnnouncementsTable({
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id}>
+            <TableRow
+              key={row.id}
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => onViewDetails(row.original)}
+            >
               {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
+                <TableCell
+                  key={cell.id}
+                  onClick={(e) => {
+                    // Prevent row click when clicking on actions
+                    if (cell.column.id === 'actions') {
+                      e.stopPropagation()
+                    }
+                  }}
+                >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
               ))}

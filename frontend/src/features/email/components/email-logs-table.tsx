@@ -20,12 +20,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/feedback'
 import { DataTableCard } from '@/components/shared/data-table'
 import { useIsMobile } from '@/hooks/use-media-query'
-import { useEmailLogsColumnsWithActions } from './email-logs-table-columns'
+import { useEmailLogsColumns } from './email-logs-table-columns'
 import { EmailLogDetailsSheet } from './email-log-details-sheet'
 import { EmailStatusBadge } from './email-status-badge'
 import { RelativeTime } from '@/components/shared/relative-time'
+import { UserDetailsSheet } from '@/features/users/components/user-details-sheet'
 import { emailApi } from '../api/email-api'
 import type { EmailLogDto, EmailLogDetailDto, EmailStatus } from '../types'
+import type { SystemUserDto } from '@/features/users/types'
 
 interface EmailLogsTableProps {
   logs: EmailLogDto[]
@@ -46,6 +48,8 @@ export function EmailLogsTable({
   const isMobile = useIsMobile()
   const [selectedLog, setSelectedLog] = useState<EmailLogDetailDto | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<SystemUserDto | null>(null)
+  const [userSheetOpen, setUserSheetOpen] = useState(false)
 
   const { ref: loadMoreRef } = useInView({
     onChange: (inView) => {
@@ -65,9 +69,19 @@ export function EmailLogsTable({
     }
   }, [])
 
-  const columns = useEmailLogsColumnsWithActions({
-    onViewDetails: handleViewDetails,
-  })
+  const handleUserClick = useCallback((userId: string) => {
+    // Find user info from the selected log
+    if (selectedLog?.recipientUserId === userId) {
+      setSelectedUser({
+        id: userId,
+        fullName: selectedLog.recipientUserFullName || null,
+        email: selectedLog.recipientEmail,
+      } as SystemUserDto)
+      setUserSheetOpen(true)
+    }
+  }, [selectedLog])
+
+  const columns = useEmailLogsColumns()
 
   const table = useReactTable({
     data: logs,
@@ -82,10 +96,17 @@ export function EmailLogsTable({
         key={log.id}
         data={log}
         primaryField="recipientEmail"
-        secondaryField="subject"
-        icon={<Mail className="h-4 w-4" />}
+        secondaryField={(row) => row.recipientUserFullName || row.subject}
+        avatar={{
+          name: log.recipientUserFullName || undefined,
+          email: log.recipientEmail,
+        }}
         onClick={() => handleViewDetails(log)}
         tertiaryFields={[
+          {
+            key: 'subject',
+            label: t('email:logs.columns.subject'),
+          },
           {
             key: 'templateName',
             label: t('email:logs.columns.template'),
@@ -163,7 +184,11 @@ export function EmailLogsTable({
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleViewDetails(row.original)}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -197,6 +222,18 @@ export function EmailLogsTable({
           setSheetOpen(open)
           if (!open) {
             setSelectedLog(null)
+          }
+        }}
+        onUserClick={handleUserClick}
+      />
+
+      <UserDetailsSheet
+        user={selectedUser}
+        open={userSheetOpen}
+        onOpenChange={(open) => {
+          setUserSheetOpen(open)
+          if (!open) {
+            setSelectedUser(null)
           }
         }}
       />

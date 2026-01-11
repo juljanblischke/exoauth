@@ -10,6 +10,7 @@
   },
   "providers": {
     "title": "Email Providers",
+    "refreshed": "Providers refreshed",
     "description": "Configure email providers for sending emails. Providers are tried in priority order.",
     "empty": {
       "title": "No Email Providers Configured",
@@ -77,6 +78,24 @@
       "successRate": "Success Rate",
       "lastSuccess": "Last Success"
     },
+    "dragHandle": "Drag to reorder",
+    "circuitBreakerOpen": "Circuit breaker is open - provider temporarily disabled",
+    "details": {
+      "description": "Email provider details",
+      "statistics": "Statistics",
+      "configuration": "Configuration",
+      "health": "Health",
+      "timestamps": "Timestamps",
+      "priority": "Priority",
+      "enabled": "Status",
+      "failureCount": "Consecutive Failures",
+      "openUntil": "Open Until",
+      "createdAt": "Created",
+      "updatedAt": "Last Updated",
+      "lastSuccess": "Last Successful Send",
+      "lastFailure": "Last Failure",
+      "successRate": "Success Rate"
+    },
     "delete": {
       "title": "Delete Provider",
       "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
@@ -138,6 +157,7 @@
   },
   "logs": {
     "title": "Email Logs",
+    "refreshed": "Email logs refreshed",
     "empty": {
       "title": "No Email Logs",
       "description": "Email logs will appear here once emails are sent."
@@ -161,11 +181,16 @@
     },
     "details": {
       "title": "Email Details",
-      "recipientUser": "Recipient User",
+      "recipientUser": "Recipient",
       "recipientEmail": "Recipient Email",
+      "noUser": "External recipient",
+      "emailInfo": "Email Information",
       "language": "Language",
+      "sentVia": "Sent via",
       "retryCount": "Retry Count",
-      "lastError": "Last Error",
+      "timeline": "Timeline",
+      "failedAt": "Failed at",
+      "lastError": "Error",
       "templateVariables": "Template Variables",
       "noError": "No error",
       "noVariables": "No variables"
@@ -183,6 +208,7 @@
   },
   "dlq": {
     "title": "Dead Letter Queue",
+    "refreshed": "Dead letter queue refreshed",
     "empty": {
       "title": "DLQ is Empty",
       "description": "No failed emails in the dead letter queue."
@@ -217,7 +243,12 @@
   },
   "announcements": {
     "title": "Announcements",
+    "refreshed": "Announcements refreshed",
     "create": "Create Announcement",
+    "details": {
+      "description": "Announcement details",
+      "timestamps": "Timestamps"
+    },
     "empty": {
       "title": "No Announcements",
       "description": "Create announcements to send emails to your users."

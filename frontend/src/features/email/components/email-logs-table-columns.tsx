@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { ColumnDef } from '@tanstack/react-table'
-import { Button } from '@/components/ui/button'
+import { UserAvatar } from '@/components/shared/user-avatar'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { EmailStatusBadge } from './email-status-badge'
 import type { EmailLogDto } from '../types'
@@ -15,13 +15,22 @@ export function useEmailLogsColumns(): ColumnDef<EmailLogDto>[] {
       cell: ({ row }) => {
         const log = row.original
         return (
-          <div className="min-w-0">
-            <div className="font-medium truncate">{log.recipientEmail}</div>
-            {log.recipientUserFullName && (
-              <div className="text-sm text-muted-foreground truncate">
-                {log.recipientUserFullName}
-              </div>
-            )}
+          <div className="flex items-center gap-3">
+            <UserAvatar
+              name={log.recipientUserFullName || ''}
+              email={log.recipientEmail}
+              size="sm"
+            />
+            <div className="flex flex-col min-w-0">
+              <span className="font-medium truncate">
+                {log.recipientUserFullName || log.recipientEmail}
+              </span>
+              {log.recipientUserFullName && (
+                <span className="text-xs text-muted-foreground truncate">
+                  {log.recipientEmail}
+                </span>
+              )}
+            </div>
           </div>
         )
       },
@@ -76,29 +85,4 @@ export function useEmailLogsColumns(): ColumnDef<EmailLogDto>[] {
   ]
 }
 
-interface UseEmailLogsColumnsWithActionsOptions {
-  onViewDetails: (log: EmailLogDto) => void
-}
 
-export function useEmailLogsColumnsWithActions({
-  onViewDetails,
-}: UseEmailLogsColumnsWithActionsOptions): ColumnDef<EmailLogDto>[] {
-  const { t } = useTranslation()
-  const baseColumns = useEmailLogsColumns()
-
-  return [
-    ...baseColumns,
-    {
-      id: 'actions',
-      cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onViewDetails(row.original)}
-        >
-          {t('common:actions.viewDetails')}
-        </Button>
-      ),
-    },
-  ]
-}

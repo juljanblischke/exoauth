@@ -187,7 +187,7 @@ invalidEmail       - Email validation error message
 ### email.json (Task 026)
 
 ```
-providers.*        - title, subtitle, empty.*, loading, createSuccess, updateSuccess, deleteSuccess, resetSuccess
+providers.*        - title, subtitle, refreshed, empty.*, loading, createSuccess, updateSuccess, deleteSuccess, resetSuccess
 providers.fields.* - name, type, isDefault, isActive, priority, rateLimit
 providers.form.*   - createTitle, editTitle, name, type, isDefault, isActive, priority, rateLimit, submitCreate, submitUpdate
 providers.type.*   - smtp, sendgrid, mailgun, ses, resend, postmark
@@ -199,20 +199,20 @@ configuration.*    - title, subtitle, form.*, success, error
 configuration.fields.* - defaultFromEmail, defaultFromName, defaultReplyTo, maxRetryAttempts, retryDelayMinutes, dailyLimit
 configuration.form.* - title, description, submit, emailPlaceholder, namePlaceholder, replyToPlaceholder
 
-logs.*             - title, subtitle, empty.*, loading, table.*, filters.*
+logs.*             - title, subtitle, refreshed, empty.*, loading, table.*, filters.*
 logs.fields.*      - recipientEmail, subject, provider, status, sentAt, errorMessage
 logs.status.*      - pending, sent, failed, bounced, retrying
 logs.table.*       - noResults, noResultsDescription
 logs.filters.*     - search, status, provider, dateRange, allStatuses, allProviders
 logs.details.*     - title, recipientEmail, subject, provider, status, sentAt, errorMessage, retryCount, metadata
 
-dlq.*              - title, subtitle, empty.*, loading, table.*, retry.*, delete.*
+dlq.*              - title, subtitle, refreshed, empty.*, loading, table.*, retry.*, delete.*
 dlq.fields.*       - recipientEmail, subject, originalProvider, errorMessage, failedAt, retryCount
 dlq.table.*        - noResults, noResultsDescription, selected
 dlq.retry.*        - button, title, description, success, bulkSuccess
 dlq.delete.*       - button, title, description, success
 
-announcements.*    - title, subtitle, empty.*, loading, createSuccess, updateSuccess, deleteSuccess, sendSuccess
+announcements.*    - title, subtitle, refreshed, empty.*, loading, createSuccess, updateSuccess, deleteSuccess, sendSuccess
 announcements.fields.* - title, content, status, targetType, createdAt, sentAt, recipientCount
 announcements.status.* - draft, scheduled, sending, sent, cancelled
 announcements.target.* - all, organization, project, custom

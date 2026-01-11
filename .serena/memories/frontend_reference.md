@@ -339,6 +339,7 @@ frontend/
 │   │   │   │   ├── announcement-details-sheet.tsx
 │   │   │   │   ├── user-select-modal.tsx
 │   │   │   │   ├── email-announcements-tab.tsx
+│   │   │   │   ├── provider-details-sheet.tsx
 │   │   │   │   └── index.ts
 │   │   │   ├── types/index.ts
 │   │   │   └── index.ts
@@ -441,6 +442,13 @@ frontend/
 | @marsidev/react-turnstile | ^1.1.4 |
 | react-google-recaptcha-v3 | ^1.10.1 |
 | @hcaptcha/react-hcaptcha | ^1.11.0 |
+| @dnd-kit/core | ^6.3.1 |
+| @dnd-kit/sortable | ^10.0.0 |
+| @dnd-kit/utilities | ^3.2.2 |
+| @tiptap/react | ^3.15.3 |
+| @tiptap/starter-kit | ^3.15.3 |
+| @tiptap/extension-link | ^3.15.3 |
+| @tiptap/extension-placeholder | ^3.15.3 |
 | @radix-ui/* | various |
 
 ### DevDependencies
@@ -701,5 +709,6 @@ import type { Feature } from '../types'
 ---
 
 ## Last Updated
-- **Date:** 2026-01-08
+- **Date:** 2026-01-11
 - **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016, 018, 020, 022, 024, 026
+- **Task 026 Updates:** Added provider-details-sheet, toast on refresh, UserAvatar in tables, UserDetailsSheet on click in logs/DLQ, avatar in mobile cards

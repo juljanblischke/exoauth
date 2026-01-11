@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AlertCircle, RotateCcw } from 'lucide-react'
+import { toast } from 'sonner'
+import { AlertCircle, RotateCcw, RefreshCw } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -38,6 +39,8 @@ export function EmailDlqTab() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
+    isRefetching,
   } = useDeadLetterQueue({})
 
   const retryEmail = useProcessDlqMessage()
@@ -54,6 +57,11 @@ export function EmailDlqTab() {
       fetchNextPage()
     }
   }, [fetchNextPage, hasNextPage, isFetchingNextPage])
+
+  const handleRefresh = useCallback(async () => {
+    await refetch()
+    toast.success(t('email:dlq.refreshed'))
+  }, [refetch, t])
 
   const handleRetry = useCallback(
     async (email: EmailLogDto) => {
@@ -93,22 +101,33 @@ export function EmailDlqTab() {
 
   return (
     <div className="space-y-4">
-      {/* Header with Retry All button */}
-      {canManage && emails.length > 0 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {t('email:dlq.count', { count: totalCount })}
-          </p>
+      {/* Header with Retry All and Refresh buttons */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {emails.length > 0 ? t('email:dlq.count', { count: totalCount }) : ''}
+        </p>
+        <div className="flex items-center gap-2">
+          {canManage && emails.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => setRetryAllDialogOpen(true)}
+              disabled={retryEmail.isPending}
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              {t('email:dlq.retryAll')}
+            </Button>
+          )}
           <Button
             variant="outline"
-            onClick={() => setRetryAllDialogOpen(true)}
-            disabled={retryEmail.isPending}
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isRefetching}
           >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            {t('email:dlq.retryAll')}
+            <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+            <span className="sr-only">{t('common:actions.refresh')}</span>
           </Button>
         </div>
-      )}
+      </div>
 
       {/* Table */}
       <EmailDlqTable
