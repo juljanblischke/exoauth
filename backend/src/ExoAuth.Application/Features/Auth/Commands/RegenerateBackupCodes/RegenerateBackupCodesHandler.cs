@@ -92,7 +92,7 @@ public sealed class RegenerateBackupCodesHandler : ICommandHandler<RegenerateBac
         await _context.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.MfaBackupCodesRegenerated,
             userId,
             null,

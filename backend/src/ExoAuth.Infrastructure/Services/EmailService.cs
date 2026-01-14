@@ -39,6 +39,7 @@ public sealed class EmailService : IEmailService
         string templateName,
         Dictionary<string, string> variables,
         string language = "en-US",
+        Guid? recipientUserId = null,
         CancellationToken cancellationToken = default)
     {
         var message = new SendEmailMessage(
@@ -46,7 +47,8 @@ public sealed class EmailService : IEmailService
             Subject: subject,
             TemplateName: templateName,
             Language: language,
-            Variables: variables
+            Variables: variables,
+            RecipientUserId: recipientUserId
         );
 
         await _messageBus.PublishAsync(message, "email.send", cancellationToken);
@@ -88,6 +90,7 @@ public sealed class EmailService : IEmailService
         string firstName,
         string resetToken,
         string resetCode,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default)
     {
@@ -108,6 +111,7 @@ public sealed class EmailService : IEmailService
             templateName: "password-reset",
             variables: variables,
             language: language,
+            recipientUserId: userId,
             cancellationToken: cancellationToken
         );
     }
@@ -115,6 +119,7 @@ public sealed class EmailService : IEmailService
     public async Task SendPasswordChangedAsync(
         string email,
         string firstName,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default)
     {
@@ -130,6 +135,7 @@ public sealed class EmailService : IEmailService
             templateName: "password-changed",
             variables: variables,
             language: language,
+            recipientUserId: userId,
             cancellationToken: cancellationToken
         );
     }
@@ -145,6 +151,7 @@ public sealed class EmailService : IEmailService
         string? location,
         string? ipAddress,
         int riskScore,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default)
     {
@@ -173,6 +180,7 @@ public sealed class EmailService : IEmailService
             templateName: "device-approval-required",
             variables: variables,
             language: language,
+            recipientUserId: userId,
             cancellationToken: cancellationToken
         );
     }
@@ -185,6 +193,7 @@ public sealed class EmailService : IEmailService
         string? operatingSystem,
         string? location,
         string? ipAddress,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default)
     {
@@ -206,6 +215,7 @@ public sealed class EmailService : IEmailService
             templateName: "device-denied-alert",
             variables: variables,
             language: language,
+            recipientUserId: userId,
             cancellationToken: cancellationToken
         );
     }
@@ -214,6 +224,7 @@ public sealed class EmailService : IEmailService
         string email,
         string fullName,
         string passkeyName,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default)
     {
@@ -231,6 +242,7 @@ public sealed class EmailService : IEmailService
             templateName: "passkey-registered",
             variables: variables,
             language: language,
+            recipientUserId: userId,
             cancellationToken: cancellationToken
         );
     }
@@ -239,6 +251,7 @@ public sealed class EmailService : IEmailService
         string email,
         string fullName,
         string passkeyName,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default)
     {
@@ -256,6 +269,7 @@ public sealed class EmailService : IEmailService
             templateName: "passkey-removed",
             variables: variables,
             language: language,
+            recipientUserId: userId,
             cancellationToken: cancellationToken
         );
     }

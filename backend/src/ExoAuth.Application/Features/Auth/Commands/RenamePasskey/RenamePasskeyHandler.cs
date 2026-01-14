@@ -43,7 +43,7 @@ public sealed class RenamePasskeyHandler : ICommandHandler<RenamePasskeyCommand,
         passkey.Rename(command.Name);
         await _context.SaveChangesAsync(ct);
 
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.PasskeyRenamed,
             userId,
             null,

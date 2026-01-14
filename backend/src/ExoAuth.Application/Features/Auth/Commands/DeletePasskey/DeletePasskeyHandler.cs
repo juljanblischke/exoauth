@@ -59,7 +59,7 @@ public sealed class DeletePasskeyHandler : ICommandHandler<DeletePasskeyCommand,
         _context.Passkeys.Remove(passkey);
         await _context.SaveChangesAsync(ct);
 
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.PasskeyDeleted,
             userId,
             null,
@@ -73,6 +73,7 @@ public sealed class DeletePasskeyHandler : ICommandHandler<DeletePasskeyCommand,
             user.Email,
             user.FullName,
             passkeyName,
+            user.Id,
             user.PreferredLanguage,
             ct);
 

@@ -110,7 +110,7 @@ public sealed class UpdatePreferencesHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.PreferencesUpdated,
             userId,
             null,

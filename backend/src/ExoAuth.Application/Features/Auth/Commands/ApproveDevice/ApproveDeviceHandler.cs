@@ -73,7 +73,7 @@ public sealed class ApproveDeviceHandler : ICommandHandler<ApproveDeviceCommand,
         await _deviceService.MarkDeviceTrustedAsync(device, ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.DeviceApprovedViaCode,
             device.UserId,
             device.UserId,

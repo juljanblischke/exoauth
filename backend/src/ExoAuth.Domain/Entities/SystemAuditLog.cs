@@ -43,4 +43,5 @@ public sealed class SystemAuditLog : BaseEntity
                 : null
         };
     }
+
 }

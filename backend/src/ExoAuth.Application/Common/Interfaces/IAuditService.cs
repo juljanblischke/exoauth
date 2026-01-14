@@ -142,4 +142,19 @@ public static class AuditActions
     public const string IpBlacklisted = "system.ip.blacklisted";
     public const string IpRestrictionUpdated = "system.ip.restriction_updated";
     public const string IpRestrictionDeleted = "system.ip.restriction_deleted";
+
+    // Email provider actions
+    public const string EmailProviderCreated = "system.email.provider_created";
+    public const string EmailProviderUpdated = "system.email.provider_updated";
+    public const string EmailProviderDeleted = "system.email.provider_deleted";
+    public const string EmailProvidersReordered = "system.email.providers_reordered";
+    public const string EmailProviderCircuitBreakerReset = "system.email.circuit_breaker_reset";
+
+    // Email configuration actions
+    public const string EmailConfigurationUpdated = "system.email.configuration_updated";
+
+    // Email DLQ actions
+    public const string EmailDlqRetry = "system.email.dlq_retry";
+    public const string EmailDlqRetryAll = "system.email.dlq_retry_all";
+    public const string EmailDlqDeleted = "system.email.dlq_deleted";
 }

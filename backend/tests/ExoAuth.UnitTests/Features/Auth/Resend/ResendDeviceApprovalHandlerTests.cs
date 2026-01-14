@@ -251,6 +251,7 @@ public sealed class ResendDeviceApprovalHandlerTests
             It.IsAny<string?>(), // location
             It.IsAny<string?>(), // IP
             It.IsAny<int>(), // risk score
+            It.IsAny<Guid>(), // userId
             It.IsAny<string?>(), // language
             It.IsAny<CancellationToken>()), Times.Once);
     }

@@ -73,6 +73,7 @@ public sealed class ForgotPasswordHandler : ICommandHandler<ForgotPasswordComman
             firstName: user.FirstName,
             resetToken: result.Token,
             resetCode: result.Code,
+            userId: user.Id,
             language: user.PreferredLanguage,
             cancellationToken: ct
         );

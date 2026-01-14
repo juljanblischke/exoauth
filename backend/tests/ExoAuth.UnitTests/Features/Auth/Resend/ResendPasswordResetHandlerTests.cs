@@ -65,7 +65,7 @@ public sealed class ResendPasswordResetHandlerTests
         result.Message.Should().Contain("If an account exists");
         _mockEmailService.Verify(x => x.SendPasswordResetAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public sealed class ResendPasswordResetHandlerTests
         result.Success.Should().BeTrue();
         _mockEmailService.Verify(x => x.SendPasswordResetAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public sealed class ResendPasswordResetHandlerTests
         result.Success.Should().BeTrue();
         _mockEmailService.Verify(x => x.SendPasswordResetAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public sealed class ResendPasswordResetHandlerTests
         _mockPasswordResetService.Verify(x => x.InvalidateAllTokensAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
         _mockPasswordResetService.Verify(x => x.CreateResetTokenAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
         _mockEmailService.Verify(x => x.SendPasswordResetAsync(
-            "user@example.com", "John", "new-token", "ABCD-1234", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+            "user@example.com", "John", "new-token", "ABCD-1234", userId, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

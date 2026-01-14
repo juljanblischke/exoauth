@@ -75,7 +75,7 @@ public sealed class AnonymizeUserHandlerTests
         result.UserId.Should().Be(userId);
         user.IsAnonymized.Should().BeTrue();
 
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.UserAnonymized,
             adminUserId,
             userId,
@@ -165,7 +165,7 @@ public sealed class AnonymizeUserHandlerTests
 
         // Should not call SaveChanges or Audit when already anonymized
         _mockContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             It.IsAny<string>(),
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
@@ -460,9 +460,10 @@ public sealed class AnonymizeUserHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert - Only the email log for the anonymized user should be anonymized
-        emailLog1.RecipientEmail.Should().Be("anonymized@anonymized.local");
+        // RecipientUserId is kept so queries can join with SystemUser and show anonymized user info
+        emailLog1.RecipientEmail.Should().StartWith("anonymized_").And.EndWith("@deleted.local");
         emailLog1.TemplateVariables.Should().BeNull();
-        emailLog1.RecipientUserId.Should().BeNull();
+        emailLog1.RecipientUserId.Should().Be(userId); // Kept for join with anonymized user
 
         // The other user's email log should remain unchanged
         emailLog2.RecipientEmail.Should().Be("other@example.com");
@@ -495,13 +496,16 @@ public sealed class AnonymizeUserHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert - All email logs should be anonymized
+        // RecipientUserId is kept so queries can join with SystemUser and show anonymized user info
         foreach (var log in emailLogs)
         {
-            log.RecipientEmail.Should().Be("anonymized@anonymized.local");
+            log.RecipientEmail.Should().StartWith("anonymized_").And.EndWith("@deleted.local");
             log.TemplateVariables.Should().BeNull();
-            log.RecipientUserId.Should().BeNull();
+            log.RecipientUserId.Should().Be(userId); // Kept for join with anonymized user
         }
     }
+
+    
 
     private void SetupMockDbSets(
         List<SystemUser> users,
@@ -516,14 +520,13 @@ public sealed class AnonymizeUserHandlerTests
         var mockPermissionsDbSet = CreateAsyncMockDbSet(new List<SystemUserPermission>());
         var mockInvitesDbSet = CreateAsyncMockDbSet(invites ?? new List<SystemInvite>());
         var mockEmailLogsDbSet = CreateAsyncMockDbSet(emailLogs ?? new List<EmailLog>());
-
         _mockContext.Setup(x => x.SystemUsers).Returns(mockUsersDbSet.Object);
         _mockContext.Setup(x => x.RefreshTokens).Returns(mockRefreshTokensDbSet.Object);
         _mockContext.Setup(x => x.MfaBackupCodes).Returns(mockBackupCodesDbSet.Object);
         _mockContext.Setup(x => x.SystemUserPermissions).Returns(mockPermissionsDbSet.Object);
         _mockContext.Setup(x => x.SystemInvites).Returns(mockInvitesDbSet.Object);
         _mockContext.Setup(x => x.EmailLogs).Returns(mockEmailLogsDbSet.Object);
-    }
+        }
 
     private static SystemUser CreateUserWithPermissions(Guid userId, string email = "test@example.com")
     {

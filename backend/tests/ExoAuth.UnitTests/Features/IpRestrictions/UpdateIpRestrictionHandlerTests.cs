@@ -238,7 +238,7 @@ public sealed class UpdateIpRestrictionHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.IpRestrictionUpdated,
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),

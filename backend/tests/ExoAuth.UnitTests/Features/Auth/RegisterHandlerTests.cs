@@ -112,7 +112,7 @@ public sealed class RegisterHandlerTests
             It.IsAny<CancellationToken>()), Times.Once);
 
         // Verify MFA setup required audit log
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.MfaSetupRequiredSent,
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),

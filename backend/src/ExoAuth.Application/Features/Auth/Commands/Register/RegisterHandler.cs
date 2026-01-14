@@ -108,7 +108,7 @@ public sealed class RegisterHandler : ICommandHandler<RegisterCommand, AuthRespo
         var setupToken = _mfaService.GenerateMfaToken(user.Id, null);
 
         // Audit log for MFA setup required
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.MfaSetupRequiredSent,
             user.Id,
             null,

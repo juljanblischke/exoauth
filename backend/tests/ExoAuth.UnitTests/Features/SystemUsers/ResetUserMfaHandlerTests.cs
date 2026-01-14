@@ -70,7 +70,7 @@ public sealed class ResetUserMfaHandlerTests
         result.Success.Should().BeTrue();
         user.MfaEnabled.Should().BeFalse();
 
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.MfaResetByAdmin,
             adminUserId,
             userId,
@@ -85,6 +85,7 @@ public sealed class ResetUserMfaHandlerTests
             "mfa-reset-admin",
             It.IsAny<Dictionary<string, string>>(),
             It.IsAny<string?>(),
+            user.Id,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -203,6 +204,7 @@ public sealed class ResetUserMfaHandlerTests
                 d["firstName"] == user.FirstName &&
                 d["reason"] == reason),
             user.PreferredLanguage,
+            user.Id,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 

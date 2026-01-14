@@ -55,7 +55,7 @@ public sealed class UnlockUserHandler : ICommandHandler<UnlockUserCommand, Unloc
         await _context.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.AccountUnlockedByAdmin,
             adminUserId,
             command.UserId,
@@ -76,6 +76,7 @@ public sealed class UnlockUserHandler : ICommandHandler<UnlockUserCommand, Unloc
                 ["year"] = DateTime.UtcNow.Year.ToString()
             },
             user.PreferredLanguage,
+            user.Id,
             ct
         );
 

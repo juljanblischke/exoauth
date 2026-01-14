@@ -10,11 +10,16 @@ public sealed class ResetCircuitBreakerHandler : ICommandHandler<ResetCircuitBre
 {
     private readonly IAppDbContext _dbContext;
     private readonly IAuditService _auditService;
+    private readonly ICurrentUserService _currentUser;
 
-    public ResetCircuitBreakerHandler(IAppDbContext dbContext, IAuditService auditService)
+    public ResetCircuitBreakerHandler(
+        IAppDbContext dbContext,
+        IAuditService auditService,
+        ICurrentUserService currentUser)
     {
         _dbContext = dbContext;
         _auditService = auditService;
+        _currentUser = currentUser;
     }
 
     public async ValueTask<EmailProviderDto> Handle(ResetCircuitBreakerCommand command, CancellationToken ct)
@@ -31,9 +36,9 @@ public sealed class ResetCircuitBreakerHandler : ICommandHandler<ResetCircuitBre
         await _dbContext.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
-            "EMAIL_PROVIDER_CIRCUIT_BREAKER_RESET",
-            userId: null,
+        await _auditService.LogWithContextAsync(
+            AuditActions.EmailProviderCircuitBreakerReset,
+            userId: _currentUser.UserId,
             targetUserId: null,
             entityType: "EmailProvider",
             entityId: provider.Id,

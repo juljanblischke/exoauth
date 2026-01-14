@@ -108,6 +108,7 @@ public sealed class ResendPasswordResetHandler : ICommandHandler<ResendPasswordR
             firstName: user.FirstName,
             resetToken: result.Token,
             resetCode: result.Code,
+            userId: user.Id,
             language: user.PreferredLanguage,
             cancellationToken: ct
         );

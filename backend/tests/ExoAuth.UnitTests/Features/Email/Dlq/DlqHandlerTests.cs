@@ -73,6 +73,7 @@ public sealed class RetryDlqEmailHandlerTests
     private readonly Mock<IAppDbContext> _mockContext;
     private readonly Mock<IMessageBus> _mockMessageBus;
     private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<ICurrentUserService> _mockCurrentUser;
     private readonly RetryDlqEmailHandler _handler;
     private readonly List<EmailLog> _logs;
 
@@ -81,12 +82,19 @@ public sealed class RetryDlqEmailHandlerTests
         _mockContext = MockDbContext.Create();
         _mockMessageBus = new Mock<IMessageBus>();
         _mockAuditService = new Mock<IAuditService>();
+        _mockCurrentUser = new Mock<ICurrentUserService>();
         _logs = new List<EmailLog>();
+
+        _mockCurrentUser.Setup(x => x.UserId).Returns(Guid.NewGuid());
 
         _mockContext.Setup(x => x.EmailLogs)
             .Returns(MockDbContext.CreateAsyncMockDbSet(_logs).Object);
 
-        _handler = new RetryDlqEmailHandler(_mockContext.Object, _mockMessageBus.Object, _mockAuditService.Object);
+        _handler = new RetryDlqEmailHandler(
+            _mockContext.Object,
+            _mockMessageBus.Object,
+            _mockAuditService.Object,
+            _mockCurrentUser.Object);
     }
 
     [Fact]
@@ -179,12 +187,12 @@ public sealed class RetryDlqEmailHandlerTests
         await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        _mockAuditService.Verify(x => x.LogAsync(
-            "EMAIL_DLQ_RETRY",
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
+            AuditActions.EmailDlqRetry,
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
             "EmailLog",
-            logId,
+            It.IsAny<Guid?>(),
             It.IsAny<object?>(),
             It.IsAny<CancellationToken>()
         ), Times.Once);
@@ -195,6 +203,7 @@ public sealed class DeleteDlqEmailHandlerTests
 {
     private readonly Mock<IAppDbContext> _mockContext;
     private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<ICurrentUserService> _mockCurrentUser;
     private readonly DeleteDlqEmailHandler _handler;
     private readonly List<EmailLog> _logs;
 
@@ -202,12 +211,18 @@ public sealed class DeleteDlqEmailHandlerTests
     {
         _mockContext = MockDbContext.Create();
         _mockAuditService = new Mock<IAuditService>();
+        _mockCurrentUser = new Mock<ICurrentUserService>();
         _logs = new List<EmailLog>();
+
+        _mockCurrentUser.Setup(x => x.UserId).Returns(Guid.NewGuid());
 
         _mockContext.Setup(x => x.EmailLogs)
             .Returns(MockDbContext.CreateAsyncMockDbSet(_logs).Object);
 
-        _handler = new DeleteDlqEmailHandler(_mockContext.Object, _mockAuditService.Object);
+        _handler = new DeleteDlqEmailHandler(
+            _mockContext.Object,
+            _mockAuditService.Object,
+            _mockCurrentUser.Object);
     }
 
     [Fact]
@@ -301,8 +316,8 @@ public sealed class DeleteDlqEmailHandlerTests
         await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        _mockAuditService.Verify(x => x.LogAsync(
-            "EMAIL_DLQ_DELETED",
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
+            AuditActions.EmailDlqDeleted,
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
             "EmailLog",

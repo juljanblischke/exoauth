@@ -65,7 +65,7 @@ public sealed class RevokeUserSessionsHandler : ICommandHandler<RevokeUserSessio
         await _context.SaveChangesAsync(ct);
 
         // Audit log (use plural - sessions)
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.SessionsRevokedByAdmin,
             adminUserId,
             command.UserId,
@@ -89,6 +89,7 @@ public sealed class RevokeUserSessionsHandler : ICommandHandler<RevokeUserSessio
                     ["year"] = DateTime.UtcNow.Year.ToString()
                 },
                 user.PreferredLanguage,
+                user.Id,
                 ct
             );
         }

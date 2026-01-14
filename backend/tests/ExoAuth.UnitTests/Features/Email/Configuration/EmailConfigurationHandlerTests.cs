@@ -104,6 +104,7 @@ public sealed class UpdateEmailConfigurationHandlerTests
 {
     private readonly Mock<IAppDbContext> _mockContext;
     private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<ICurrentUserService> _mockCurrentUser;
     private readonly UpdateEmailConfigurationHandler _handler;
     private readonly List<EmailConfiguration> _configs;
 
@@ -111,12 +112,18 @@ public sealed class UpdateEmailConfigurationHandlerTests
     {
         _mockContext = MockDbContext.Create();
         _mockAuditService = new Mock<IAuditService>();
+        _mockCurrentUser = new Mock<ICurrentUserService>();
         _configs = new List<EmailConfiguration>();
+
+        _mockCurrentUser.Setup(x => x.UserId).Returns(Guid.NewGuid());
 
         _mockContext.Setup(x => x.EmailConfigurations)
             .Returns(MockDbContext.CreateAsyncMockDbSet(_configs).Object);
 
-        _handler = new UpdateEmailConfigurationHandler(_mockContext.Object, _mockAuditService.Object);
+        _handler = new UpdateEmailConfigurationHandler(
+            _mockContext.Object,
+            _mockAuditService.Object,
+            _mockCurrentUser.Object);
     }
 
     [Fact]
@@ -225,8 +232,8 @@ public sealed class UpdateEmailConfigurationHandlerTests
         await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        _mockAuditService.Verify(x => x.LogAsync(
-            "EMAIL_CONFIGURATION_UPDATED",
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
+            AuditActions.EmailConfigurationUpdated,
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
             "EmailConfiguration",

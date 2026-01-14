@@ -61,11 +61,12 @@ public sealed class DenyDeviceHandler : ICommandHandler<DenyDeviceCommand, DenyD
             operatingSystem: device.OperatingSystem,
             location: device.LocationDisplay,
             ipAddress: device.IpAddress,
+            userId: user.Id,
             language: user.PreferredLanguage,
             cancellationToken: ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.DeviceDenied,
             device.UserId,
             device.UserId,

@@ -83,7 +83,7 @@ public sealed class MfaDisableHandler : ICommandHandler<MfaDisableCommand, MfaDi
         await _context.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.MfaDisabled,
             userId,
             null,
@@ -104,6 +104,7 @@ public sealed class MfaDisableHandler : ICommandHandler<MfaDisableCommand, MfaDi
                 ["year"] = DateTime.UtcNow.Year.ToString()
             },
             user.PreferredLanguage,
+            user.Id,
             ct
         );
 

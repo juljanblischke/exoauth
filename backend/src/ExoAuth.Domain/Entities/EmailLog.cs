@@ -206,9 +206,18 @@ public sealed class EmailLog : BaseEntity
     /// </summary>
     public void Anonymize()
     {
-        RecipientEmail = "anonymized@anonymized.local";
+        // Keep RecipientUserId so queries can join with SystemUser and show
+        // anonymized user info (consistent with audit log behavior).
+        // Use same email format as SystemUser.Anonymize() for consistency.
+        if (RecipientUserId.HasValue)
+        {
+            RecipientEmail = $"anonymized_{RecipientUserId.Value:N}@deleted.local";
+        }
+        else
+        {
+            RecipientEmail = "anonymized@deleted.local";
+        }
         TemplateVariables = null;
-        RecipientUserId = null;
         SetUpdated();
     }
 

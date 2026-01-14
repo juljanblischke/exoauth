@@ -79,7 +79,7 @@ public sealed class RevokeUserSessionHandlerTests
         _mockRevokedSessionService.Verify(x => x.RevokeSessionAsync(sessionId, It.IsAny<CancellationToken>()), Times.Once);
         _mockDeviceService.Verify(x => x.RevokeAsync(sessionId, It.IsAny<CancellationToken>()), Times.Once);
 
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.SessionRevokedByAdmin,
             adminUserId,
             userId,
@@ -94,6 +94,7 @@ public sealed class RevokeUserSessionHandlerTests
             "session-revoked-admin",
             It.IsAny<Dictionary<string, string>>(),
             It.IsAny<string?>(),
+            user.Id,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -227,6 +228,7 @@ public sealed class RevokeUserSessionHandlerTests
             It.IsAny<string>(),
             It.IsAny<Dictionary<string, string>>(),
             It.IsAny<string?>(),
+            It.IsAny<Guid?>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 

@@ -325,6 +325,7 @@ public sealed class LoginHandlerTests
             "account-locked",
             It.IsAny<Dictionary<string, string>>(),
             It.IsAny<string>(),
+            It.IsAny<Guid?>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -357,6 +358,7 @@ public sealed class LoginHandlerTests
             It.IsAny<string>(),
             It.IsAny<Dictionary<string, string>>(),
             It.IsAny<string>(),
+            It.IsAny<Guid?>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 

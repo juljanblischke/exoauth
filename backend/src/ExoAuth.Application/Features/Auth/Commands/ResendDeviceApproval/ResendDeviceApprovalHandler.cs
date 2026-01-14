@@ -105,6 +105,7 @@ public sealed class ResendDeviceApprovalHandler : ICommandHandler<ResendDeviceAp
             location: device.LocationDisplay,
             ipAddress: device.IpAddress,
             riskScore: device.RiskScore ?? 0,
+            userId: user.Id,
             language: user.PreferredLanguage,
             cancellationToken: ct
         );

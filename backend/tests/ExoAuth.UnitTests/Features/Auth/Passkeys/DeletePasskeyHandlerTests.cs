@@ -61,7 +61,7 @@ public sealed class DeletePasskeyHandlerTests
 
         _mockContext.Verify(x => x.Passkeys.Remove(passkey), Times.Once);
 
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.PasskeyDeleted,
             userId,
             null,
@@ -74,6 +74,7 @@ public sealed class DeletePasskeyHandlerTests
             user.Email,
             user.FullName,
             passkeyName,
+            user.Id,
             user.PreferredLanguage,
             It.IsAny<CancellationToken>()), Times.Once);
     }

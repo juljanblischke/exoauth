@@ -79,7 +79,7 @@ public sealed class RevokeUserSessionsHandlerTests
         _mockRevokedSessionService.Verify(x => x.RevokeSessionAsync(deviceId, It.IsAny<CancellationToken>()), Times.Once);
         _mockDeviceService.Verify(x => x.RemoveAllAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
 
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.SessionsRevokedByAdmin,
             adminUserId,
             userId,
@@ -94,6 +94,7 @@ public sealed class RevokeUserSessionsHandlerTests
             "sessions-revoked-admin",
             It.IsAny<Dictionary<string, string>>(),
             It.IsAny<string?>(),
+            user.Id,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -160,7 +161,7 @@ public sealed class RevokeUserSessionsHandlerTests
         result.RevokedCount.Should().Be(0);
 
         // Should not call audit or email when no devices to revoke
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             It.IsAny<string>(),
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
@@ -175,6 +176,7 @@ public sealed class RevokeUserSessionsHandlerTests
             It.IsAny<string>(),
             It.IsAny<Dictionary<string, string>>(),
             It.IsAny<string?>(),
+            It.IsAny<Guid?>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -248,6 +250,7 @@ public sealed class RevokeUserSessionsHandlerTests
                 d["firstName"] == user.FirstName &&
                 d["sessionCount"] == "2"),
             user.PreferredLanguage,
+            user.Id,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 

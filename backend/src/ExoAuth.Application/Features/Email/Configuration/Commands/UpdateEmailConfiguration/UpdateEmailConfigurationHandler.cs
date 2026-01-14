@@ -10,11 +10,16 @@ public sealed class UpdateEmailConfigurationHandler : ICommandHandler<UpdateEmai
 {
     private readonly IAppDbContext _dbContext;
     private readonly IAuditService _auditService;
+    private readonly ICurrentUserService _currentUser;
 
-    public UpdateEmailConfigurationHandler(IAppDbContext dbContext, IAuditService auditService)
+    public UpdateEmailConfigurationHandler(
+        IAppDbContext dbContext,
+        IAuditService auditService,
+        ICurrentUserService currentUser)
     {
         _dbContext = dbContext;
         _auditService = auditService;
+        _currentUser = currentUser;
     }
 
     public async ValueTask<EmailConfigurationDto> Handle(UpdateEmailConfigurationCommand command, CancellationToken ct)
@@ -45,9 +50,9 @@ public sealed class UpdateEmailConfigurationHandler : ICommandHandler<UpdateEmai
         await _dbContext.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
-            "EMAIL_CONFIGURATION_UPDATED",
-            userId: null,
+        await _auditService.LogWithContextAsync(
+            AuditActions.EmailConfigurationUpdated,
+            userId: _currentUser.UserId,
             targetUserId: null,
             entityType: "EmailConfiguration",
             entityId: config.Id,

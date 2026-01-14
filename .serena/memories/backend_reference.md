@@ -595,6 +595,117 @@ public sealed class {Feature}Controller : ControllerBase
 
 ---
 
+## Email Logging Guidelines
+
+### RecipientUserId Tracking
+
+All emails sent to **existing users** MUST include `recipientUserId` parameter. This enables:
+1. Proper association of email logs with users
+2. Consistent anonymization behavior (keeps userId, shows "Deleted User" after anonymization)
+3. Email log queries can join with `SystemUser` to show user info
+
+**IEmailService methods with userId parameter:**
+- `SendAsync(..., Guid? recipientUserId, ...)` - generic send
+- `SendPasswordResetAsync(..., Guid userId, ...)` - password reset
+- `SendPasswordChangedAsync(..., Guid userId, ...)` - password changed
+- `SendDeviceApprovalRequiredAsync(..., Guid userId, ...)` - device approval
+- `SendDeviceDeniedAlertAsync(..., Guid userId, ...)` - device denied
+- `SendPasskeyRegisteredEmailAsync(..., Guid userId, ...)` - passkey registered
+- `SendPasskeyRemovedEmailAsync(..., Guid userId, ...)` - passkey removed
+
+**Example - Handler sending email to user:**
+```csharp
+await _emailService.SendAsync(
+    user.Email,
+    subject,
+    "template-name",
+    variables,
+    user.PreferredLanguage,
+    user.Id,  // Always pass userId for existing users!
+    ct);
+```
+
+**Emails WITHOUT userId (null):**
+- System invites (user doesn't exist yet)
+- Test emails
+- Admin announcements to external recipients
+
+### EmailLog Anonymization
+
+When a user is anonymized, `EmailLog.Anonymize()`:
+- **Keeps** `RecipientUserId` (for query joins to show "Deleted User")
+- Sets `RecipientEmail` to `anonymized_{guid}@deleted.local` format (same as `SystemUser.Anonymize()`)
+- Clears `TemplateVariables`
+
+This is consistent with `SystemAuditLog` behavior - both keep user references for proper query display.
+
+---
+
+## Audit Logging Guidelines
+
+### Audit Action Naming Convention
+
+All audit actions MUST use the format: `system.category.action_name`
+
+Examples:
+- `system.token.refresh_token_created`
+- `system.token.refresh_token_revoked`
+- `system.email.provider_created`
+- `system.email.provider_updated`
+- `system.email.configuration_updated`
+- `system.email.dlq_retry`
+- `system.ip.restriction_created`
+- `system.passkey.registered`
+- `system.mfa.enabled`
+- `system.user.anonymized`
+
+**DO NOT use:** `EMAIL_PROVIDER_CREATED`, `USER_DELETED`, etc. (old SCREAMING_CASE format)
+
+All action strings are defined in `AuditActions` class in `IAuditService.cs`.
+
+### Two Methods Available
+
+| Method | Use Case | Captures |
+|--------|----------|----------|
+| `LogAsync` | Background jobs, system events without HTTP context | Action, userId, entityType, entityId, details |
+| `LogWithContextAsync` | **User-triggered HTTP requests** | All above + IP address + User-Agent |
+
+### Rules
+
+1. **Always use `LogWithContextAsync`** for any action triggered by an HTTP request (handlers called from controllers)
+2. **Always pass `userId`** - use `_currentUser.UserId` for the user performing the action
+3. **Use `targetUserId`** when the action affects another user (e.g., admin operations)
+
+### Example - Admin Handler
+```csharp
+// Inject ICurrentUserService
+private readonly ICurrentUserService _currentUser;
+
+// In handler
+await _auditService.LogWithContextAsync(
+    AuditActions.SomeAction,
+    userId: _currentUser.UserId,      // Who did it
+    targetUserId: command.UserId,     // Who was affected (if applicable)
+    entityType: "EntityName",
+    entityId: entity.Id,
+    details: new { ... },
+    cancellationToken: ct);
+```
+
+### Example - Self-Service Handler
+```csharp
+await _auditService.LogWithContextAsync(
+    AuditActions.PasskeyRegistered,
+    userId: userId,                   // Current user (self-service)
+    targetUserId: null,               // No target (acting on self)
+    entityType: "Passkey",
+    entityId: passkey.Id,
+    details: new { passkey.Name },
+    cancellationToken: ct);
+```
+
+---
+
 ## API Security Checklist
 
 Every new endpoint MUST have:
@@ -636,8 +747,9 @@ Every new endpoint MUST have:
 
 ## Last Updated
 
-- **Date:** 2026-01-11
-- **Task:** 025 - Email System Enhancement (Complete with Tests)
+- **Date:** 2026-01-14
+- **Task:** Email RecipientUserId Tracking - All emails to existing users now include `recipientUserId` for proper log association and consistent anonymization
+- **Previous:** Audit Action Naming Standardization - All audit actions now use `system.xxx.xxx` format
 - **Tests:** 577 total (127 email-related tests)
 - **Notes:** 
   - **GDPR Fix:** Email logs are anonymized when user is anonymized (EmailLog.Anonymize method)

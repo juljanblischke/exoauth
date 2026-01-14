@@ -145,7 +145,7 @@ public sealed class AnonymizeUserHandler : ICommandHandler<AnonymizeUserCommand,
         await _context.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.UserAnonymized,
             adminUserId,
             command.UserId,

@@ -90,7 +90,8 @@ public sealed class GetEmailLogsHandler : IQueryHandler<GetEmailLogsQuery, Curso
             .Select(x => new EmailLogDto(
                 x.Id,
                 x.RecipientUserId,
-                x.RecipientEmail,
+                // Use joined user's email for consistency with audit logs (shows anonymized email)
+                x.RecipientUser != null ? x.RecipientUser.Email : x.RecipientEmail,
                 x.RecipientUser != null ? x.RecipientUser.FirstName + " " + x.RecipientUser.LastName : null,
                 x.Subject,
                 x.TemplateName,

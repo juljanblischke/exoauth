@@ -67,6 +67,7 @@ public sealed class ResetPasswordHandlerTests
         _mockEmailService.Verify(x => x.SendPasswordChangedAsync(
             user.Email,
             user.FirstName,
+            user.Id,
             It.IsAny<string>(),
             It.IsAny<CancellationToken>()), Times.Once);
         _mockAuditService.Verify(x => x.LogWithContextAsync(

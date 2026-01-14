@@ -88,7 +88,7 @@ public sealed class PasskeyRegisterHandler : ICommandHandler<PasskeyRegisterComm
         await _context.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.PasskeyRegistered,
             userId,
             null,
@@ -102,6 +102,7 @@ public sealed class PasskeyRegisterHandler : ICommandHandler<PasskeyRegisterComm
             user.Email,
             user.FullName,
             passkey.Name,
+            user.Id,
             user.PreferredLanguage,
             ct);
 

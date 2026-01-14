@@ -55,7 +55,7 @@ public sealed class RenamePasskeyHandlerTests
         result.Name.Should().Be(newName);
         passkey.Name.Should().Be(newName);
 
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.PasskeyRenamed,
             userId,
             null,

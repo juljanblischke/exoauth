@@ -65,7 +65,7 @@ public sealed class CreateIpRestrictionHandler : ICommandHandler<CreateIpRestric
         await _ipRestrictionService.InvalidateCacheAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             command.Type == IpRestrictionType.Whitelist
                 ? AuditActions.IpWhitelisted
                 : AuditActions.IpBlacklisted,

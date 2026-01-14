@@ -9,11 +9,16 @@ public sealed class DeleteEmailProviderHandler : ICommandHandler<DeleteEmailProv
 {
     private readonly IAppDbContext _dbContext;
     private readonly IAuditService _auditService;
+    private readonly ICurrentUserService _currentUser;
 
-    public DeleteEmailProviderHandler(IAppDbContext dbContext, IAuditService auditService)
+    public DeleteEmailProviderHandler(
+        IAppDbContext dbContext,
+        IAuditService auditService,
+        ICurrentUserService currentUser)
     {
         _dbContext = dbContext;
         _auditService = auditService;
+        _currentUser = currentUser;
     }
 
     public async ValueTask<Unit> Handle(DeleteEmailProviderCommand command, CancellationToken ct)
@@ -33,9 +38,9 @@ public sealed class DeleteEmailProviderHandler : ICommandHandler<DeleteEmailProv
         await _dbContext.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
-            "EMAIL_PROVIDER_DELETED",
-            userId: null,
+        await _auditService.LogWithContextAsync(
+            AuditActions.EmailProviderDeleted,
+            userId: _currentUser.UserId,
             targetUserId: null,
             entityType: "EmailProvider",
             entityId: command.ProviderId,

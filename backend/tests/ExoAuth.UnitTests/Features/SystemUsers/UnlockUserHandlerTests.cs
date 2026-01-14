@@ -67,7 +67,7 @@ public sealed class UnlockUserHandlerTests
         user.IsLocked.Should().BeFalse();
         user.FailedLoginAttempts.Should().Be(0);
 
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.AccountUnlockedByAdmin,
             adminUserId,
             userId,
@@ -82,6 +82,7 @@ public sealed class UnlockUserHandlerTests
             "account-unlocked",
             It.IsAny<Dictionary<string, string>>(),
             It.IsAny<string?>(),
+            user.Id,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -148,7 +149,7 @@ public sealed class UnlockUserHandlerTests
 
         // Should not call SaveChanges or Audit when user is not locked
         _mockContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             It.IsAny<string>(),
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
@@ -208,6 +209,7 @@ public sealed class UnlockUserHandlerTests
             "account-unlocked",
             It.Is<Dictionary<string, string>>(d => d["firstName"] == user.FirstName),
             user.PreferredLanguage,
+            user.Id,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 

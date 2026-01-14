@@ -258,6 +258,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
                 location: pendingDevice.LocationDisplay,
                 ipAddress: pendingDevice.IpAddress,
                 riskScore: riskScore.Score,
+                userId: user.Id,
                 language: user.PreferredLanguage,
                 cancellationToken: ct
             );
@@ -332,6 +333,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
                 location: pendingDevice.LocationDisplay,
                 ipAddress: pendingDevice.IpAddress,
                 riskScore: spoofingCheck.RiskScore,
+                userId: user.Id,
                 language: user.PreferredLanguage,
                 cancellationToken: ct
             );
@@ -590,6 +592,7 @@ public sealed class LoginHandler : ICommandHandler<LoginCommand, AuthResponse>
             templateName: "new-location-login",
             variables: variables,
             language: user.PreferredLanguage,
+            recipientUserId: user.Id,
             cancellationToken: ct
         );
     }

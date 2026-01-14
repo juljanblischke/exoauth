@@ -80,6 +80,7 @@ public sealed class ResetPasswordHandler : ICommandHandler<ResetPasswordCommand,
         await _emailService.SendPasswordChangedAsync(
             email: user.Email,
             firstName: user.FirstName,
+            userId: user.Id,
             language: user.PreferredLanguage,
             cancellationToken: ct
         );

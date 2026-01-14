@@ -20,6 +20,7 @@ public interface IEmailService
         string templateName,
         Dictionary<string, string> variables,
         string language = "en-US",
+        Guid? recipientUserId = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -53,6 +54,7 @@ public interface IEmailService
         string firstName,
         string resetToken,
         string resetCode,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default);
 
@@ -66,6 +68,7 @@ public interface IEmailService
     Task SendPasswordChangedAsync(
         string email,
         string firstName,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default);
 
@@ -95,6 +98,7 @@ public interface IEmailService
         string? location,
         string? ipAddress,
         int riskScore,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default);
 
@@ -118,6 +122,7 @@ public interface IEmailService
         string? operatingSystem,
         string? location,
         string? ipAddress,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default);
 
@@ -133,6 +138,7 @@ public interface IEmailService
         string email,
         string fullName,
         string passkeyName,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default);
 
@@ -148,6 +154,7 @@ public interface IEmailService
         string email,
         string fullName,
         string passkeyName,
+        Guid userId,
         string language = "en-US",
         CancellationToken cancellationToken = default);
 }

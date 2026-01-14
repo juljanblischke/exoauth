@@ -10,11 +10,16 @@ public sealed class ReorderProvidersHandler : ICommandHandler<ReorderProvidersCo
 {
     private readonly IAppDbContext _dbContext;
     private readonly IAuditService _auditService;
+    private readonly ICurrentUserService _currentUser;
 
-    public ReorderProvidersHandler(IAppDbContext dbContext, IAuditService auditService)
+    public ReorderProvidersHandler(
+        IAppDbContext dbContext,
+        IAuditService auditService,
+        ICurrentUserService currentUser)
     {
         _dbContext = dbContext;
         _auditService = auditService;
+        _currentUser = currentUser;
     }
 
     public async ValueTask<List<EmailProviderDto>> Handle(ReorderProvidersCommand command, CancellationToken ct)
@@ -39,9 +44,9 @@ public sealed class ReorderProvidersHandler : ICommandHandler<ReorderProvidersCo
         await _dbContext.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
-            "EMAIL_PROVIDERS_REORDERED",
-            userId: null,
+        await _auditService.LogWithContextAsync(
+            AuditActions.EmailProvidersReordered,
+            userId: _currentUser.UserId,
             targetUserId: null,
             entityType: "EmailProvider",
             entityId: null,

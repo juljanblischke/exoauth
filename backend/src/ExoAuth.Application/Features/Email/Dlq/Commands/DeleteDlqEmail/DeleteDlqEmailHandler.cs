@@ -10,11 +10,16 @@ public sealed class DeleteDlqEmailHandler : ICommandHandler<DeleteDlqEmailComman
 {
     private readonly IAppDbContext _dbContext;
     private readonly IAuditService _auditService;
+    private readonly ICurrentUserService _currentUser;
 
-    public DeleteDlqEmailHandler(IAppDbContext dbContext, IAuditService auditService)
+    public DeleteDlqEmailHandler(
+        IAppDbContext dbContext,
+        IAuditService auditService,
+        ICurrentUserService currentUser)
     {
         _dbContext = dbContext;
         _auditService = auditService;
+        _currentUser = currentUser;
     }
 
     public async ValueTask<Unit> Handle(DeleteDlqEmailCommand command, CancellationToken ct)
@@ -37,9 +42,9 @@ public sealed class DeleteDlqEmailHandler : ICommandHandler<DeleteDlqEmailComman
         await _dbContext.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
-            "EMAIL_DLQ_DELETED",
-            userId: null,
+        await _auditService.LogWithContextAsync(
+            AuditActions.EmailDlqDeleted,
+            userId: _currentUser.UserId,
             targetUserId: log.RecipientUserId,
             entityType: "EmailLog",
             entityId: log.Id,

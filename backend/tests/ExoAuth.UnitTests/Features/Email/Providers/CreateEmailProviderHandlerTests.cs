@@ -14,6 +14,7 @@ public sealed class CreateEmailProviderHandlerTests
     private readonly Mock<IAppDbContext> _mockContext;
     private readonly Mock<IEncryptionService> _mockEncryptionService;
     private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<ICurrentUserService> _mockCurrentUser;
     private readonly CreateEmailProviderHandler _handler;
     private readonly List<EmailProvider> _providers;
 
@@ -22,6 +23,9 @@ public sealed class CreateEmailProviderHandlerTests
         _mockContext = MockDbContext.Create();
         _mockEncryptionService = new Mock<IEncryptionService>();
         _mockAuditService = new Mock<IAuditService>();
+        _mockCurrentUser = new Mock<ICurrentUserService>();
+
+        _mockCurrentUser.Setup(x => x.UserId).Returns(Guid.NewGuid());
 
         _providers = new List<EmailProvider>();
         _mockContext.Setup(x => x.EmailProviders)
@@ -33,7 +37,8 @@ public sealed class CreateEmailProviderHandlerTests
         _handler = new CreateEmailProviderHandler(
             _mockContext.Object,
             _mockEncryptionService.Object,
-            _mockAuditService.Object);
+            _mockAuditService.Object,
+            _mockCurrentUser.Object);
     }
 
     [Fact]
@@ -139,12 +144,12 @@ public sealed class CreateEmailProviderHandlerTests
         await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        _mockAuditService.Verify(x => x.LogAsync(
-            "EMAIL_PROVIDER_CREATED",
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
+            AuditActions.EmailProviderCreated,
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
             "EmailProvider",
-            It.IsAny<Guid>(),
+            It.IsAny<Guid?>(),
             It.IsAny<object?>(),
             It.IsAny<CancellationToken>()
         ), Times.Once);

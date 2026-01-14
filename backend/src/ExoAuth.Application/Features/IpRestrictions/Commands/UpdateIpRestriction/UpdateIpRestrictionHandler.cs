@@ -47,7 +47,7 @@ public sealed class UpdateIpRestrictionHandler : ICommandHandler<UpdateIpRestric
         await _ipRestrictionService.InvalidateCacheAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.IpRestrictionUpdated,
             userId: command.CurrentUserId,
             targetUserId: null,

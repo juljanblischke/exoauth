@@ -12,6 +12,7 @@ public sealed class ResetCircuitBreakerHandlerTests
 {
     private readonly Mock<IAppDbContext> _mockContext;
     private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<ICurrentUserService> _mockCurrentUser;
     private readonly ResetCircuitBreakerHandler _handler;
     private readonly List<EmailProvider> _providers;
 
@@ -19,12 +20,18 @@ public sealed class ResetCircuitBreakerHandlerTests
     {
         _mockContext = MockDbContext.Create();
         _mockAuditService = new Mock<IAuditService>();
+        _mockCurrentUser = new Mock<ICurrentUserService>();
         _providers = new List<EmailProvider>();
+
+        _mockCurrentUser.Setup(x => x.UserId).Returns(Guid.NewGuid());
 
         _mockContext.Setup(x => x.EmailProviders)
             .Returns(MockDbContext.CreateAsyncMockDbSet(_providers).Object);
 
-        _handler = new ResetCircuitBreakerHandler(_mockContext.Object, _mockAuditService.Object);
+        _handler = new ResetCircuitBreakerHandler(
+            _mockContext.Object,
+            _mockAuditService.Object,
+            _mockCurrentUser.Object);
     }
 
     [Fact]
@@ -105,12 +112,12 @@ public sealed class ResetCircuitBreakerHandlerTests
         await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        _mockAuditService.Verify(x => x.LogAsync(
-            "EMAIL_PROVIDER_CIRCUIT_BREAKER_RESET",
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
+            AuditActions.EmailProviderCircuitBreakerReset,
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
             "EmailProvider",
-            providerId,
+            It.IsAny<Guid?>(),
             It.IsAny<object?>(),
             It.IsAny<CancellationToken>()
         ), Times.Once);

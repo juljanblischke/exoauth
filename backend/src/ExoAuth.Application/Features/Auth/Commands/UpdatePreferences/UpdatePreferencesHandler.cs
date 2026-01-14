@@ -47,7 +47,7 @@ public sealed class UpdatePreferencesHandler : ICommandHandler<UpdatePreferences
         await _context.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.PreferencesUpdated,
             userId,
             null,

@@ -72,6 +72,7 @@ public sealed class ForgotPasswordHandlerTests
             user.FirstName,
             "token123",
             "ABCD-EFGH",
+            user.Id,
             It.IsAny<string>(),
             It.IsAny<CancellationToken>()), Times.Once);
         _mockAuditService.Verify(x => x.LogWithContextAsync(
@@ -104,6 +105,7 @@ public sealed class ForgotPasswordHandlerTests
             It.IsAny<string>(),
             It.IsAny<string>(),
             It.IsAny<string>(),
+            It.IsAny<Guid>(),
             It.IsAny<string>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -130,6 +132,7 @@ public sealed class ForgotPasswordHandlerTests
             It.IsAny<string>(),
             It.IsAny<string>(),
             It.IsAny<string>(),
+            It.IsAny<Guid>(),
             It.IsAny<string>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }

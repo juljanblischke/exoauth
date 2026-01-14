@@ -12,15 +12,18 @@ public sealed class UpdateEmailProviderHandler : ICommandHandler<UpdateEmailProv
     private readonly IAppDbContext _dbContext;
     private readonly IEncryptionService _encryptionService;
     private readonly IAuditService _auditService;
+    private readonly ICurrentUserService _currentUser;
 
     public UpdateEmailProviderHandler(
         IAppDbContext dbContext,
         IEncryptionService encryptionService,
-        IAuditService auditService)
+        IAuditService auditService,
+        ICurrentUserService currentUser)
     {
         _dbContext = dbContext;
         _encryptionService = encryptionService;
         _auditService = auditService;
+        _currentUser = currentUser;
     }
 
     public async ValueTask<EmailProviderDto> Handle(UpdateEmailProviderCommand command, CancellationToken ct)
@@ -48,9 +51,9 @@ public sealed class UpdateEmailProviderHandler : ICommandHandler<UpdateEmailProv
         await _dbContext.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
-            "EMAIL_PROVIDER_UPDATED",
-            userId: null,
+        await _auditService.LogWithContextAsync(
+            AuditActions.EmailProviderUpdated,
+            userId: _currentUser.UserId,
             targetUserId: null,
             entityType: "EmailProvider",
             entityId: provider.Id,

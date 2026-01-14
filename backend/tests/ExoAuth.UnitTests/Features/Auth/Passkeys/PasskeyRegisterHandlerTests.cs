@@ -76,7 +76,7 @@ public sealed class PasskeyRegisterHandlerTests
         result.Name.Should().Be(passkeyName);
         passkeys.Should().ContainSingle();
 
-        _mockAuditService.Verify(x => x.LogAsync(
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
             AuditActions.PasskeyRegistered,
             userId,
             null,
@@ -89,6 +89,7 @@ public sealed class PasskeyRegisterHandlerTests
             user.Email,
             user.FullName,
             passkeyName,
+            user.Id,
             user.PreferredLanguage,
             It.IsAny<CancellationToken>()), Times.Once);
     }

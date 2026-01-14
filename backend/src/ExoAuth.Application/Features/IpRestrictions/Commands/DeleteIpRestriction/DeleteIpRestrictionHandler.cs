@@ -50,7 +50,7 @@ public sealed class DeleteIpRestrictionHandler : ICommandHandler<DeleteIpRestric
         await _ipRestrictionService.InvalidateCacheAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.IpRestrictionDeleted,
             userId: _currentUserService.UserId,
             targetUserId: null,

@@ -89,7 +89,7 @@ public sealed class MfaSetupHandler : ICommandHandler<MfaSetupCommand, MfaSetupR
         // Format manual entry key with spaces for readability
         var manualEntryKey = FormatManualEntryKey(secret);
 
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.MfaSetupStarted,
             userId,
             null,

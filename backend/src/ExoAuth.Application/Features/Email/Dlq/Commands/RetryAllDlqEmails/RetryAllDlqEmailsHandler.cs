@@ -12,17 +12,20 @@ public sealed class RetryAllDlqEmailsHandler : ICommandHandler<RetryAllDlqEmails
     private readonly IAppDbContext _dbContext;
     private readonly IMessageBus _messageBus;
     private readonly IAuditService _auditService;
+    private readonly ICurrentUserService _currentUser;
 
     private const string EmailRoutingKey = "email.send";
 
     public RetryAllDlqEmailsHandler(
         IAppDbContext dbContext,
         IMessageBus messageBus,
-        IAuditService auditService)
+        IAuditService auditService,
+        ICurrentUserService currentUser)
     {
         _dbContext = dbContext;
         _messageBus = messageBus;
         _auditService = auditService;
+        _currentUser = currentUser;
     }
 
     public async ValueTask<RetryAllDlqEmailsResult> Handle(RetryAllDlqEmailsCommand command, CancellationToken ct)
@@ -72,9 +75,9 @@ public sealed class RetryAllDlqEmailsHandler : ICommandHandler<RetryAllDlqEmails
         }
 
         // Audit log
-        await _auditService.LogAsync(
-            "EMAIL_DLQ_RETRY_ALL",
-            userId: null,
+        await _auditService.LogWithContextAsync(
+            AuditActions.EmailDlqRetryAll,
+            userId: _currentUser.UserId,
             targetUserId: null,
             entityType: "EmailLog",
             entityId: null,

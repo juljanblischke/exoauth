@@ -145,7 +145,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
                     var remainingCodes = await _context.MfaBackupCodes
                         .CountAsync(c => c.UserId == userId && !c.IsUsed, ct);
 
-                    await _auditService.LogAsync(
+                    await _auditService.LogWithContextAsync(
                         AuditActions.MfaBackupCodeUsed,
                         userId,
                         null,
@@ -167,6 +167,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
                             ["year"] = DateTime.UtcNow.Year.ToString()
                         },
                         user.PreferredLanguage,
+                        userId,
                         ct
                     );
                 }
@@ -238,6 +239,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
                 location: pendingDevice.LocationDisplay,
                 ipAddress: pendingDevice.IpAddress,
                 riskScore: riskScore.Score,
+                userId: userId,
                 language: user.PreferredLanguage,
                 cancellationToken: ct
             );
@@ -313,6 +315,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
                 location: pendingDevice.LocationDisplay,
                 ipAddress: pendingDevice.IpAddress,
                 riskScore: spoofingCheck.RiskScore,
+                userId: userId,
                 language: user.PreferredLanguage,
                 cancellationToken: ct
             );
@@ -478,6 +481,7 @@ public sealed class MfaVerifyHandler : ICommandHandler<MfaVerifyCommand, AuthRes
             templateName: "new-location-login",
             variables: variables,
             language: user.PreferredLanguage,
+            recipientUserId: user.Id,
             cancellationToken: ct
         );
     }

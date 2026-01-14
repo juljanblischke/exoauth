@@ -150,7 +150,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
         await _context.SaveChangesAsync(ct);
 
         // Audit log
-        await _auditService.LogAsync(
+        await _auditService.LogWithContextAsync(
             AuditActions.MfaEnabled,
             userId,
             null,
@@ -171,6 +171,7 @@ public sealed class MfaConfirmHandler : ICommandHandler<MfaConfirmCommand, MfaCo
                 ["year"] = DateTime.UtcNow.Year.ToString()
             },
             user.PreferredLanguage,
+            user.Id,
             ct
         );
 
