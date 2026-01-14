@@ -281,8 +281,11 @@
     },
     "send": {
       "title": "Ankündigung senden",
-      "description": "Sind Sie sicher, dass Sie diese Ankündigung an {{count}} Empfänger senden möchten?",
+      "description": "Sind Sie sicher, dass Sie diese Ankündigung senden möchten?",
+      "allUsersDescription": "Sie sind dabei, diese Ankündigung an ALLE aktiven Benutzer zu senden. Diese Aktion kann nicht rückgängig gemacht werden. Geben Sie SENDEN ein, um zu bestätigen.",
+      "confirmText": "SENDEN",
       "button": "Senden",
+      "sending": "Wird gesendet...",
       "success": "Ankündigung wird gesendet"
     },
     "status": {

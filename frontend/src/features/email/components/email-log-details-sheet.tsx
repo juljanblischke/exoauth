@@ -12,6 +12,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { EmailStatusBadge } from './email-status-badge'
@@ -65,7 +70,14 @@ export function EmailLogDetailsSheet({
               <Mail className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">{log.subject}</p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <p className="font-medium truncate cursor-default">{log.subject}</p>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[350px]">
+                  <p>{log.subject}</p>
+                </TooltipContent>
+              </Tooltip>
               <div className="flex items-center gap-2 mt-1">
                 <EmailStatusBadge status={log.status} />
                 <span className="text-sm text-muted-foreground">
@@ -97,9 +109,16 @@ export function EmailLogDetailsSheet({
                       email={log.recipientEmail}
                       size="sm"
                     />
-                    <div className="text-left">
+                    <div className="text-left min-w-0 flex-1">
                       <p className="font-medium">{log.recipientUserFullName || log.recipientEmail}</p>
-                      <p className="text-sm text-muted-foreground">{log.recipientEmail}</p>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <p className="text-sm text-muted-foreground truncate max-w-[250px]">{log.recipientEmail}</p>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{log.recipientEmail}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 </Button>
@@ -110,8 +129,15 @@ export function EmailLogDetailsSheet({
                     email={log.recipientEmail}
                     size="sm"
                   />
-                  <div>
-                    <p className="font-medium">{log.recipientEmail}</p>
+                  <div className="min-w-0 flex-1">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p className="font-medium truncate max-w-[250px]">{log.recipientEmail}</p>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{log.recipientEmail}</p>
+                      </TooltipContent>
+                    </Tooltip>
                     <p className="text-sm text-muted-foreground">{t('email:logs.details.noUser')}</p>
                   </div>
                 </div>
@@ -219,8 +245,10 @@ export function EmailLogDetailsSheet({
                     <AlertTriangle className="h-4 w-4" />
                     {t('email:logs.details.lastError')}
                   </div>
-                  <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm font-mono whitespace-pre-wrap break-all">
-                    {log.lastError}
+                  <div className="bg-destructive/10 text-destructive p-3 rounded-md overflow-hidden">
+                    <p className="text-sm font-mono whitespace-pre-wrap break-all">
+                      {log.lastError}
+                    </p>
                   </div>
                 </div>
               </>
@@ -234,8 +262,8 @@ export function EmailLogDetailsSheet({
                   <p className="text-sm font-medium text-muted-foreground">
                     {t('email:logs.details.templateVariables')}
                   </p>
-                  <div className="bg-muted p-3 rounded-md">
-                    <pre className="text-xs overflow-x-auto">
+                  <div className="bg-muted p-3 rounded-md overflow-hidden">
+                    <pre className="text-xs overflow-x-auto whitespace-pre-wrap break-all">
                       {JSON.stringify(templateVariables, null, 2)}
                     </pre>
                   </div>

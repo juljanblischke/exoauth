@@ -15,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { TypeConfirmDialog } from '@/components/shared/feedback'
 import { usePermissions } from '@/contexts/auth-context'
 import {
   useEmailAnnouncements,
@@ -26,6 +27,7 @@ import {
 import { AnnouncementsTable } from './announcements-table'
 import { AnnouncementFormModal } from './announcement-form-modal'
 import { AnnouncementDetailsSheet } from './announcement-details-sheet'
+import { EmailAnnouncementTarget } from '../types'
 import type {
   EmailAnnouncementDto,
   EmailAnnouncementDetailDto,
@@ -42,8 +44,8 @@ export function EmailAnnouncementsTab() {
   const [formOpen, setFormOpen] = useState(false)
   const [editingAnnouncement, setEditingAnnouncement] =
     useState<EmailAnnouncementDetailDto | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<EmailAnnouncementDto | null>(null)
-  const [sendTarget, setSendTarget] = useState<EmailAnnouncementDto | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<EmailAnnouncementDto | EmailAnnouncementDetailDto | null>(null)
+  const [sendTarget, setSendTarget] = useState<EmailAnnouncementDto | EmailAnnouncementDetailDto | null>(null)
   const [detailsTarget, setDetailsTarget] =
     useState<EmailAnnouncementDetailDto | null>(null)
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false)
@@ -113,7 +115,7 @@ export function EmailAnnouncementsTab() {
     [editingAnnouncement, createAnnouncement, updateAnnouncement]
   )
 
-  const handleSend = useCallback((announcement: EmailAnnouncementDto) => {
+  const handleSend = useCallback((announcement: EmailAnnouncementDto | EmailAnnouncementDetailDto) => {
     setSendTarget(announcement)
   }, [])
 
@@ -139,7 +141,24 @@ export function EmailAnnouncementsTab() {
     []
   )
 
-  const handleDelete = useCallback((announcement: EmailAnnouncementDto) => {
+  const handleDelete = useCallback((announcement: EmailAnnouncementDto | EmailAnnouncementDetailDto) => {
+    setDeleteTarget(announcement)
+  }, [])
+
+  // Handler for edit from the details sheet
+  const handleEditFromSheet = useCallback((announcement: EmailAnnouncementDetailDto) => {
+    setDetailsSheetOpen(false)
+    setEditingAnnouncement(announcement)
+    setFormOpen(true)
+  }, [])
+
+  // Handler for send from the details sheet
+  const handleSendFromSheet = useCallback((announcement: EmailAnnouncementDetailDto) => {
+    setSendTarget(announcement)
+  }, [])
+
+  // Handler for delete from the details sheet
+  const handleDeleteFromSheet = useCallback((announcement: EmailAnnouncementDetailDto) => {
     setDeleteTarget(announcement)
   }, [])
 
@@ -212,30 +231,49 @@ export function EmailAnnouncementsTab() {
           setDetailsSheetOpen(open)
           if (!open) setDetailsTarget(null)
         }}
+        onEdit={handleEditFromSheet}
+        onSend={handleSendFromSheet}
+        onDelete={handleDeleteFromSheet}
+        canManage={canManage}
       />
 
-      {/* Send Confirmation Dialog */}
-      <AlertDialog
-        open={!!sendTarget}
-        onOpenChange={(open) => !open && setSendTarget(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('email:announcements.send.title')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('email:announcements.send.description', {
-                count: sendTarget?.totalRecipients ?? 0,
-              })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common:actions.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmSend}>
-              {t('email:announcements.send.button')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Send Confirmation Dialog - TypeConfirmDialog for all users, regular AlertDialog for others */}
+      {sendTarget?.targetType === EmailAnnouncementTarget.AllUsers ? (
+        <TypeConfirmDialog
+          open={!!sendTarget}
+          onOpenChange={(open) => !open && setSendTarget(null)}
+          title={t('email:announcements.send.title')}
+          description={t('email:announcements.send.allUsersDescription')}
+          confirmText={t('email:announcements.send.confirmText')}
+          confirmLabel={t('email:announcements.send.button')}
+          loadingLabel={t('email:announcements.send.sending')}
+          onConfirm={handleConfirmSend}
+          isLoading={sendAnnouncement.isPending}
+        />
+      ) : (
+        <AlertDialog
+          open={!!sendTarget}
+          onOpenChange={(open) => !open && setSendTarget(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('email:announcements.send.title')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('email:announcements.send.description')}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('common:actions.cancel')}</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleConfirmSend}
+                disabled={sendAnnouncement.isPending}
+              >
+                {t('email:announcements.send.button')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog

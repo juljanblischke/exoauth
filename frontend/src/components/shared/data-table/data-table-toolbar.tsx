@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { type Table } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
-import { Search, X, ArrowUpDown } from 'lucide-react'
+import { Search, X, ArrowUpDown, RefreshCw } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { DataTableFilters } from './data-table-filters'
@@ -19,6 +19,8 @@ interface DataTableToolbarProps<TData> {
   table: Table<TData>
   actions?: React.ReactNode
   content?: React.ReactNode
+  onRefresh?: () => void
+  isRefreshing?: boolean
 }
 
 export function DataTableToolbar<TData>({
@@ -31,6 +33,8 @@ export function DataTableToolbar<TData>({
   table,
   actions,
   content,
+  onRefresh,
+  isRefreshing = false,
 }: DataTableToolbarProps<TData>) {
   const { t } = useTranslation('common')
   const [localSearch, setLocalSearch] = useState(searchValue)
@@ -118,8 +122,20 @@ export function DataTableToolbar<TData>({
       )}
 
       <div className="ml-auto flex items-center gap-2">
-        <DataTableColumnToggle table={table} />
         {actions}
+        <DataTableColumnToggle table={table} />
+        {onRefresh && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="h-8"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="sr-only">{t('actions.refresh')}</span>
+          </Button>
+        )}
       </div>
     </div>
   )

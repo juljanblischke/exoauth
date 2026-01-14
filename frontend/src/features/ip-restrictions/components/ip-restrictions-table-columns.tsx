@@ -6,6 +6,11 @@ import { RelativeTime } from '@/components/shared/relative-time'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { DataTableRowActions } from '@/components/shared/data-table'
 import { Badge } from '@/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { IpRestrictionTypeBadge } from './ip-restriction-type-badge'
 import { IpRestrictionSourceBadge } from './ip-restriction-source-badge'
@@ -108,9 +113,16 @@ export function useIpRestrictionsColumns(
       meta: { label: reasonLabel },
       enableSorting: false,
       cell: ({ row }) => (
-        <span className="max-w-[200px] truncate" title={row.original.reason}>
-          {row.original.reason}
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="max-w-[200px] truncate block cursor-default">
+              {row.original.reason}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[400px]">
+            <p>{row.original.reason}</p>
+          </TooltipContent>
+        </Tooltip>
       ),
     },
     {
@@ -169,9 +181,23 @@ export function useIpRestrictionsColumns(
               email={restriction.createdByUserEmail || ''}
               size="sm"
             />
-            <div className="flex flex-col">
-              <span className="font-medium">{restriction.createdByUserFullName}</span>
-              <span className="text-xs text-muted-foreground">{restriction.createdByUserEmail}</span>
+            <div className="flex flex-col min-w-0">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="font-medium truncate max-w-[120px]">{restriction.createdByUserFullName}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{restriction.createdByUserFullName}</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-xs text-muted-foreground truncate max-w-[120px]">{restriction.createdByUserEmail}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{restriction.createdByUserEmail}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         )

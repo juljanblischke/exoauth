@@ -10,6 +10,11 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { IpRestrictionTypeBadge } from './ip-restriction-type-badge'
@@ -95,9 +100,16 @@ export function IpRestrictionDetailsSheet({
                       email={restriction.createdByUserEmail || ''}
                       size="sm"
                     />
-                    <div className="text-left">
+                    <div className="text-left min-w-0 flex-1">
                       <p className="font-medium">{restriction.createdByUserFullName}</p>
-                      <p className="text-sm text-muted-foreground">{restriction.createdByUserEmail}</p>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <p className="text-sm text-muted-foreground truncate max-w-[250px]">{restriction.createdByUserEmail}</p>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{restriction.createdByUserEmail}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 </Button>

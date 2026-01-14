@@ -27,5 +27,6 @@
   "empty": {
     "title": "No audit logs yet",
     "description": "Audit logs will appear here as system activity occurs"
-  }
+  },
+  "refreshed": "Audit logs refreshed"
 }

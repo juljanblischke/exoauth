@@ -5,6 +5,11 @@ import { ArrowUp, ArrowDown, ChevronsUpDown } from 'lucide-react'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { Badge } from '@/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { SystemAuditLogDto } from '../types'
 
@@ -95,9 +100,23 @@ export function useAuditLogsColumns(): ColumnDef<SystemAuditLogDto>[] {
               email={log.userEmail || ''}
               size="sm"
             />
-            <div className="flex flex-col">
-              <span className="font-medium">{log.userFullName}</span>
-              <span className="text-xs text-muted-foreground">{log.userEmail}</span>
+            <div className="flex flex-col min-w-0">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="font-medium truncate max-w-[150px]">{log.userFullName}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{log.userFullName}</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-xs text-muted-foreground truncate max-w-[150px]">{log.userEmail}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{log.userEmail}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         )
@@ -130,12 +149,19 @@ export function useAuditLogsColumns(): ColumnDef<SystemAuditLogDto>[] {
           return <span className="text-muted-foreground">-</span>
         }
         return (
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <span className="font-medium">{log.entityType}</span>
             {log.entityId && (
-              <span className="text-xs text-muted-foreground font-mono truncate max-w-[120px]">
-                {log.entityId}
-              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-xs text-muted-foreground font-mono truncate max-w-[120px]">
+                    {log.entityId}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="font-mono">{log.entityId}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
         )

@@ -6,6 +6,11 @@ import { UserAvatar } from '@/components/shared/user-avatar'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { DataTableRowActions } from '@/components/shared/data-table/data-table-row-actions'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { SystemUserDto } from '../types'
 import type { RowAction } from '@/types/table'
@@ -110,9 +115,23 @@ export function useUsersColumns({
               email={user.email}
               size="sm"
             />
-            <div className="flex flex-col">
-              <span className="font-medium">{user.fullName}</span>
-              <span className="text-xs text-muted-foreground">{user.email}</span>
+            <div className="flex flex-col min-w-0">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="font-medium truncate max-w-[180px]">{user.fullName}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{user.fullName}</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-xs text-muted-foreground truncate max-w-[180px]">{user.email}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{user.email}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         )

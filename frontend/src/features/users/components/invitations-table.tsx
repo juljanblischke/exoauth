@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { Eye, Send, XCircle, Pencil } from 'lucide-react'
 import { type SortingState } from '@tanstack/react-table'
 import { DataTable } from '@/components/shared/data-table'
@@ -80,6 +81,8 @@ export function InvitationsTable({
     isFetching,
     fetchNextPage,
     hasNextPage,
+    refetch,
+    isRefetching,
   } = useSystemInvites({
     search: debouncedSearch || undefined,
     statuses: activeStatuses,
@@ -150,6 +153,11 @@ export function InvitationsTable({
     }
   }, [hasNextPage, isFetching, fetchNextPage])
 
+  const handleRefresh = useCallback(async () => {
+    await refetch()
+    toast.success(t('users:invites.refreshed'))
+  }, [refetch, t])
+
   // Build status filter options based on what's currently shown
   const statusOptions: SelectFilterOption[] = useMemo(() => {
     const availableStatuses = showExpired && showRevoked
@@ -212,6 +220,8 @@ export function InvitationsTable({
       initialSorting={sorting}
       onSortingChange={setSorting}
       toolbarContent={filterContent}
+      onRefresh={handleRefresh}
+      isRefreshing={isRefetching}
       emptyState={{
         title: t('users:invites.empty.title'),
         description: t('users:invites.empty.description'),

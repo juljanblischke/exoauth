@@ -74,5 +74,6 @@
     "temporary": "Temporary"
   },
   "expired": "Expired",
-  "never": "Never"
+  "never": "Never",
+  "refreshed": "IP restrictions refreshed"
 }

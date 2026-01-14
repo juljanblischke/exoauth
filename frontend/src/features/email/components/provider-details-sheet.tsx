@@ -19,6 +19,11 @@ import {
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { EmailProviderTypeBadge } from './email-provider-type-badge'
 import { EmailProviderStatusBadge } from './email-provider-status-badge'
@@ -50,11 +55,18 @@ export function ProviderDetailsSheet({
         {/* Header */}
         <div className="p-6 pb-4 border-b space-y-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 shrink-0">
               <Mail className="h-5 w-5 text-primary" />
             </div>
-            <div>
-              <h2 className="font-semibold text-lg">{provider.name}</h2>
+            <div className="min-w-0 flex-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <h2 className="font-semibold text-lg truncate cursor-default">{provider.name}</h2>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{provider.name}</p>
+                </TooltipContent>
+              </Tooltip>
               <div className="flex items-center gap-2 mt-1">
                 <EmailProviderTypeBadge type={provider.type} />
                 <EmailProviderStatusBadge

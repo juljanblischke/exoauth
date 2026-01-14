@@ -27,5 +27,6 @@
   "empty": {
     "title": "Noch keine Audit-Protokolle",
     "description": "Audit-Protokolle werden hier angezeigt, sobald Systemaktivitäten auftreten"
-  }
+  },
+  "refreshed": "Audit-Protokolle aktualisiert"
 }

@@ -281,8 +281,11 @@
     },
     "send": {
       "title": "Send Announcement",
-      "description": "Are you sure you want to send this announcement to {{count}} recipients?",
+      "description": "Are you sure you want to send this announcement?",
+      "allUsersDescription": "You are about to send this announcement to ALL active users. This action cannot be undone. Type SEND to confirm.",
+      "confirmText": "SEND",
       "button": "Send",
+      "sending": "Sending...",
       "success": "Announcement is being sent"
     },
     "status": {

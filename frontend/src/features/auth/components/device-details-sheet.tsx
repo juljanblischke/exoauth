@@ -21,6 +21,11 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { RelativeTime } from '@/components/shared'
 import { DeviceStatusBadge } from './device-status-badge'
 import { normalizeDeviceStatus, type DeviceDto } from '../types/device'
@@ -86,16 +91,23 @@ export function DeviceDetailsSheet({
         <div className="space-y-6 p-6 pb-0 shrink-0">
           {/* Device header */}
           <div className="flex items-start gap-4">
-            <div className="p-3 rounded-full bg-muted">
+            <div className="p-3 rounded-full bg-muted shrink-0">
               <DeviceIcon
                 deviceType={device.deviceType}
                 className="h-6 w-6 text-muted-foreground"
               />
             </div>
             <div className="flex-1 min-w-0 space-y-1">
-              <h2 className="text-xl font-semibold truncate">
-                {device.name || device.displayName || t('auth:devices.unknownDevice')}
-              </h2>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <h2 className="text-xl font-semibold truncate cursor-default">
+                    {device.name || device.displayName || t('auth:devices.unknownDevice')}
+                  </h2>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{device.name || device.displayName || t('auth:devices.unknownDevice')}</p>
+                </TooltipContent>
+              </Tooltip>
               <div className="flex items-center gap-2">
                 <DeviceStatusBadge status={device.status} />
                 {device.isCurrent && (
@@ -233,9 +245,16 @@ export function DeviceDetailsSheet({
           {/* Device ID */}
           <div className="mt-6 text-xs text-muted-foreground">
             <span className="font-medium">Device ID:</span>{' '}
-            <code className="bg-muted px-1 py-0.5 rounded break-all">
-              {device.deviceId}
-            </code>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <code className="bg-muted px-1 py-0.5 rounded truncate max-w-[200px] inline-block align-bottom cursor-default">
+                  {device.deviceId}
+                </code>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[400px]">
+                <p className="font-mono break-all">{device.deviceId}</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 

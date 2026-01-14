@@ -65,7 +65,8 @@
       "title": "Edit Invitation",
       "description": "Update the invitation details and permissions",
       "success": "Invitation updated successfully"
-    }
+    },
+    "refreshed": "Invitations refreshed"
   },
   "fields": {
     "name": "Name",
@@ -226,5 +227,6 @@
     "revokeAllSuccess": "All devices revoked successfully",
     "revokeAllTitle": "Revoke all devices?",
     "revokeAllDescription": "This will log the user out of all devices and remove their trusted status. They will need to verify devices again."
-  }
+  },
+  "refreshed": "Users refreshed"
 }

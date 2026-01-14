@@ -8,6 +8,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { RelativeTime } from '@/components/shared'
 import type { PasskeyDto } from '../types/passkey'
 
@@ -33,7 +38,14 @@ export function PasskeyCard({
       </div>
 
       <div className="flex-1 min-w-0">
-        <h4 className="font-medium truncate">{passkey.name}</h4>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <h4 className="font-medium truncate cursor-default">{passkey.name}</h4>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{passkey.name}</p>
+          </TooltipContent>
+        </Tooltip>
 
         <div className="mt-1 text-sm text-muted-foreground space-y-0.5">
           <div className="flex items-center gap-1.5">

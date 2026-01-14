@@ -336,7 +336,7 @@ frontend/
 │   │   │   │   ├── announcements-table-columns.tsx
 │   │   │   │   ├── announcements-table.tsx
 │   │   │   │   ├── announcement-form-modal.tsx
-│   │   │   │   ├── announcement-details-sheet.tsx
+│   │   │   │   ├── announcement-details-sheet.tsx  (+ edit/send/delete actions)
 │   │   │   │   ├── user-select-modal.tsx
 │   │   │   │   ├── email-announcements-tab.tsx
 │   │   │   │   ├── provider-details-sheet.tsx
@@ -705,6 +705,88 @@ import type { Feature } from '../types'
 7. **Tests**: Component + Hook tests
 8. **Update the Task file**
 9. **Update this memory file**
+
+---
+
+## Truncation & Tooltip Pattern
+
+When displaying potentially long text from backend responses, use this consistent pattern:
+
+### In Tables (columns)
+```tsx
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+
+// For text cells - use truncate + tooltip
+<Tooltip>
+  <TooltipTrigger asChild>
+    <span className="truncate max-w-[150px] cursor-default">
+      {longText}
+    </span>
+  </TooltipTrigger>
+  <TooltipContent>
+    <p>{longText}</p>
+  </TooltipContent>
+</Tooltip>
+
+// For user name/email combos
+<div className="flex flex-col min-w-0">
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <span className="font-medium truncate max-w-[180px]">{name}</span>
+    </TooltipTrigger>
+    <TooltipContent><p>{name}</p></TooltipContent>
+  </Tooltip>
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <span className="text-xs text-muted-foreground truncate max-w-[180px]">{email}</span>
+    </TooltipTrigger>
+    <TooltipContent><p>{email}</p></TooltipContent>
+  </Tooltip>
+</div>
+```
+
+### In Detail Sheets
+```tsx
+// For single-line truncated text with tooltip
+<Tooltip>
+  <TooltipTrigger asChild>
+    <p className="truncate max-w-[250px] cursor-default">{text}</p>
+  </TooltipTrigger>
+  <TooltipContent className="max-w-[400px]">
+    <p>{text}</p>
+  </TooltipContent>
+</Tooltip>
+
+// For long text that should wrap (user agents, descriptions)
+<div className="overflow-hidden">
+  <p className="text-sm break-all">{longText}</p>
+</div>
+
+// For JSON/code blocks - MUST use overflow-hidden wrapper
+<div className="bg-muted p-3 rounded-md overflow-hidden">
+  <pre className="text-xs overflow-x-auto whitespace-pre-wrap break-all">
+    {JSON.stringify(data, null, 2)}
+  </pre>
+</div>
+
+// For error messages
+<div className="bg-destructive/10 p-3 rounded-md overflow-hidden">
+  <p className="text-sm font-mono text-destructive whitespace-pre-wrap break-all">
+    {errorMessage}
+  </p>
+</div>
+```
+
+### Key Rules
+- **Tables**: Use `truncate` + `max-w-[Xpx]` + Tooltip (so users can hover to see full text)
+- **Sheets**: Use `overflow-hidden` wrapper + `break-all` for long content
+- **JSON/Pre**: Always wrap in `overflow-hidden` div, use `whitespace-pre-wrap break-all`
+- **Never use `title` attribute** - always use proper `<Tooltip>` component for accessibility
+- **Parent containers**: Add `min-w-0` to flex children that contain truncated text
 
 ---
 

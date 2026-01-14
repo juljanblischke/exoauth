@@ -218,6 +218,7 @@ announcements.status.* - draft, scheduled, sending, sent, cancelled
 announcements.target.* - all, organization, project, custom
 announcements.form.* - createTitle, editTitle, title, content, targetType, targetIds, scheduledAt, submit
 announcements.actions.* - edit, delete, send, cancel, duplicate
+announcements.send.*   - title, description, allUsersDescription, confirmText, button, sending, success
 announcements.details.* - title, status, targetType, targetIds, scheduledAt, sentAt, recipientCount, content
 
 userSelect.*       - title, description, search, selected, noResults, loading, confirm, cancel

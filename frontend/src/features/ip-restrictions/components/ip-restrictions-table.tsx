@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { type SortingState } from '@tanstack/react-table'
 import { Plus, Pencil, Trash2, Shield } from 'lucide-react'
 import { DataTable } from '@/components/shared/data-table'
@@ -75,6 +76,8 @@ export function IpRestrictionsTable() {
     isFetching,
     fetchNextPage,
     hasNextPage,
+    refetch,
+    isRefetching,
   } = useIpRestrictions({
     sort: sortParam,
     search: debouncedSearch || undefined,
@@ -103,6 +106,11 @@ export function IpRestrictionsTable() {
       fetchNextPage()
     }
   }, [hasNextPage, isFetching, fetchNextPage])
+
+  const handleRefresh = useCallback(async () => {
+    await refetch()
+    toast.success(t('ipRestrictions:refreshed'))
+  }, [refetch, t])
 
   const handleRowClick = useCallback((restriction: IpRestrictionDto) => {
     setSelectedRestriction(restriction)
@@ -225,14 +233,15 @@ export function IpRestrictionsTable() {
         values={sourceFilter}
         onValuesChange={setSourceFilter}
       />
-      {canManage && (
-        <Button onClick={() => setCreateModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t('common:actions.add')}
-        </Button>
-      )}
     </>
   )
+
+  const toolbarActions = canManage ? (
+    <Button onClick={() => setCreateModalOpen(true)}>
+      <Plus className="h-4 w-4 mr-2" />
+      {t('common:actions.add')}
+    </Button>
+  ) : undefined
 
   return (
     <>
@@ -249,6 +258,9 @@ export function IpRestrictionsTable() {
         initialSorting={sorting}
         onSortingChange={setSorting}
         toolbarContent={filterContent}
+        toolbarActions={toolbarActions}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefetching}
         onRowClick={handleRowClick}
         emptyState={{
           title: t('ipRestrictions:table.noResults'),

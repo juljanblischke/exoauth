@@ -65,7 +65,8 @@
       "title": "Einladung bearbeiten",
       "description": "Aktualisieren Sie die Einladungsdetails und Berechtigungen",
       "success": "Einladung erfolgreich aktualisiert"
-    }
+    },
+    "refreshed": "Einladungen aktualisiert"
   },
   "fields": {
     "name": "Name",
@@ -226,5 +227,6 @@
     "revokeAllSuccess": "Alle Geräte erfolgreich widerrufen",
     "revokeAllTitle": "Alle Geräte widerrufen?",
     "revokeAllDescription": "Dies meldet den Benutzer von allen Geräten ab und entfernt den Vertrauensstatus. Der Benutzer muss die Geräte erneut verifizieren."
-  }
+  },
+  "refreshed": "Benutzer aktualisiert"
 }

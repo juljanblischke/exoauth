@@ -19,6 +19,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { RelativeTime } from '@/components/shared'
 import { DeviceStatusBadge } from './device-status-badge'
 import { normalizeDeviceStatus, type DeviceDto } from '../types/device'
@@ -102,9 +107,16 @@ export function DeviceCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="font-medium truncate">
-              {device.name || device.displayName || t('auth:devices.unknownDevice')}
-            </h4>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <h4 className="font-medium truncate max-w-[200px] cursor-default">
+                  {device.name || device.displayName || t('auth:devices.unknownDevice')}
+                </h4>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{device.name || device.displayName || t('auth:devices.unknownDevice')}</p>
+              </TooltipContent>
+            </Tooltip>
             {device.isCurrent && (
               <Badge variant="default" className="text-xs">
                 {t('auth:devices.current')}

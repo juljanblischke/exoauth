@@ -43,6 +43,9 @@ interface DataTableProps<TData, TValue> {
   activeFilters?: ActiveFilter[]
   onFilterChange?: (filters: ActiveFilter[]) => void
   toolbarContent?: React.ReactNode
+  toolbarActions?: React.ReactNode
+  onRefresh?: () => void
+  isRefreshing?: boolean
   emptyState?: {
     title: string
     description?: string
@@ -86,6 +89,9 @@ export function DataTable<TData, TValue>({
   activeFilters = [],
   onFilterChange,
   toolbarContent,
+  toolbarActions,
+  onRefresh,
+  isRefreshing = false,
   emptyState,
   enableRowSelection = false,
   onRowSelectionChange,
@@ -193,6 +199,9 @@ export function DataTable<TData, TValue>({
           onFilterChange={onFilterChange}
           table={table}
           content={toolbarContent}
+          actions={toolbarActions}
+          onRefresh={onRefresh}
+          isRefreshing={isRefreshing}
         />
 
         {isLoading ? (
@@ -269,6 +278,9 @@ export function DataTable<TData, TValue>({
         onFilterChange={onFilterChange}
         table={table}
         content={toolbarContent}
+        actions={toolbarActions}
+        onRefresh={onRefresh}
+        isRefreshing={isRefreshing}
       />
 
       <div className="rounded-md border">

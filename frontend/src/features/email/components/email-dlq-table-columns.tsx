@@ -10,6 +10,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { RelativeTime } from '@/components/shared/relative-time'
 import type { EmailLogDto } from '../types'
 
@@ -32,6 +37,7 @@ export function useDlqColumns({
       header: t('email:dlq.columns.recipient'),
       cell: ({ row }) => {
         const email = row.original
+        const displayName = email.recipientUserFullName || email.recipientEmail
         return (
           <div className="flex items-center gap-3">
             <UserAvatar
@@ -40,13 +46,27 @@ export function useDlqColumns({
               size="sm"
             />
             <div className="flex flex-col min-w-0">
-              <span className="font-medium truncate">
-                {email.recipientUserFullName || email.recipientEmail}
-              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="font-medium truncate max-w-[150px]">
+                    {displayName}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{displayName}</p>
+                </TooltipContent>
+              </Tooltip>
               {email.recipientUserFullName && (
-                <span className="text-xs text-muted-foreground truncate">
-                  {email.recipientEmail}
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                      {email.recipientEmail}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{email.recipientEmail}</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
             </div>
           </div>
@@ -57,18 +77,32 @@ export function useDlqColumns({
       accessorKey: 'subject',
       header: t('email:dlq.columns.subject'),
       cell: ({ row }) => (
-        <div className="max-w-[200px] truncate" title={row.original.subject}>
-          {row.original.subject}
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="max-w-[200px] truncate cursor-default">
+              {row.original.subject}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[400px]">
+            <p>{row.original.subject}</p>
+          </TooltipContent>
+        </Tooltip>
       ),
     },
     {
       accessorKey: 'templateName',
       header: t('email:dlq.columns.template'),
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground font-mono">
-          {row.original.templateName}
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="text-sm text-muted-foreground font-mono truncate max-w-[120px] block">
+              {row.original.templateName}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="font-mono">{row.original.templateName}</p>
+          </TooltipContent>
+        </Tooltip>
       ),
     },
     {
@@ -81,14 +115,24 @@ export function useDlqColumns({
     {
       accessorKey: 'lastError',
       header: t('email:dlq.columns.lastError'),
-      cell: ({ row }) => (
-        <div
-          className="max-w-[200px] truncate text-sm text-destructive"
-          title={row.original.lastError ?? undefined}
-        >
-          {row.original.lastError ?? '-'}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const lastError = row.original.lastError
+        if (!lastError) {
+          return <span className="text-muted-foreground">-</span>
+        }
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="max-w-[200px] truncate text-sm text-destructive cursor-default">
+                {lastError}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[400px]">
+              <p className="text-destructive">{lastError}</p>
+            </TooltipContent>
+          </Tooltip>
+        )
+      },
     },
     {
       accessorKey: 'movedToDlqAt',

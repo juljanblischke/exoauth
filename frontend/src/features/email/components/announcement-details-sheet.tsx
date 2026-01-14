@@ -8,17 +8,27 @@ import {
   TrendingUp,
   CheckCircle,
   XCircle,
+  Pencil,
+  Send,
+  Trash2,
 } from 'lucide-react'
 
 import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Progress } from '@/components/ui/progress'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { AnnouncementStatusBadge } from './announcement-status-badge'
@@ -29,18 +39,29 @@ interface AnnouncementDetailsSheetProps {
   announcement: EmailAnnouncementDetailDto | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onEdit?: (announcement: EmailAnnouncementDetailDto) => void
+  onSend?: (announcement: EmailAnnouncementDetailDto) => void
+  onDelete?: (announcement: EmailAnnouncementDetailDto) => void
+  canManage?: boolean
 }
 
 export function AnnouncementDetailsSheet({
   announcement,
   open,
   onOpenChange,
+  onEdit,
+  onSend,
+  onDelete,
+  canManage = false,
 }: AnnouncementDetailsSheetProps) {
   const { t } = useTranslation()
 
   if (!announcement) return null
 
   const isDraft = announcement.status === EmailAnnouncementStatus.Draft
+  const canEdit = canManage && isDraft && onEdit
+  const canSend = canManage && isDraft && onSend
+  const canDelete = canManage && isDraft && onDelete
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -53,11 +74,18 @@ export function AnnouncementDetailsSheet({
         {/* Header */}
         <div className="p-6 pb-4 border-b space-y-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 shrink-0">
               <Megaphone className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="font-semibold text-lg truncate">{announcement.subject}</h2>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <h2 className="font-semibold text-lg truncate cursor-default">{announcement.subject}</h2>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[350px]">
+                  <p>{announcement.subject}</p>
+                </TooltipContent>
+              </Tooltip>
               <div className="flex items-center gap-2 mt-1">
                 <AnnouncementStatusBadge status={announcement.status} />
                 <AnnouncementTargetBadge
@@ -172,6 +200,45 @@ export function AnnouncementDetailsSheet({
             </div>
           </div>
         </ScrollArea>
+
+        {/* Actions Footer */}
+        {(canEdit || canSend || canDelete) && (
+          <SheetFooter className="p-6 pt-4 border-t">
+            <div className="flex items-center gap-2 w-full">
+              {canDelete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onDelete(announcement)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {t('common:actions.delete')}
+                </Button>
+              )}
+              <div className="flex-1" />
+              {canEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(announcement)}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  {t('common:actions.edit')}
+                </Button>
+              )}
+              {canSend && (
+                <Button
+                  size="sm"
+                  onClick={() => onSend(announcement)}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {t('email:announcements.send.button')}
+                </Button>
+              )}
+            </div>
+          </SheetFooter>
+        )}
       </SheetContent>
     </Sheet>
   )

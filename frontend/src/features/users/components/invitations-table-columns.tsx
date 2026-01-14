@@ -6,6 +6,11 @@ import { UserAvatar } from '@/components/shared/user-avatar'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { DataTableRowActions } from '@/components/shared/data-table/data-table-row-actions'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { SystemInviteListDto, InviteStatus } from '../types'
 import type { RowAction } from '@/types/table'
@@ -103,9 +108,23 @@ export function useInvitationsColumns({
         return (
           <div className="flex items-center gap-3">
             <UserAvatar name={fullName} email={invite.email} size="sm" />
-            <div className="flex flex-col">
-              <span className="font-medium">{fullName}</span>
-              <span className="text-xs text-muted-foreground">{invite.email}</span>
+            <div className="flex flex-col min-w-0">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="font-medium truncate max-w-[180px]">{fullName}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{fullName}</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-xs text-muted-foreground truncate max-w-[180px]">{invite.email}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{invite.email}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         )

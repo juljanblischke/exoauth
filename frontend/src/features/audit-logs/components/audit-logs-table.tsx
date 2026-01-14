@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { type DateRange } from 'react-day-picker'
 import { type SortingState } from '@tanstack/react-table'
 import { DataTable } from '@/components/shared/data-table'
@@ -82,6 +83,8 @@ export function AuditLogsTable() {
     isFetching,
     fetchNextPage,
     hasNextPage,
+    refetch,
+    isRefetching,
   } = useAuditLogs({
     sort: sortParam,
     search: debouncedSearch || undefined,
@@ -124,6 +127,11 @@ export function AuditLogsTable() {
     }
   }, [hasNextPage, isFetching, fetchNextPage])
 
+  const handleRefresh = useCallback(async () => {
+    await refetch()
+    toast.success(t('auditLogs:refreshed'))
+  }, [refetch, t])
+
   const handleRowClick = useCallback((log: SystemAuditLogDto) => {
     setSelectedLog(log)
     setLogSheetOpen(true)
@@ -155,7 +163,7 @@ export function AuditLogsTable() {
   }, [usersData, selectedLog])
 
   const filterContent = (
-    <>
+    <div className="flex flex-wrap items-center gap-2">
       {actionOptions.length > 0 && (
         <SelectFilter
           label={t('auditLogs:filters.action')}
@@ -179,7 +187,7 @@ export function AuditLogsTable() {
         onChange={setDateRange}
         placeholder={t('auditLogs:filters.dateRange')}
       />
-    </>
+    </div>
   )
 
   return (
@@ -197,6 +205,8 @@ export function AuditLogsTable() {
         initialSorting={sorting}
         onSortingChange={setSorting}
         toolbarContent={filterContent}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefetching}
         onRowClick={handleRowClick}
         emptyState={{
           title: t('auditLogs:empty.title'),

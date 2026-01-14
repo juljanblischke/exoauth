@@ -10,6 +10,11 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { RelativeTime } from '@/components/shared/relative-time'
 import type { SystemAuditLogDto } from '../types'
@@ -96,9 +101,16 @@ export function AuditLogDetailsSheet({
                       email={log.userEmail || ''}
                       size="sm"
                     />
-                    <div className="text-left">
+                    <div className="text-left min-w-0 flex-1">
                       <p className="font-medium">{log.userFullName}</p>
-                      <p className="text-sm text-muted-foreground">{log.userEmail}</p>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <p className="text-sm text-muted-foreground truncate max-w-[250px]">{log.userEmail}</p>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{log.userEmail}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 </Button>
@@ -127,9 +139,16 @@ export function AuditLogDetailsSheet({
                       email={log.targetUserEmail || ''}
                       size="sm"
                     />
-                    <div className="text-left">
+                    <div className="text-left min-w-0 flex-1">
                       <p className="font-medium">{log.targetUserFullName}</p>
-                      <p className="text-sm text-muted-foreground">{log.targetUserEmail}</p>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <p className="text-sm text-muted-foreground truncate max-w-[250px]">{log.targetUserEmail}</p>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{log.targetUserEmail}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 </Button>
@@ -162,9 +181,16 @@ export function AuditLogDetailsSheet({
                     </p>
                   )}
                   {log.entityId && (
-                    <p className="text-sm font-mono text-xs text-muted-foreground">
-                      ID: {log.entityId}
-                    </p>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p className="text-sm font-mono text-xs text-muted-foreground truncate max-w-[300px]">
+                          ID: {log.entityId}
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-mono">{log.entityId}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   )}
                 </div>
               </div>
@@ -188,9 +214,11 @@ export function AuditLogDetailsSheet({
                   <Monitor className="h-4 w-4" />
                   {t('auditLogs:fields.userAgent')}
                 </div>
-                <p className="text-sm text-muted-foreground pl-6 break-all">
-                  {log.userAgent}
-                </p>
+                <div className="pl-6 overflow-hidden">
+                  <p className="text-sm text-muted-foreground break-all">
+                    {log.userAgent}
+                  </p>
+                </div>
               </div>
             )}
 
@@ -201,11 +229,13 @@ export function AuditLogDetailsSheet({
                   <FileJson className="h-4 w-4" />
                   {t('auditLogs:fields.details')}
                 </div>
-                <pre className="text-xs bg-muted p-3 rounded-md overflow-x-auto">
-                  {typeof parsedDetails === 'object'
-                    ? JSON.stringify(parsedDetails, null, 2)
-                    : parsedDetails}
-                </pre>
+                <div className="bg-muted p-3 rounded-md overflow-hidden">
+                  <pre className="text-xs overflow-x-auto whitespace-pre-wrap break-all">
+                    {typeof parsedDetails === 'object'
+                      ? JSON.stringify(parsedDetails, null, 2)
+                      : parsedDetails}
+                  </pre>
+                </div>
               </div>
             )}
           </div>

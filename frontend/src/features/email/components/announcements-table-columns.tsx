@@ -11,6 +11,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Progress } from '@/components/ui/progress'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { RelativeTime } from '@/components/shared/relative-time'
 import { AnnouncementStatusBadge } from './announcement-status-badge'
 import { AnnouncementTargetBadge } from './announcement-target-badge'
@@ -37,9 +42,16 @@ export function useAnnouncementsColumns({
       accessorKey: 'subject',
       header: t('email:announcements.columns.subject'),
       cell: ({ row }) => (
-        <div className="max-w-[250px] truncate font-medium" title={row.original.subject}>
-          {row.original.subject}
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="max-w-[250px] truncate font-medium cursor-default">
+              {row.original.subject}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[400px]">
+            <p>{row.original.subject}</p>
+          </TooltipContent>
+        </Tooltip>
       ),
     },
     {
@@ -78,11 +90,24 @@ export function useAnnouncementsColumns({
     {
       accessorKey: 'createdByUserFullName',
       header: t('email:announcements.columns.createdBy'),
-      cell: ({ row }) => (
-        <span className="text-sm">
-          {row.original.createdByUserFullName ?? '-'}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const name = row.original.createdByUserFullName
+        if (!name) {
+          return <span className="text-muted-foreground">-</span>
+        }
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-sm truncate max-w-[120px] block">
+                {name}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{name}</p>
+            </TooltipContent>
+          </Tooltip>
+        )
+      },
     },
     {
       accessorKey: 'createdAt',

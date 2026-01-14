@@ -111,6 +111,8 @@ export function UsersTable({ onEdit, onPermissions, onRowClick }: UsersTableProp
     isFetching,
     fetchNextPage,
     hasNextPage,
+    refetch,
+    isRefetching,
   } = useSystemUsers({
     search: debouncedSearch || undefined,
     sort: sortParam,
@@ -125,6 +127,12 @@ export function UsersTable({ onEdit, onPermissions, onRowClick }: UsersTableProp
     () => data?.pages.flatMap((page) => page.users) ?? [],
     [data]
   )
+
+  // Refresh handler
+  const handleRefresh = useCallback(async () => {
+    await refetch()
+    toast.success(t('users:refreshed'))
+  }, [refetch, t])
 
   // Admin action handlers
   const handleResetMfa = useCallback((user: SystemUserDto) => {
@@ -428,6 +436,8 @@ export function UsersTable({ onEdit, onPermissions, onRowClick }: UsersTableProp
         initialSorting={sorting}
         onSortingChange={setSorting}
         toolbarContent={filterContent}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefetching}
         emptyState={{
           title: t('users:empty.title'),
           description: t('users:empty.message'),
