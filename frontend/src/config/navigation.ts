@@ -3,8 +3,6 @@ import {
   Users,
   FileText,
   Settings,
-  Building2,
-  FolderKanban,
   Shield,
   Mail,
   type LucideIcon,
@@ -59,23 +57,7 @@ export const navigation: NavSection[] = [
       },
     ],
   },
-  {
-    label: 'navigation:sections.management',
-    items: [
-      {
-        label: 'navigation:items.organizations',
-        href: '/organizations',
-        icon: Building2,
-        permission: 'system:organizations:read',
-      },
-      {
-        label: 'navigation:items.projects',
-        href: '/projects',
-        icon: FolderKanban,
-        permission: 'system:projects:read',
-      },
-    ],
-  },
+
   {
     label: 'navigation:sections.settings',
     items: [
