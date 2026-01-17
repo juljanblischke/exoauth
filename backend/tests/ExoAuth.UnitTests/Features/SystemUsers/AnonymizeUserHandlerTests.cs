@@ -505,7 +505,7 @@ public sealed class AnonymizeUserHandlerTests
         }
     }
 
-    
+
 
     private void SetupMockDbSets(
         List<SystemUser> users,
@@ -526,7 +526,7 @@ public sealed class AnonymizeUserHandlerTests
         _mockContext.Setup(x => x.SystemUserPermissions).Returns(mockPermissionsDbSet.Object);
         _mockContext.Setup(x => x.SystemInvites).Returns(mockInvitesDbSet.Object);
         _mockContext.Setup(x => x.EmailLogs).Returns(mockEmailLogsDbSet.Object);
-        }
+    }
 
     private static SystemUser CreateUserWithPermissions(Guid userId, string email = "test@example.com")
     {

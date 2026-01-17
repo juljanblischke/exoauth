@@ -227,7 +227,7 @@ public static class TestDataFactory
         Guid? createdByUserId = null)
     {
         var userId = createdByUserId ?? Guid.NewGuid();
-        
+
         return targetType switch
         {
             EmailAnnouncementTarget.ByPermission when !string.IsNullOrEmpty(targetPermission) =>

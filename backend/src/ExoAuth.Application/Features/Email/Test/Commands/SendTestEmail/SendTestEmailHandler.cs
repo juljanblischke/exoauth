@@ -77,7 +77,7 @@ public sealed class SendTestEmailHandler(
             await dbContext.SaveChangesAsync(cancellationToken);
 
             var result = await SendTestEmailViaProviderAsync(provider, request.RecipientEmail, emailLog, cancellationToken);
-            
+
             if (result.Success)
             {
                 emailLog.MarkSent(provider.Id);
@@ -120,7 +120,7 @@ public sealed class SendTestEmailHandler(
             }
 
             var result = await SendTestEmailViaProviderAsync(provider, request.RecipientEmail, emailLog, cancellationToken);
-            
+
             if (result.Success)
             {
                 emailLog.MarkSent(provider.Id);

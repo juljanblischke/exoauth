@@ -60,10 +60,10 @@ public sealed class EmailSendingService : IEmailSendingService
             emailLog = await _dbContext.EmailLogs
                 .FirstOrDefaultAsync(x => x.Id == existingEmailLogId.Value, cancellationToken)
                 ?? throw new InvalidOperationException($"EmailLog {existingEmailLogId} not found");
-            
+
             // Use the announcement ID from the existing log if not provided
             announcementId ??= emailLog.AnnouncementId;
-            
+
             // Reset for retry
             emailLog.MarkSending();
         }
@@ -81,7 +81,7 @@ public sealed class EmailSendingService : IEmailSendingService
 
             _dbContext.EmailLogs.Add(emailLog);
         }
-        
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // Test mode - just log, don't send
@@ -123,13 +123,13 @@ public sealed class EmailSendingService : IEmailSendingService
             if (success)
             {
                 emailLog.MarkSent(provider.Id);
-                
+
                 // Update announcement counts if applicable
                 if (announcementId.HasValue)
                 {
                     var announcement = await _dbContext.EmailAnnouncements
                         .FirstOrDefaultAsync(x => x.Id == announcementId.Value, cancellationToken);
-                    
+
                     if (announcement is not null)
                     {
                         if (isDlqRetry)
@@ -147,7 +147,7 @@ public sealed class EmailSendingService : IEmailSendingService
                         }
                     }
                 }
-                
+
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation(
@@ -160,19 +160,19 @@ public sealed class EmailSendingService : IEmailSendingService
 
         // All providers failed - move to DLQ
         emailLog.MoveToDlq(emailLog.LastError ?? "All providers exhausted");
-        
+
         // Update announcement counts if applicable (only for first-time failures, not DLQ retries)
         if (announcementId.HasValue && !isDlqRetry)
         {
             var announcement = await _dbContext.EmailAnnouncements
                 .FirstOrDefaultAsync(x => x.Id == announcementId.Value, cancellationToken);
-            
+
             if (announcement is not null)
             {
                 announcement.IncrementFailedCount();
             }
         }
-        
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogError(

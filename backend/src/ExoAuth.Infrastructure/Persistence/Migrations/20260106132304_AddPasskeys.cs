@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -14,7 +14,7 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
             // Note: Removed phantom cleanup operations that referenced non-existent objects
             // (device_id1, device_approval_requests, device_sessions, trusted_devices)
             // These were artifacts from model snapshot inconsistencies
-            
+
             migrationBuilder.CreateTable(
                 name: "passkeys",
                 columns: table => new

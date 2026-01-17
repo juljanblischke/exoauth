@@ -184,10 +184,10 @@ public sealed class PasskeyLoginOptionsHandlerTests
     {
         var user = SystemUser.Create(email, "hash", "Test", "User", true);
         SetUserId(user, userId);
-        
+
         var passkey = Passkey.Create(userId, new byte[] { 1, 2, 3 }, new byte[] { 4, 5, 6 }, 0, "public-key", Guid.NewGuid(), "Passkey");
         AddPasskeyToUser(user, passkey);
-        
+
         return user;
     }
 
@@ -196,10 +196,10 @@ public sealed class PasskeyLoginOptionsHandlerTests
         var user = SystemUser.Create(email, "hash", "Test", "User", true);
         SetUserId(user, userId);
         user.Deactivate();
-        
+
         var passkey = Passkey.Create(userId, new byte[] { 1, 2, 3 }, new byte[] { 4, 5, 6 }, 0, "public-key", Guid.NewGuid(), "Passkey");
         AddPasskeyToUser(user, passkey);
-        
+
         return user;
     }
 

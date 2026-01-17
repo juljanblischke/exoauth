@@ -150,7 +150,7 @@ public sealed class DeviceService : IDeviceService
                 }
 
                 existingDevice.ResetToPending(token, code, riskScore, riskFactorsJson, _expirationMinutes);
-                
+
                 // Update device info and location
                 existingDevice.SetDeviceInfo(
                     deviceInfo.Browser,
@@ -542,5 +542,5 @@ public sealed class DeviceService : IDeviceService
 
     // ============ Private Helpers ============
 
-    
+
 }

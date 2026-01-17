@@ -65,14 +65,14 @@ public sealed class PasskeyService : IPasskeyService
         // Store challenge in Redis
         var challengeId = Guid.NewGuid().ToString("N");
         var cacheKey = $"{ChallengeKeyPrefix}{user.Id}:{challengeId}";
-        
+
         await _cache.SetAsync(
             cacheKey,
             options.ToJson(),
             TimeSpan.FromMinutes(ChallengeTtlMinutes),
             cancellationToken);
 
-        _logger.LogDebug("Created passkey registration options for user {UserId}, challenge {ChallengeId}", 
+        _logger.LogDebug("Created passkey registration options for user {UserId}, challenge {ChallengeId}",
             user.Id, challengeId);
 
         return (options, challengeId);
@@ -85,7 +85,7 @@ public sealed class PasskeyService : IPasskeyService
         CancellationToken cancellationToken = default)
     {
         var cacheKey = $"{ChallengeKeyPrefix}{userId}:{challengeId}";
-        
+
         // Retrieve and delete challenge (one-time use)
         var optionsJson = await _cache.GetAsync<string>(cacheKey, cancellationToken);
         if (optionsJson is null)

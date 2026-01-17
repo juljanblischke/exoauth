@@ -55,7 +55,7 @@ public sealed class PasskeyLoginHandler : ICommandHandler<PasskeyLoginCommand, A
     {
         // Find the passkey by credential ID from the assertion response
         var credentialId = command.AssertionResponse.Id;
-        
+
         var passkey = await _context.Passkeys
             .Include(p => p.User)
             .FirstOrDefaultAsync(p => p.CredentialId.SequenceEqual(credentialId), ct);

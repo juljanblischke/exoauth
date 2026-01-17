@@ -80,7 +80,7 @@ public sealed class PasskeyLoginHandlerTests
         var passkeyId = Guid.NewGuid();
         var credentialId = new byte[] { 1, 2, 3 };
         var deviceId = Guid.NewGuid();
-        
+
         var user = CreateActiveUser(userId);
         var passkey = CreatePasskeyWithUser(passkeyId, userId, credentialId, user);
         var passkeys = new List<Passkey> { passkey };
@@ -240,7 +240,7 @@ public sealed class PasskeyLoginHandlerTests
         var newDevice = CreateDevice(newDeviceId, userId);
         _mockDeviceService.Setup(x => x.GenerateDeviceId()).Returns(newDeviceId.ToString());
         _mockDeviceService.Setup(x => x.CreateTrustedDeviceAsync(
-            userId, newDeviceId.ToString(), It.IsAny<DeviceInfo>(), It.IsAny<GeoLocation>(), 
+            userId, newDeviceId.ToString(), It.IsAny<DeviceInfo>(), It.IsAny<GeoLocation>(),
             It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(newDevice);
 
@@ -291,7 +291,7 @@ public sealed class PasskeyLoginHandlerTests
 
         // Assert
         _mockDeviceService.Verify(x => x.RecordUsageAsync(
-            deviceId, It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string?>(), 
+            deviceId, It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string?>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
