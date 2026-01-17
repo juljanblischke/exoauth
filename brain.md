@@ -1375,108 +1375,176 @@ ENABLE_MFA=true
 - Data protection officer contact (if required)
 - Supervisory authority contact information
 
-## Business Model & Licensing
+## Business Model & Licensing (Updated 2026-01-17)
 
-### Licensing Options
+### Strategy: "EU-First Open Source"
 
-1. **Open Source Community Edition** (MIT or Apache 2.0)
-   - Core authentication features
-   - Self-hosted only
-   - Community support
-   - **Limited to single project only** (no multi-project UI)
+**Positioning:**
+> "Auth für EU Companies die GDPR ernst nehmen und nicht von US-Cloud abhängig sein wollen"
 
-2. **Commercial Single-Tenant License** (Sold to end customers)
-   - **ONE project only** (multi-project disabled in code)
-   - All auth features enabled (MFA, LDAP, social logins, etc.)
-   - Email support
-   - One-time payment + optional maintenance
-   - Cannot be resold
-   - License key required
-   - **Price: €2,999 one-time + €499/year maintenance**
+**Why this niche?**
+- Auth0, Clerk, Firebase = all US companies (GDPR concerns)
+- Keycloak is the alternative but terrible UX
+- Gap in market for modern, EU-focused, self-hostable auth
 
-3. **Commercial Multi-Tenant License** (Full version for you/resellers)
-   - **Unlimited projects**
-   - Full admin dashboard
-   - All features unlocked
-   - White-label option available
-   - Can be used for your own SaaS or resold
-   - **Price: €9,999 one-time OR revenue share model**
+**Unique Selling Points (USPs):**
+1. **EU-First** - GDPR/NIS2 compliant by design
+2. **Self-Hostable** - Unlike Clerk/Auth0
+3. **Modern Stack** - Unlike Keycloak (no Java monster)
+4. **Fair Pricing** - Not Auth0 prices at scale
+5. **Multi-Tenant Ready** - For SaaS builders
 
-4. **SaaS Hosted Version** (You host, customers subscribe)
-   - Monthly/annual subscription
-   - Tier structure:
-     - **Starter**: €29/month (3 projects, 1,000 users/project)
-     - **Professional**: €99/month (10 projects, 10,000 users/project)
-     - **Enterprise**: Custom pricing (unlimited, SLA, dedicated support)
+### Hybrid Pricing Model
 
-### Pricing Model (Example)
-- **SaaS Starter**: €29/month - 3 projects, 1,000 users/project
-- **SaaS Professional**: €99/month - 10 projects, 10,000 users/project
-- **SaaS Enterprise**: Custom - Unlimited, SLA, dedicated support
-- **Self-Hosted**: €2,999 one-time + €499/year maintenance
+#### Self-Hosted (Free & Paid)
 
-### Support SLAs
-- **Community Edition**: No SLA (forum/GitHub issues)
-- **Paid Self-Hosted**:
-  - Response time: 48 hours (email)
-  - Updates: Quarterly
-- **SaaS Professional**:
-  - Response time: 24 hours
-  - Uptime: 99.5%
-- **SaaS Enterprise**:
-  - Response time: 4 hours (critical), 8 hours (normal)
-  - Uptime: 99.9%
-  - Dedicated Slack/Teams channel
-  - Quarterly business reviews
+| Edition | Price | Projects | Users | Support |
+|---------|-------|----------|-------|---------|
+| **Community** (Open Source) | €0 | 1 | Unlimited | Community |
+| **Pro License** | €2.999 one-time + €499/year | Unlimited | Unlimited | Email |
+| **Enterprise License** | €9.999 one-time + €1.999/year | Unlimited | Unlimited | Priority + SLA |
 
-## Roadmap & Prioritization
+**Community Edition:**
+- MIT or Apache 2.0 license
+- All core auth features (MFA, Passkeys, Social Login, etc.)
+- Single project only (multi-project disabled)
+- Perfect for: Own apps, trying out ExoAuth
 
-### Phase 1: MVP (Months 1-3)
-- [ ] Core authentication (email/password)
-- [ ] Multi-project management
-- [ ] OAuth 2.0/OIDC basics
-- [ ] Admin dashboard (basic)
-- [ ] PostgreSQL + Redis setup
-- [ ] Docker Compose deployment
+**Pro License:**
+- Multi-project enabled
+- Private repo access
+- Email support
+- For: Companies self-hosting for internal use
 
-### Phase 2: Security & Compliance (Months 4-6)
-- [ ] MFA (TOTP)
-- [ ] GDPR compliance features
-- [ ] Audit logging
-- [ ] Rate limiting
-- [ ] Backup/restore
-- [ ] Privacy policy templates
+**Enterprise License:**
+- Everything in Pro
+- Multi-tenant capable (can resell/white-label)
+- Custom contracts, SLA
+- For: Resellers, agencies, large enterprises
 
-### Phase 3: Enterprise Features (Months 7-9)
-- [ ] LDAP integration
-- [ ] Social logins
-- [ ] Advanced permissions system (bulk management, permission groups)
+#### Cloud Hosted (SaaS)
+
+| Tier | Price | Projects | MAU | Features |
+|------|-------|----------|-----|----------|
+| **Free** | €0/mo | 1 | 1.000 | Core Auth |
+| **Starter** | €49/mo | 5 | 10.000 | + Social Login, Webhooks |
+| **Business** | €199/mo | 20 | 50.000 | + Custom Domain, SAML SSO |
+| **Enterprise** | Custom | Unlimited | Unlimited | + SLA, Dedicated Support |
+
+**Overage:** €0.01 per additional MAU (soft limit with upgrade prompt)
+
+### Plan Management System
+
+#### Key Concepts
+
+**Organization:** A paying customer (company/individual) that owns one or more Projects.
+
+**Project:** An isolated auth environment with its own users, settings, API keys.
+
+**Plan:** A pricing tier with defined limits and features (Free, Starter, Business, Enterprise).
+
+**Subscription:** Links an Organization to a Plan with specific limits (supports grandfathering).
+
+**Feature Flag:** A toggleable capability (e.g., `social_login`, `webhooks`, `saml_sso`).
+
+#### Grandfathering (Plan Changes)
+
+When plan limits/features change, existing customers keep their original terms:
+
+```
+Example:
+- Jan 2026: Starter = 5 Projects, 10k MAU, €49/mo
+- Customer A buys Starter
+- Mar 2026: Starter changed to 3 Projects, 5k MAU, €49/mo
+- Customer A still has 5 Projects, 10k MAU (grandfathered)
+- New customers get 3 Projects, 5k MAU
+```
+
+**Technical Implementation:**
+- Limits are COPIED to Subscription when purchased (not linked)
+- Plan changes only affect new subscriptions by default
+- Admin can optionally migrate existing customers (with warnings)
+
+#### Admin Controls
+
+The ExoAuth admin can:
+1. **Create/Edit Plans** - Set prices, limits, features
+2. **Manage Features** - Define feature flags, assign to plans
+3. **Assign Subscriptions** - Manually assign plans to organizations
+4. **View Usage** - See which orgs are near limits
+5. **Grandfather Control** - Choose what happens to existing customers on plan change
+
+### Implementation Phases
+
+#### ✅ Phase 0: Internal Admin Foundation (COMPLETE)
+- [x] System Users & Authentication
+- [x] MFA, Passkeys, Device Trust
+- [x] Rate Limiting, IP Restrictions
+- [x] Email System (Multi-Provider)
+- [x] Audit Logging
+- [x] 577+ Unit Tests
+
+#### 🔄 Phase A: Multi-Tenant Foundation (IN PROGRESS)
+- [ ] **Task 027:** Organizations (customers)
+- [ ] **Task 028:** Projects & Project Users
+- [ ] **Task 029:** API Keys
+- [ ] **Task 030:** Plans, Features, Subscriptions
+- [ ] Frontend for all above
+
+#### ⏳ Phase B: Billing & Payments (FUTURE)
+- [ ] Stripe Integration
+- [ ] Automatic Subscriptions
+- [ ] Usage-based Billing (MAU tracking)
+- [ ] Invoices & Customer Portal
+
+#### ⏳ Phase C: OAuth & Advanced Features (FUTURE)
+- [ ] OAuth 2.0 / OpenID Connect Server (OpenIddict)
+- [ ] Social Login Providers
+- [ ] LDAP Integration
 - [ ] Webhooks
-- [ ] Email templates customization
-- [ ] NIS2 compliance features
+- [ ] Hosted Login Pages
 
-### Phase 4: Scale & Polish (Months 10-12)
-- [ ] Kubernetes deployment
-- [ ] Multi-region support
-- [ ] Advanced analytics
-- [ ] White-label capabilities
-- [ ] Mobile SDKs (optional)
-- [ ] CLI tools
+#### ⏳ Phase D: Scale & Enterprise (FUTURE)
+- [ ] License Key System (for self-hosted)
+- [ ] White-Label Support
+- [ ] Multi-Region Deployment
+- [ ] Advanced Analytics
+
+### Revenue Projections (Hypothetical)
+
+**Year 1 Target:**
+- 10 Pro Licenses: €29.990
+- 5 Enterprise Licenses: €49.995
+- 50 Cloud Starter: €29.400/year
+- 20 Cloud Business: €47.760/year
+- **Total: ~€157k ARR**
+
+### Competitor Comparison
+
+| Feature | ExoAuth | Auth0 | Clerk | Keycloak |
+|---------|---------|-------|-------|----------|
+| Self-Hosted | ✅ | ❌ | ❌ | ✅ |
+| Cloud Hosted | ✅ | ✅ | ✅ | ❌ |
+| Open Source | ✅ | ❌ | ❌ | ✅ |
+| Modern UI | ✅ | ✅ | ✅ | ❌ |
+| EU-Based | ✅ | ❌ | ❌ | ❌ |
+| Fair Pricing | ✅ | ❌ | ⚠️ | ✅ (free) |
+| Easy Setup | ✅ | ✅ | ✅ | ❌ |
 
 ## License
-- **Core**: MIT or Apache 2.0 (for community edition)
-- **Commercial**: Proprietary license for paid tiers
+- **Community Edition**: MIT or Apache 2.0
+- **Pro/Enterprise**: Proprietary commercial license
 
 ## Support Channels
 - **Documentation**: docs.exoauth.com
-- **Community Forum**: forum.exoauth.com
-- **GitHub Issues**: github.com/yourorg/exoauth (community edition)
+- **Community Forum**: forum.exoauth.com / Discord
+- **GitHub Issues**: github.com/exoauth/exoauth (community edition)
 - **Email Support**: support@exoauth.com (paid customers)
-- **Discord Community**: discord.gg/exoauth (optional)
 - **Enterprise Support**: Dedicated Slack/Teams channel
 
 ---
 
-**Last Updated**: 2025-12-22
-**Version**: 0.1.0 (Planning Phase)
+**Last Updated**: 2026-01-17
+**Version**: 0.2.0 (Multi-Tenant Development Phase)
+**Document Status**: Updated with Business Model refinements
 **Document Status**: Complete - Ready for Implementation

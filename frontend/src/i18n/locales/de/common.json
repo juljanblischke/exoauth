@@ -181,6 +181,7 @@
     "title": "Sitzung abgelaufen",
     "description": "Ihre Berechtigungen wurden geändert. Bitte melden Sie sich erneut an."
   },
+  "error": "Fehler",
   "labels": {
     "type": "Typ",
     "activity": "Aktivität",

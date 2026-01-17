@@ -109,7 +109,10 @@
     },
     "createSuccess": "Email provider created successfully",
     "updateSuccess": "Email provider updated successfully",
-    "deleteSuccess": "Email provider deleted successfully"
+    "deleteSuccess": "Email provider deleted successfully",
+    "errors": {
+      "loadFailed": "Failed to load email providers"
+    }
   },
   "testEmail": {
     "title": "Send Test Email",

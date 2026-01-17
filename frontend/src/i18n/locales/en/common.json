@@ -180,6 +180,7 @@
     "title": "Session Expired",
     "description": "Your permissions were changed. Please log in again."
   },
+  "error": "Error",
   "labels": {
     "type": "Type",
     "activity": "Activity",

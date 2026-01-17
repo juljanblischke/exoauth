@@ -109,7 +109,10 @@
     },
     "createSuccess": "E-Mail Provider erfolgreich erstellt",
     "updateSuccess": "E-Mail Provider erfolgreich aktualisiert",
-    "deleteSuccess": "E-Mail Provider erfolgreich gelöscht"
+    "deleteSuccess": "E-Mail Provider erfolgreich gelöscht",
+    "errors": {
+      "loadFailed": "E-Mail Provider konnten nicht geladen werden"
+    }
   },
   "testEmail": {
     "title": "Test-E-Mail senden",
