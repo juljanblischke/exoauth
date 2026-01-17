@@ -163,7 +163,7 @@ public sealed class DeleteIpRestrictionHandlerTests
 
     #endregion
 
-    
+
 
     private static Mock<DbSet<T>> CreateMockDbSet<T>(List<T> data) where T : class
     {

@@ -137,10 +137,10 @@ public sealed class PasskeyRegisterOptionsHandlerTests
         var userId = Guid.NewGuid();
         var command = new PasskeyRegisterOptionsCommand();
         var user = CreateActiveUser(userId);
-        
+
         var existingPasskey = CreatePasskey(userId, "My Passkey");
         AddPasskeyToUser(user, existingPasskey);
-        
+
         var users = new List<SystemUser> { user };
 
         SetupMockDbSets(users);

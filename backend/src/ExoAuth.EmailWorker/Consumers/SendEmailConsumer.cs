@@ -83,16 +83,16 @@ public sealed class SendEmailConsumer : BackgroundService
                     if (message is not null)
                     {
                         var result = await ProcessEmailAsync(message, stoppingToken);
-                        
+
                         if (result.Success)
                         {
                             await channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
-                            _logger.LogInformation("Email sent successfully to {To} via provider {ProviderId}", 
+                            _logger.LogInformation("Email sent successfully to {To} via provider {ProviderId}",
                                 message.To, result.SentViaProviderId);
                         }
                         else
                         {
-                            _logger.LogWarning("Email to {To} failed after all retries, moved to DLQ: {Error}", 
+                            _logger.LogWarning("Email to {To} failed after all retries, moved to DLQ: {Error}",
                                 message.To, result.Error);
                             // Acknowledge even on failure since it's been logged and moved to DLQ
                             await channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);

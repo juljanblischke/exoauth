@@ -80,7 +80,7 @@ public static class DependencyInjection
         // Email Services
         services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
         services.AddScoped<IEmailService, EmailService>();
-        
+
         // Email Sending Infrastructure (Task 025)
         services.AddHttpClient("SendGrid");
         services.AddHttpClient("Mailgun");
