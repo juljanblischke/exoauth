@@ -1,0 +1,32 @@
+{
+  "title": "Audit Logs",
+  "subtitle": "View system activity and security events",
+  "searchPlaceholder": "Search logs...",
+  "fields": {
+    "time": "Time",
+    "user": "User",
+    "targetUser": "Target User",
+    "action": "Action",
+    "entity": "Entity",
+    "ipAddress": "IP Address",
+    "userAgent": "User Agent",
+    "details": "Details"
+  },
+  "filters": {
+    "action": "Action",
+    "user": "User",
+    "dateRange": "Date Range",
+    "entityType": "Entity Type"
+  },
+  "details": {
+    "title": "Audit Log Details",
+    "description": "View detailed information about this event",
+    "type": "Type"
+  },
+  "system": "System",
+  "empty": {
+    "title": "No audit logs yet",
+    "description": "Audit logs will appear here as system activity occurs"
+  },
+  "refreshed": "Audit logs refreshed"
+}

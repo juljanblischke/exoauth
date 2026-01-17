@@ -1,0 +1,19 @@
+{
+  "title": "Einstellungen",
+  "description": "Verwalten Sie Ihre Kontoeinstellungen und Präferenzen",
+  "tabs": {
+    "security": "Sicherheit",
+    "language": "Sprache"
+  },
+  "security": {
+    "title": "Sicherheitseinstellungen",
+    "description": "Verwalten Sie Ihre Kontosicherheit, Zwei-Faktor-Authentifizierung und aktive Sitzungen"
+  },
+  "language": {
+    "title": "Spracheinstellung",
+    "description": "Wählen Sie Ihre bevorzugte Sprache für die Benutzeroberfläche und E-Mails",
+    "select": "Sprache auswählen",
+    "current": "Aktuelle Sprache",
+    "saved": "Spracheinstellung gespeichert"
+  }
+}

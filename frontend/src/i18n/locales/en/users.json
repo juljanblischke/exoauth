@@ -1,0 +1,232 @@
+{
+  "title": "Users",
+  "subtitle": "Manage system users and their permissions",
+  "createUser": "Create User",
+  "inviteUser": "Invite User",
+  "editUser": "Edit User",
+  "deleteUser": "Delete User",
+  "userDetails": "User Details",
+  "search": {
+    "placeholder": "Search users..."
+  },
+  "tabs": {
+    "users": "Users",
+    "invitations": "Invitations"
+  },
+  "invites": {
+    "title": "Invitations",
+    "search": "Search invitations...",
+    "empty": {
+      "title": "No invitations",
+      "description": "Invite users to get started"
+    },
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    },
+    "filters": {
+      "showExpired": "Show Expired",
+      "showRevoked": "Show Revoked"
+    },
+    "fields": {
+      "email": "Email",
+      "name": "Name",
+      "status": "Status",
+      "expiresAt": "Expires",
+      "createdAt": "Invited",
+      "invitedBy": "Invited by",
+      "acceptedAt": "Accepted at",
+      "revokedAt": "Revoked at",
+      "resentAt": "Last resent"
+    },
+    "actions": {
+      "resend": "Resend",
+      "revoke": "Revoke",
+      "viewDetails": "View details"
+    },
+    "resend": {
+      "success": "Invitation resent successfully",
+      "cooldown": "Please wait before resending"
+    },
+    "revoke": {
+      "confirm": {
+        "title": "Revoke invitation?",
+        "description": "This will invalidate the invitation link. The user will no longer be able to accept it."
+      },
+      "success": "Invitation revoked"
+    },
+    "details": {
+      "title": "Invitation Details",
+      "permissions": "Permissions"
+    },
+    "edit": {
+      "title": "Edit Invitation",
+      "description": "Update the invitation details and permissions",
+      "success": "Invitation updated successfully"
+    },
+    "refreshed": "Invitations refreshed"
+  },
+  "fields": {
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "security": "Security",
+    "emailVerified": "Email Verified",
+    "createdAt": "Created",
+    "updatedAt": "Last Updated",
+    "lastLogin": "Last Login",
+    "mfaEnabled": "2FA Enabled",
+    "password": "Password",
+    "confirmPassword": "Confirm Password"
+  },
+  "security": {
+    "mfaEnabled": "Two-factor authentication is enabled",
+    "mfaDisabled": "Two-factor authentication is not enabled",
+    "locked": "Locked",
+    "accountLocked": "Account is temporarily locked due to failed login attempts",
+    "lockedUntil": "Locked until",
+    "anonymized": "Anonymized",
+    "userAnonymized": "User data has been anonymized (GDPR)",
+    "failedAttempts": "Failed Login Attempts"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "user": "User",
+    "viewer": "Viewer"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending Invite",
+    "suspended": "Suspended"
+  },
+  "emailVerified": {
+    "verified": "Verified",
+    "pending": "Pending"
+  },
+  "actions": {
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "suspend": "Suspend",
+    "resetPassword": "Reset Password",
+    "resendInvite": "Resend Invite",
+    "revokeInvite": "Revoke Invite",
+    "permissions": "Permissions"
+  },
+  "invite": {
+    "description": "Send an invitation to join the team",
+    "submit": "Send Invitation"
+  },
+  "permissions": {
+    "title": "Manage Permissions",
+    "success": "Permissions updated successfully",
+    "none": "No permissions assigned"
+  },
+  "messages": {
+    "createSuccess": "User created successfully",
+    "updateSuccess": "User updated successfully",
+    "deleteSuccess": "User deleted successfully",
+    "inviteSuccess": "Invitation sent successfully",
+    "activateSuccess": "User activated successfully",
+    "deactivateSuccess": "User deactivated successfully",
+    "suspendSuccess": "User suspended successfully",
+    "resetPasswordSuccess": "Password reset email sent"
+  },
+  "admin": {
+    "actions": {
+      "title": "Admin Actions"
+    },
+    "sessions": {
+      "sectionTitle": "Active Sessions",
+      "title": "Sessions",
+      "empty": "No active sessions",
+      "revokeAll": "Revoke All",
+      "revokeSingle": "Revoke session",
+      "revokeAllConfirm": {
+        "title": "Revoke all sessions?",
+        "description": "This will log the user out of all devices. They will need to log in again."
+      }
+    },
+    "mfa": {
+      "reset": "Reset MFA",
+      "confirmTitle": "Reset MFA?",
+      "confirmDescription": "This will disable two-factor authentication for {{name}}. They will need to set it up again.",
+      "resetSuccess": "MFA has been reset successfully",
+      "resetError": "Failed to reset MFA"
+    },
+    "unlock": {
+      "action": "Unlock Account",
+      "button": "Unlock Account",
+      "confirmTitle": "Unlock account?",
+      "confirmDescription": "This will unlock {{name}}'s account and reset the failed login attempt counter.",
+      "success": "Account has been unlocked",
+      "error": "Failed to unlock account"
+    },
+    "deactivate": {
+      "action": "Deactivate",
+      "confirmTitle": "Deactivate user?",
+      "confirmDescription": "{{name}} will no longer be able to access the system. You can reactivate them later.",
+      "success": "User has been deactivated",
+      "error": "Failed to deactivate user"
+    },
+    "activate": {
+      "action": "Activate",
+      "confirmTitle": "Activate user?",
+      "confirmDescription": "{{name}} will be able to access the system again.",
+      "success": "User has been activated",
+      "error": "Failed to activate user"
+    },
+    "anonymize": {
+      "action": "Anonymize (GDPR)",
+      "button": "Anonymize (GDPR)",
+      "confirmTitle": "Anonymize user?",
+      "confirmDescription": "This will permanently remove all personal data for {{name}} in compliance with GDPR. This action cannot be undone. Type the user's email to confirm.",
+      "placeholder": "Type email to confirm",
+      "success": "User data has been anonymized",
+      "error": "Failed to anonymize user"
+    },
+    "anonymizedNoActions": "No actions available for anonymized users"
+  },
+  "confirmDelete": {
+    "title": "Delete User",
+    "message": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+    "typeToConfirm": "Type the user's email to confirm"
+  },
+  "empty": {
+    "title": "No users yet",
+    "message": "Get started by creating your first user or inviting someone to join.",
+    "action": "Create User"
+  },
+  "filters": {
+    "status": "Status",
+    "role": "Role",
+    "all": "All",
+    "accountLock": "Account Lock",
+    "locked": "Locked",
+    "unlocked": "Unlocked",
+    "mfa": "MFA",
+    "mfaEnabled": "MFA Enabled",
+    "mfaDisabled": "MFA Disabled",
+    "showAnonymized": "Show Anonymized"
+  },
+  "trustedDevices": {
+    "sectionTitle": "Trusted Devices",
+    "title": "Trusted Devices",
+    "noDevices": "No trusted devices",
+    "removeAll": "Remove All",
+    "removeAllConfirm": "Remove all trusted devices for this user?",
+    "remove": "Remove device",
+    "removeSuccess": "Device removed",
+    "removeAllSuccess": "All devices removed"
+  },
+  "devices": {
+    "revokeSuccess": "Device revoked successfully",
+    "revokeAllSuccess": "All devices revoked successfully",
+    "revokeAllTitle": "Revoke all devices?",
+    "revokeAllDescription": "This will log the user out of all devices and remove their trusted status. They will need to verify devices again."
+  },
+  "refreshed": "Users refreshed"
+}

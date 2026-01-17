@@ -1,0 +1,232 @@
+{
+  "title": "Benutzer",
+  "subtitle": "Systembenutzer und deren Berechtigungen verwalten",
+  "createUser": "Benutzer erstellen",
+  "inviteUser": "Benutzer einladen",
+  "editUser": "Benutzer bearbeiten",
+  "deleteUser": "Benutzer löschen",
+  "userDetails": "Benutzerdetails",
+  "search": {
+    "placeholder": "Benutzer suchen..."
+  },
+  "tabs": {
+    "users": "Benutzer",
+    "invitations": "Einladungen"
+  },
+  "invites": {
+    "title": "Einladungen",
+    "search": "Einladungen suchen...",
+    "empty": {
+      "title": "Keine Einladungen",
+      "description": "Laden Sie Benutzer ein, um loszulegen"
+    },
+    "status": {
+      "pending": "Ausstehend",
+      "accepted": "Angenommen",
+      "expired": "Abgelaufen",
+      "revoked": "Widerrufen"
+    },
+    "filters": {
+      "showExpired": "Abgelaufene anzeigen",
+      "showRevoked": "Widerrufene anzeigen"
+    },
+    "fields": {
+      "email": "E-Mail",
+      "name": "Name",
+      "status": "Status",
+      "expiresAt": "Läuft ab",
+      "createdAt": "Eingeladen",
+      "invitedBy": "Eingeladen von",
+      "acceptedAt": "Angenommen am",
+      "revokedAt": "Widerrufen am",
+      "resentAt": "Zuletzt erneut gesendet"
+    },
+    "actions": {
+      "resend": "Erneut senden",
+      "revoke": "Widerrufen",
+      "viewDetails": "Details anzeigen"
+    },
+    "resend": {
+      "success": "Einladung erfolgreich erneut gesendet",
+      "cooldown": "Bitte warten Sie, bevor Sie erneut senden"
+    },
+    "revoke": {
+      "confirm": {
+        "title": "Einladung widerrufen?",
+        "description": "Dies macht den Einladungslink ungültig. Der Benutzer kann die Einladung nicht mehr annehmen."
+      },
+      "success": "Einladung widerrufen"
+    },
+    "details": {
+      "title": "Einladungsdetails",
+      "permissions": "Berechtigungen"
+    },
+    "edit": {
+      "title": "Einladung bearbeiten",
+      "description": "Aktualisieren Sie die Einladungsdetails und Berechtigungen",
+      "success": "Einladung erfolgreich aktualisiert"
+    },
+    "refreshed": "Einladungen aktualisiert"
+  },
+  "fields": {
+    "name": "Name",
+    "email": "E-Mail",
+    "role": "Rolle",
+    "status": "Status",
+    "security": "Sicherheit",
+    "emailVerified": "E-Mail verifiziert",
+    "createdAt": "Erstellt",
+    "updatedAt": "Zuletzt aktualisiert",
+    "lastLogin": "Letzte Anmeldung",
+    "mfaEnabled": "2FA aktiviert",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen"
+  },
+  "security": {
+    "mfaEnabled": "Zwei-Faktor-Authentifizierung ist aktiviert",
+    "mfaDisabled": "Zwei-Faktor-Authentifizierung ist nicht aktiviert",
+    "locked": "Gesperrt",
+    "accountLocked": "Konto ist aufgrund fehlgeschlagener Anmeldeversuche vorübergehend gesperrt",
+    "lockedUntil": "Gesperrt bis",
+    "anonymized": "Anonymisiert",
+    "userAnonymized": "Benutzerdaten wurden anonymisiert (DSGVO)",
+    "failedAttempts": "Fehlgeschlagene Anmeldeversuche"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "user": "Benutzer",
+    "viewer": "Betrachter"
+  },
+  "status": {
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "pending": "Einladung ausstehend",
+    "suspended": "Gesperrt"
+  },
+  "emailVerified": {
+    "verified": "Verifiziert",
+    "pending": "Ausstehend"
+  },
+  "actions": {
+    "activate": "Aktivieren",
+    "deactivate": "Deaktivieren",
+    "suspend": "Sperren",
+    "resetPassword": "Passwort zurücksetzen",
+    "resendInvite": "Einladung erneut senden",
+    "revokeInvite": "Einladung widerrufen",
+    "permissions": "Berechtigungen"
+  },
+  "invite": {
+    "description": "Senden Sie eine Einladung zum Team",
+    "submit": "Einladung senden"
+  },
+  "permissions": {
+    "title": "Berechtigungen verwalten",
+    "success": "Berechtigungen erfolgreich aktualisiert",
+    "none": "Keine Berechtigungen zugewiesen"
+  },
+  "messages": {
+    "createSuccess": "Benutzer erfolgreich erstellt",
+    "updateSuccess": "Benutzer erfolgreich aktualisiert",
+    "deleteSuccess": "Benutzer erfolgreich gelöscht",
+    "inviteSuccess": "Einladung erfolgreich gesendet",
+    "activateSuccess": "Benutzer erfolgreich aktiviert",
+    "deactivateSuccess": "Benutzer erfolgreich deaktiviert",
+    "suspendSuccess": "Benutzer erfolgreich gesperrt",
+    "resetPasswordSuccess": "E-Mail zum Zurücksetzen des Passworts wurde gesendet"
+  },
+  "admin": {
+    "actions": {
+      "title": "Admin-Aktionen"
+    },
+    "sessions": {
+      "sectionTitle": "Aktive Sitzungen",
+      "title": "Sitzungen",
+      "empty": "Keine aktiven Sitzungen",
+      "revokeAll": "Alle widerrufen",
+      "revokeSingle": "Sitzung widerrufen",
+      "revokeAllConfirm": {
+        "title": "Alle Sitzungen widerrufen?",
+        "description": "Der Benutzer wird von allen Geräten abgemeldet. Er muss sich erneut anmelden."
+      }
+    },
+    "mfa": {
+      "reset": "MFA zurücksetzen",
+      "confirmTitle": "MFA zurücksetzen?",
+      "confirmDescription": "Dies deaktiviert die Zwei-Faktor-Authentifizierung für {{name}}. Er muss sie erneut einrichten.",
+      "resetSuccess": "MFA wurde erfolgreich zurückgesetzt",
+      "resetError": "MFA konnte nicht zurückgesetzt werden"
+    },
+    "unlock": {
+      "action": "Konto entsperren",
+      "button": "Konto entsperren",
+      "confirmTitle": "Konto entsperren?",
+      "confirmDescription": "Dies entsperrt das Konto von {{name}} und setzt den Zähler für fehlgeschlagene Anmeldeversuche zurück.",
+      "success": "Konto wurde entsperrt",
+      "error": "Konto konnte nicht entsperrt werden"
+    },
+    "deactivate": {
+      "action": "Deaktivieren",
+      "confirmTitle": "Benutzer deaktivieren?",
+      "confirmDescription": "{{name}} kann nicht mehr auf das System zugreifen. Sie können ihn später reaktivieren.",
+      "success": "Benutzer wurde deaktiviert",
+      "error": "Benutzer konnte nicht deaktiviert werden"
+    },
+    "activate": {
+      "action": "Aktivieren",
+      "confirmTitle": "Benutzer aktivieren?",
+      "confirmDescription": "{{name}} kann wieder auf das System zugreifen.",
+      "success": "Benutzer wurde aktiviert",
+      "error": "Benutzer konnte nicht aktiviert werden"
+    },
+    "anonymize": {
+      "action": "Anonymisieren (DSGVO)",
+      "button": "Anonymisieren (DSGVO)",
+      "confirmTitle": "Benutzer anonymisieren?",
+      "confirmDescription": "Alle personenbezogenen Daten von {{name}} werden gemäß DSGVO dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden. Geben Sie die E-Mail des Benutzers zur Bestätigung ein.",
+      "placeholder": "E-Mail zur Bestätigung eingeben",
+      "success": "Benutzerdaten wurden anonymisiert",
+      "error": "Benutzer konnte nicht anonymisiert werden"
+    },
+    "anonymizedNoActions": "Keine Aktionen für anonymisierte Benutzer verfügbar"
+  },
+  "confirmDelete": {
+    "title": "Benutzer löschen",
+    "message": "Sind Sie sicher, dass Sie {{name}} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "typeToConfirm": "Geben Sie die E-Mail des Benutzers zur Bestätigung ein"
+  },
+  "empty": {
+    "title": "Noch keine Benutzer",
+    "message": "Erstellen Sie Ihren ersten Benutzer oder laden Sie jemanden ein.",
+    "action": "Benutzer erstellen"
+  },
+  "filters": {
+    "status": "Status",
+    "role": "Rolle",
+    "all": "Alle",
+    "accountLock": "Kontosperre",
+    "locked": "Gesperrt",
+    "unlocked": "Entsperrt",
+    "mfa": "MFA",
+    "mfaEnabled": "MFA aktiviert",
+    "mfaDisabled": "MFA deaktiviert",
+    "showAnonymized": "Anonymisierte anzeigen"
+  },
+  "trustedDevices": {
+    "sectionTitle": "Vertrauenswürdige Geräte",
+    "title": "Vertrauenswürdige Geräte",
+    "noDevices": "Keine vertrauenswürdigen Geräte",
+    "removeAll": "Alle entfernen",
+    "removeAllConfirm": "Alle vertrauenswürdigen Geräte für diesen Benutzer entfernen?",
+    "remove": "Gerät entfernen",
+    "removeSuccess": "Gerät entfernt",
+    "removeAllSuccess": "Alle Geräte entfernt"
+  },
+  "devices": {
+    "revokeSuccess": "Gerät erfolgreich widerrufen",
+    "revokeAllSuccess": "Alle Geräte erfolgreich widerrufen",
+    "revokeAllTitle": "Alle Geräte widerrufen?",
+    "revokeAllDescription": "Dies meldet den Benutzer von allen Geräten ab und entfernt den Vertrauensstatus. Der Benutzer muss die Geräte erneut verifizieren."
+  },
+  "refreshed": "Benutzer aktualisiert"
+}

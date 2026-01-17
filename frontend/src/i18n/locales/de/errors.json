@@ -1,0 +1,108 @@
+{
+  "codes": {
+    "UNKNOWN_ERROR": "Ein unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "RATE_LIMIT_EXCEEDED": "Zu viele Anfragen. Bitte langsamer.",
+    "AUTH_INVALID_CREDENTIALS": "Ungültige E-Mail oder Passwort",
+    "AUTH_USER_INACTIVE": "Benutzerkonto ist deaktiviert",
+    "AUTH_TOKEN_EXPIRED": "Sitzung abgelaufen",
+    "AUTH_REFRESH_TOKEN_INVALID": "Sitzung ungültig",
+    "AUTH_REGISTRATION_CLOSED": "Registrierung geschlossen. Kontaktieren Sie einen Administrator.",
+    "AUTH_EMAIL_EXISTS": "E-Mail wird bereits verwendet",
+    "AUTH_PASSWORD_TOO_WEAK": "Passwort erfüllt die Anforderungen nicht",
+    "AUTH_TOO_MANY_ATTEMPTS": "Zu viele Versuche. Bitte 15 Minuten warten.",
+    "AUTH_FORCE_REAUTH": "Ihre Sitzung wurde ungültig. Bitte melden Sie sich erneut an.",
+    "AUTH_INVITE_EXPIRED": "Einladung abgelaufen. Bitte neue anfordern.",
+    "AUTH_INVITE_INVALID": "Ungültiger Einladungslink",
+    "PASSWORD_RESET_TOKEN_INVALID": "Ungültiger Passwort-Reset-Link. Bitte fordern Sie einen neuen an.",
+    "PASSWORD_RESET_TOKEN_EXPIRED": "Der Passwort-Reset-Link ist abgelaufen. Bitte fordern Sie einen neuen an.",
+    "AUTH_USER_NOT_FOUND": "Kein Konto mit dieser E-Mail-Adresse gefunden.",
+    "SYSTEM_USER_NOT_FOUND": "Benutzer nicht gefunden",
+    "SYSTEM_PERMISSION_NOT_FOUND": "Berechtigung nicht gefunden",
+    "SYSTEM_LAST_PERMISSION_HOLDER": "Die Berechtigung '{{permission}}' kann nicht vom letzten Benutzer entfernt werden. Mindestens ein Benutzer muss die Berechtigungen 'system:users:update' und 'system:users:read' besitzen.",
+    "SYSTEM_CANNOT_DELETE_SELF": "Kann sich selbst nicht löschen",
+    "SYSTEM_USER_ANONYMIZED": "Dieser Benutzer wurde anonymisiert und kann nicht bearbeitet werden",
+    "SYSTEM_FORBIDDEN": "Keine Berechtigung für diese Aktion",
+    "INVITE_NOT_EDITABLE": "Diese Einladung kann nicht mehr bearbeitet werden",
+    "INTERNAL_ERROR": "Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.",
+    "VALIDATION_REQUIRED": "Dieses Feld ist erforderlich",
+    "VALIDATION_INVALID_FORMAT": "Ungültiges Format",
+    "VALIDATION_MIN_LENGTH": "Mindestens {{min}} Zeichen erforderlich",
+    "VALIDATION_MAX_LENGTH": "Maximal {{max}} Zeichen erlaubt",
+    "APPROVAL_TOKEN_INVALID": "Ungültiges Verifizierungstoken",
+    "APPROVAL_TOKEN_EXPIRED": "Verifizierungstoken ist abgelaufen",
+    "APPROVAL_CODE_INVALID": "Ungültiger Verifizierungscode",
+    "APPROVAL_MAX_ATTEMPTS": "Zu viele Fehlversuche",
+    "DEVICE_APPROVAL_DENIED": "Dieses Gerät wurde abgelehnt",
+    "AUTH_CAPTCHA_REQUIRED": "Bitte schließen Sie die Sicherheitsprüfung ab",
+    "AUTH_CAPTCHA_INVALID": "Sicherheitsprüfung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "AUTH_CAPTCHA_EXPIRED": "Sicherheitsprüfung abgelaufen. Bitte versuchen Sie es erneut.",
+    "ACCOUNT_LOCKED": "Konto ist vorübergehend gesperrt. Bitte versuchen Sie es später erneut.",
+    "ACCOUNT_LOCKED_SECONDS": "Konto ist gesperrt. Versuchen Sie es in {{seconds}} Sekunden erneut.",
+    "ACCOUNT_LOCKED_MINUTES": "Konto ist gesperrt. Versuchen Sie es in {{minutes}} Minute(n) erneut.",
+    "ACCOUNT_LOCKED_UNTIL": "Konto ist gesperrt bis {{time}}.",
+    "MFA_CODE_INVALID": "Ungültiger Verifizierungscode. Bitte versuchen Sie es erneut.",
+    "MFA_TOKEN_INVALID": "MFA-Sitzung abgelaufen. Bitte melden Sie sich erneut an.",
+    "MFA_TOKEN_EXPIRED": "MFA-Sitzung abgelaufen. Bitte melden Sie sich erneut an.",
+    "IP_BLACKLISTED": "Ihre IP-Adresse wurde blockiert.",
+    "IP_RESTRICTION_NOT_FOUND": "IP-Einschränkung nicht gefunden.",
+    "IP_RESTRICTION_INVALID_CIDR": "Ungültige IP-Adresse oder CIDR-Notation.",
+    "IP_RESTRICTION_DUPLICATE": "Diese IP-Adresse ist bereits in der Liste.",
+    "IP_RESTRICTION_ALREADY_EXISTS": "Eine aktive Einschränkung für diese IP-Adresse existiert bereits."
+  },
+  "general": {
+    "title": "Etwas ist schiefgelaufen",
+    "message": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "retry": "Erneut versuchen",
+    "goHome": "Zum Dashboard"
+  },
+  "network": {
+    "title": "Verbindungsfehler",
+    "message": "Verbindung zum Server nicht möglich. Bitte überprüfen Sie Ihre Internetverbindung.",
+    "offline": "Sie sind offline"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "code": "404",
+    "message": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "goHome": "Zum Dashboard"
+  },
+  "forbidden": {
+    "title": "Zugriff verweigert",
+    "code": "403",
+    "message": "Sie haben keine Berechtigung, auf diese Ressource zuzugreifen.",
+    "goHome": "Zum Dashboard"
+  },
+  "serverError": {
+    "title": "Serverfehler",
+    "code": "500",
+    "message": "Auf unserer Seite ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
+    "goHome": "Zum Dashboard"
+  },
+  "unauthorized": {
+    "title": "Sitzung abgelaufen",
+    "code": "401",
+    "message": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+    "signIn": "Anmelden"
+  },
+  "rateLimited": {
+    "title": "Zu viele Anfragen",
+    "message": "Sie senden Anfragen zu schnell. Bitte langsamer.",
+    "withRetry": "Bitte warten Sie {{seconds}} Sekunden, bevor Sie es erneut versuchen."
+  },
+  "ipBlacklisted": {
+    "title": "Zugriff blockiert",
+    "message": "Ihre IP-Adresse wurde blockiert. Bitte kontaktieren Sie den Support, wenn Sie glauben, dass dies ein Fehler ist."
+  },
+  "api": {
+    "badRequest": "Ungültige Anfrage. Bitte überprüfen Sie Ihre Eingabe.",
+    "conflict": "Diese Ressource existiert bereits.",
+    "notFound": "Die angeforderte Ressource wurde nicht gefunden.",
+    "rateLimited": "Zu viele Anfragen. Bitte warten Sie einen Moment.",
+    "serverError": "Serverfehler. Bitte versuchen Sie es später erneut.",
+    "validationError": "Bitte korrigieren Sie die Fehler unten.",
+    "invalidCredentials": "Ungültige E-Mail oder Passwort.",
+    "emailExists": "Ein Konto mit dieser E-Mail existiert bereits.",
+    "tokenExpired": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+    "insufficientPermissions": "Sie haben keine Berechtigung, diese Aktion durchzuführen."
+  }
+}

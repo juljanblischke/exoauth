@@ -1,0 +1,108 @@
+{
+  "codes": {
+    "UNKNOWN_ERROR": "An unknown error occurred. Please try again.",
+    "RATE_LIMIT_EXCEEDED": "Too many requests. Please slow down.",
+    "AUTH_INVALID_CREDENTIALS": "Invalid email or password",
+    "AUTH_USER_INACTIVE": "User account is inactive",
+    "AUTH_TOKEN_EXPIRED": "Session expired",
+    "AUTH_REFRESH_TOKEN_INVALID": "Session invalid",
+    "AUTH_REGISTRATION_CLOSED": "Registration closed. Please contact an administrator.",
+    "AUTH_EMAIL_EXISTS": "Email is already in use",
+    "AUTH_PASSWORD_TOO_WEAK": "Password does not meet requirements",
+    "AUTH_TOO_MANY_ATTEMPTS": "Too many attempts. Please wait 15 minutes.",
+    "AUTH_FORCE_REAUTH": "Your session has been invalidated. Please sign in again.",
+    "AUTH_INVITE_EXPIRED": "Invitation expired. Please request a new one.",
+    "AUTH_INVITE_INVALID": "Invalid invitation link",
+    "PASSWORD_RESET_TOKEN_INVALID": "Invalid password reset link. Please request a new one.",
+    "PASSWORD_RESET_TOKEN_EXPIRED": "Password reset link has expired. Please request a new one.",
+    "AUTH_USER_NOT_FOUND": "No account found with this email address.",
+    "SYSTEM_USER_NOT_FOUND": "User not found",
+    "SYSTEM_PERMISSION_NOT_FOUND": "Permission not found",
+    "SYSTEM_LAST_PERMISSION_HOLDER": "Cannot remove permission '{{permission}}' from the last user who holds it. At least one user must have 'system:users:update' and 'system:users:read' permissions.",
+    "SYSTEM_CANNOT_DELETE_SELF": "Cannot delete yourself",
+    "SYSTEM_USER_ANONYMIZED": "This user has been anonymized and cannot be modified",
+    "SYSTEM_FORBIDDEN": "No permission for this action",
+    "INVITE_NOT_EDITABLE": "This invitation can no longer be edited",
+    "INTERNAL_ERROR": "An internal error occurred. Please try again later.",
+    "VALIDATION_REQUIRED": "This field is required",
+    "VALIDATION_INVALID_FORMAT": "Invalid format",
+    "VALIDATION_MIN_LENGTH": "Minimum {{min}} characters required",
+    "VALIDATION_MAX_LENGTH": "Maximum {{max}} characters allowed",
+    "APPROVAL_TOKEN_INVALID": "Invalid verification token",
+    "APPROVAL_TOKEN_EXPIRED": "Verification token has expired",
+    "APPROVAL_CODE_INVALID": "Invalid verification code",
+    "APPROVAL_MAX_ATTEMPTS": "Too many failed attempts",
+    "DEVICE_APPROVAL_DENIED": "This device has been denied",
+    "AUTH_CAPTCHA_REQUIRED": "Please complete the security verification",
+    "AUTH_CAPTCHA_INVALID": "Security verification failed. Please try again.",
+    "AUTH_CAPTCHA_EXPIRED": "Security verification expired. Please try again.",
+    "ACCOUNT_LOCKED": "Account is temporarily locked. Please try again later.",
+    "ACCOUNT_LOCKED_SECONDS": "Account is locked. Try again in {{seconds}} seconds.",
+    "ACCOUNT_LOCKED_MINUTES": "Account is locked. Try again in {{minutes}} minute(s).",
+    "ACCOUNT_LOCKED_UNTIL": "Account is locked until {{time}}.",
+    "MFA_CODE_INVALID": "Invalid verification code. Please try again.",
+    "MFA_TOKEN_INVALID": "MFA session expired. Please sign in again.",
+    "MFA_TOKEN_EXPIRED": "MFA session expired. Please sign in again.",
+    "IP_BLACKLISTED": "Your IP address has been blocked.",
+    "IP_RESTRICTION_NOT_FOUND": "IP restriction not found.",
+    "IP_RESTRICTION_INVALID_CIDR": "Invalid IP address or CIDR notation.",
+    "IP_RESTRICTION_DUPLICATE": "This IP address is already in the list.",
+    "IP_RESTRICTION_ALREADY_EXISTS": "An active restriction for this IP address already exists."
+  },
+  "general": {
+    "title": "Something went wrong",
+    "message": "An unexpected error occurred. Please try again.",
+    "retry": "Try Again",
+    "goHome": "Go to Dashboard"
+  },
+  "network": {
+    "title": "Connection Error",
+    "message": "Unable to connect to the server. Please check your internet connection.",
+    "offline": "You are offline"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "code": "404",
+    "message": "The page you're looking for doesn't exist or has been moved.",
+    "goHome": "Go to Dashboard"
+  },
+  "forbidden": {
+    "title": "Access Denied",
+    "code": "403",
+    "message": "You don't have permission to access this resource.",
+    "goHome": "Go to Dashboard"
+  },
+  "serverError": {
+    "title": "Server Error",
+    "code": "500",
+    "message": "Something went wrong on our end. Please try again later.",
+    "goHome": "Go to Dashboard"
+  },
+  "unauthorized": {
+    "title": "Session Expired",
+    "code": "401",
+    "message": "Your session has expired. Please sign in again.",
+    "signIn": "Sign In"
+  },
+  "rateLimited": {
+    "title": "Too Many Requests",
+    "message": "You're making requests too quickly. Please slow down.",
+    "withRetry": "Please wait {{seconds}} seconds before trying again."
+  },
+  "ipBlacklisted": {
+    "title": "Access Blocked",
+    "message": "Your IP address has been blocked. Please contact support if you believe this is an error."
+  },
+  "api": {
+    "badRequest": "Invalid request. Please check your input.",
+    "conflict": "This resource already exists.",
+    "notFound": "The requested resource was not found.",
+    "rateLimited": "Too many requests. Please wait a moment.",
+    "serverError": "Server error. Please try again later.",
+    "validationError": "Please fix the errors below.",
+    "invalidCredentials": "Invalid email or password.",
+    "emailExists": "An account with this email already exists.",
+    "tokenExpired": "Your session has expired. Please sign in again.",
+    "insufficientPermissions": "You don't have permission to perform this action."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "title": "Settings",
+  "description": "Manage your account settings and preferences",
+  "tabs": {
+    "security": "Security",
+    "language": "Language"
+  },
+  "security": {
+    "title": "Security Settings",
+    "description": "Manage your account security, two-factor authentication, and active sessions"
+  },
+  "language": {
+    "title": "Language Preference",
+    "description": "Choose your preferred language for the interface and emails",
+    "select": "Select language",
+    "current": "Current language",
+    "saved": "Language preference saved"
+  }
+}

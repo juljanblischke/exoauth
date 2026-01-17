@@ -1,0 +1,573 @@
+using ExoAuth.Application.Common.Exceptions;
+using ExoAuth.Application.Common.Interfaces;
+using ExoAuth.Application.Features.SystemUsers.Commands.AnonymizeUser;
+using ExoAuth.Domain.Entities;
+using ExoAuth.Domain.Enums;
+using ExoAuth.UnitTests.Helpers;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+
+namespace ExoAuth.UnitTests.Features.SystemUsers;
+
+public sealed class AnonymizeUserHandlerTests
+{
+    private readonly Mock<IAppDbContext> _mockContext;
+    private readonly Mock<ICurrentUserService> _mockCurrentUser;
+    private readonly Mock<IRevokedSessionService> _mockRevokedSessionService;
+    private readonly Mock<IAuditService> _mockAuditService;
+    private readonly Mock<ISystemUserRepository> _mockUserRepository;
+    private readonly Mock<IDeviceService> _mockDeviceService;
+
+    public AnonymizeUserHandlerTests()
+    {
+        _mockContext = new Mock<IAppDbContext>();
+        _mockCurrentUser = new Mock<ICurrentUserService>();
+        _mockRevokedSessionService = new Mock<IRevokedSessionService>();
+        _mockAuditService = new Mock<IAuditService>();
+        _mockUserRepository = new Mock<ISystemUserRepository>();
+        _mockDeviceService = new Mock<IDeviceService>();
+
+        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        // Default: user has no critical permissions
+        _mockUserRepository.Setup(x => x.GetUserPermissionNamesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string>());
+
+        // Default: user has no devices
+        _mockDeviceService.Setup(x => x.GetAllForUserAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Device>());
+    }
+
+    private AnonymizeUserHandler CreateHandler() => new(
+        _mockContext.Object,
+        _mockCurrentUser.Object,
+        _mockRevokedSessionService.Object,
+        _mockAuditService.Object,
+        _mockUserRepository.Object,
+        _mockDeviceService.Object);
+
+    [Fact]
+    public async Task Handle_WithValidUser_AnonymizesUser()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+        var refreshTokens = new List<RefreshToken>();
+        var backupCodes = new List<MfaBackupCode>();
+
+        SetupMockDbSets(users, refreshTokens, backupCodes);
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Success.Should().BeTrue();
+        result.UserId.Should().Be(userId);
+        user.IsAnonymized.Should().BeTrue();
+
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
+            AuditActions.UserAnonymized,
+            adminUserId,
+            userId,
+            "SystemUser",
+            userId,
+            It.IsAny<object?>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenNotAuthenticated_ThrowsUnauthorizedException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        _mockCurrentUser.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var handler = CreateHandler();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<UnauthorizedException>(
+            () => handler.Handle(command, CancellationToken.None).AsTask());
+    }
+
+    [Fact]
+    public async Task Handle_WhenAnonymizingSelf_ThrowsCannotDeleteSelfException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        _mockCurrentUser.Setup(x => x.UserId).Returns(userId);
+
+        var handler = CreateHandler();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<CannotDeleteSelfException>(
+            () => handler.Handle(command, CancellationToken.None).AsTask());
+    }
+
+    [Fact]
+    public async Task Handle_WhenUserNotFound_ThrowsSystemUserNotFoundException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var users = new List<SystemUser>();
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        var handler = CreateHandler();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<SystemUserNotFoundException>(
+            () => handler.Handle(command, CancellationToken.None).AsTask());
+
+        exception.UserId.Should().Be(userId);
+    }
+
+    [Fact]
+    public async Task Handle_WhenUserAlreadyAnonymized_ReturnsSuccess()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        user.Anonymize(); // Already anonymized
+        var users = new List<SystemUser> { user };
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Success.Should().BeTrue();
+
+        // Should not call SaveChanges or Audit when already anonymized
+        _mockContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mockAuditService.Verify(x => x.LogWithContextAsync(
+            It.IsAny<string>(),
+            It.IsAny<Guid?>(),
+            It.IsAny<Guid?>(),
+            It.IsAny<string>(),
+            It.IsAny<Guid?>(),
+            It.IsAny<object?>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_RevokesDevices()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+        var device = TestDataFactory.CreateDeviceWithId(deviceId, userId);
+        var devices = new List<Device> { device };
+        var refreshTokens = new List<RefreshToken>();
+        var backupCodes = new List<MfaBackupCode>();
+
+        SetupMockDbSets(users, refreshTokens, backupCodes);
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+        _mockDeviceService.Setup(x => x.GetAllForUserAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(devices);
+
+        var handler = CreateHandler();
+
+        // Act
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        _mockRevokedSessionService.Verify(x => x.RevokeSessionAsync(deviceId, It.IsAny<CancellationToken>()), Times.Once);
+        _mockDeviceService.Verify(x => x.RemoveAllAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_RevokesRefreshTokens()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+        var refreshToken = RefreshToken.Create(userId, UserType.System, "token123", 30);
+        var refreshTokens = new List<RefreshToken> { refreshToken };
+        var backupCodes = new List<MfaBackupCode>();
+
+        SetupMockDbSets(users, refreshTokens, backupCodes);
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        var handler = CreateHandler();
+
+        // Act
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        refreshToken.IsRevoked.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenLastPermissionHolder_ThrowsLastPermissionHolderException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        // User has system:users:update permission and is the only holder
+        _mockUserRepository.Setup(x => x.GetUserPermissionNamesAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string> { "system:users:update" });
+        _mockUserRepository.Setup(x => x.CountUsersWithPermissionAsync("system:users:update", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        var handler = CreateHandler();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<LastPermissionHolderException>(
+            () => handler.Handle(command, CancellationToken.None).AsTask());
+    }
+
+    [Fact]
+    public async Task Handle_WhenNotLastPermissionHolder_Succeeds()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        // User has system:users:update permission but there are 2 holders
+        _mockUserRepository.Setup(x => x.GetUserPermissionNamesAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string> { "system:users:update" });
+        _mockUserRepository.Setup(x => x.CountUsersWithPermissionAsync("system:users:update", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(2);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        user.IsAnonymized.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenLastUsersReadHolder_ThrowsLastPermissionHolderException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        // User has system:users:read permission and is the only holder
+        _mockUserRepository.Setup(x => x.GetUserPermissionNamesAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string> { "system:users:read" });
+        _mockUserRepository.Setup(x => x.CountUsersWithPermissionAsync("system:users:read", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        var handler = CreateHandler();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<LastPermissionHolderException>(
+            () => handler.Handle(command, CancellationToken.None).AsTask());
+
+        exception.PermissionName.Should().Be("system:users:read");
+    }
+
+    [Fact]
+    public async Task Handle_WhenNotLastUsersReadHolder_Succeeds()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>());
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        // User has system:users:read permission but there are 2 holders
+        _mockUserRepository.Setup(x => x.GetUserPermissionNamesAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string> { "system:users:read" });
+        _mockUserRepository.Setup(x => x.CountUsersWithPermissionAsync("system:users:read", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(2);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        user.IsAnonymized.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_DeletesInvitesWithUserEmail()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var userEmail = "test@example.com";
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId, userEmail);
+        var users = new List<SystemUser> { user };
+
+        // Create invites - one with matching email, one with different email
+        var inviteWithMatchingEmail = SystemInvite.Create(
+            userEmail, "Test", "User", new List<Guid>(), adminUserId, "hash1");
+        var inviteWithDifferentEmail = SystemInvite.Create(
+            "other@example.com", "Other", "User", new List<Guid>(), adminUserId, "hash2");
+        var invites = new List<SystemInvite> { inviteWithMatchingEmail, inviteWithDifferentEmail };
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>(), invites);
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        var handler = CreateHandler();
+
+        // Act
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert - Only the invite with matching email should be removed
+        invites.Should().HaveCount(1);
+        invites.Should().Contain(inviteWithDifferentEmail);
+        invites.Should().NotContain(inviteWithMatchingEmail);
+    }
+
+    [Fact]
+    public async Task Handle_DeletesAllInvitesWithUserEmail_RegardlessOfStatus()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var userEmail = "test@example.com";
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId, userEmail);
+        var users = new List<SystemUser> { user };
+
+        // Create multiple invites with the same email (simulating different statuses)
+        var invite1 = SystemInvite.Create(userEmail, "Test", "User", new List<Guid>(), adminUserId, "hash1");
+        var invite2 = SystemInvite.Create(userEmail, "Test", "User", new List<Guid>(), adminUserId, "hash2");
+        var invites = new List<SystemInvite> { invite1, invite2 };
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>(), invites);
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        var handler = CreateHandler();
+
+        // Act
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert - All invites with matching email should be removed
+        invites.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Handle_WhenNoInvitesExist_SucceedsWithoutError()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+        var invites = new List<SystemInvite>();
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>(), invites);
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        user.IsAnonymized.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_AnonymizesEmailLogs()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+
+        // Create email logs - one for this user, one for another user
+        var emailLog1 = EmailLog.Create("test@example.com", "Subject 1", "template", "en-US", userId, "{\"name\":\"Test\"}");
+        var emailLog2 = EmailLog.Create("other@example.com", "Subject 2", "template", "en-US", Guid.NewGuid(), "{\"name\":\"Other\"}");
+        var emailLogs = new List<EmailLog> { emailLog1, emailLog2 };
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>(), null, emailLogs);
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        var handler = CreateHandler();
+
+        // Act
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert - Only the email log for the anonymized user should be anonymized
+        // RecipientUserId is kept so queries can join with SystemUser and show anonymized user info
+        emailLog1.RecipientEmail.Should().StartWith("anonymized_").And.EndWith("@deleted.local");
+        emailLog1.TemplateVariables.Should().BeNull();
+        emailLog1.RecipientUserId.Should().Be(userId); // Kept for join with anonymized user
+
+        // The other user's email log should remain unchanged
+        emailLog2.RecipientEmail.Should().Be("other@example.com");
+        emailLog2.TemplateVariables.Should().Be("{\"name\":\"Other\"}");
+    }
+
+    [Fact]
+    public async Task Handle_AnonymizesAllEmailLogsForUser()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        var command = new AnonymizeUserCommand(userId);
+
+        var user = CreateUserWithPermissions(userId);
+        var users = new List<SystemUser> { user };
+
+        // Create multiple email logs for the same user
+        var emailLog1 = EmailLog.Create("test@example.com", "Subject 1", "password-reset", "en-US", userId, "{\"code\":\"123456\"}");
+        var emailLog2 = EmailLog.Create("test@example.com", "Subject 2", "welcome", "en-US", userId, "{\"name\":\"Test\"}");
+        var emailLog3 = EmailLog.Create("test@example.com", "Subject 3", "device-approval", "en-US", userId, "{\"device\":\"Chrome\"}");
+        var emailLogs = new List<EmailLog> { emailLog1, emailLog2, emailLog3 };
+
+        SetupMockDbSets(users, new List<RefreshToken>(), new List<MfaBackupCode>(), null, emailLogs);
+        _mockCurrentUser.Setup(x => x.UserId).Returns(adminUserId);
+
+        var handler = CreateHandler();
+
+        // Act
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert - All email logs should be anonymized
+        // RecipientUserId is kept so queries can join with SystemUser and show anonymized user info
+        foreach (var log in emailLogs)
+        {
+            log.RecipientEmail.Should().StartWith("anonymized_").And.EndWith("@deleted.local");
+            log.TemplateVariables.Should().BeNull();
+            log.RecipientUserId.Should().Be(userId); // Kept for join with anonymized user
+        }
+    }
+
+
+
+    private void SetupMockDbSets(
+        List<SystemUser> users,
+        List<RefreshToken> refreshTokens,
+        List<MfaBackupCode> backupCodes,
+        List<SystemInvite>? invites = null,
+        List<EmailLog>? emailLogs = null)
+    {
+        var mockUsersDbSet = CreateAsyncMockDbSet(users);
+        var mockRefreshTokensDbSet = CreateAsyncMockDbSet(refreshTokens);
+        var mockBackupCodesDbSet = CreateAsyncMockDbSet(backupCodes);
+        var mockPermissionsDbSet = CreateAsyncMockDbSet(new List<SystemUserPermission>());
+        var mockInvitesDbSet = CreateAsyncMockDbSet(invites ?? new List<SystemInvite>());
+        var mockEmailLogsDbSet = CreateAsyncMockDbSet(emailLogs ?? new List<EmailLog>());
+        _mockContext.Setup(x => x.SystemUsers).Returns(mockUsersDbSet.Object);
+        _mockContext.Setup(x => x.RefreshTokens).Returns(mockRefreshTokensDbSet.Object);
+        _mockContext.Setup(x => x.MfaBackupCodes).Returns(mockBackupCodesDbSet.Object);
+        _mockContext.Setup(x => x.SystemUserPermissions).Returns(mockPermissionsDbSet.Object);
+        _mockContext.Setup(x => x.SystemInvites).Returns(mockInvitesDbSet.Object);
+        _mockContext.Setup(x => x.EmailLogs).Returns(mockEmailLogsDbSet.Object);
+    }
+
+    private static SystemUser CreateUserWithPermissions(Guid userId, string email = "test@example.com")
+    {
+        var user = SystemUser.Create(email, "hash", "Test", "User", true);
+        SetUserId(user, userId);
+        return user;
+    }
+
+    private static void SetUserId(SystemUser user, Guid userId)
+    {
+        var idField = typeof(SystemUser).BaseType?
+            .GetField("<Id>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        idField?.SetValue(user, userId);
+    }
+
+    private static Mock<DbSet<T>> CreateAsyncMockDbSet<T>(List<T> data) where T : class
+    {
+        var queryable = data.AsAsyncQueryable();
+        var mockSet = new Mock<DbSet<T>>();
+
+        mockSet.As<IAsyncEnumerable<T>>()
+            .Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>()))
+            .Returns(() => new TestAsyncEnumerator<T>(data.GetEnumerator()));
+
+        mockSet.As<IQueryable<T>>()
+            .Setup(m => m.Provider)
+            .Returns(queryable.Provider);
+
+        mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(queryable.Expression);
+        mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
+        mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(() => data.GetEnumerator());
+
+        mockSet.Setup(m => m.RemoveRange(It.IsAny<IEnumerable<T>>()))
+            .Callback<IEnumerable<T>>(entities =>
+            {
+                foreach (var entity in entities.ToList())
+                {
+                    data.Remove(entity);
+                }
+            });
+
+        return mockSet;
+    }
+}

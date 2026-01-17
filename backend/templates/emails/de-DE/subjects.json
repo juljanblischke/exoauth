@@ -1,0 +1,18 @@
+{
+  "system-invite": "Einladung zu ExoAuth",
+  "password-reset": "Passwort zurücksetzen",
+  "password-changed": "Dein Passwort wurde geändert",
+  "mfa-enabled": "Zwei-Faktor-Authentifizierung aktiviert",
+  "mfa-disabled": "Zwei-Faktor-Authentifizierung deaktiviert",
+  "mfa-backup-code-used": "Backup-Code verwendet",
+  "mfa-reset-admin": "Ihre Zwei-Faktor-Authentifizierung wurde zurückgesetzt",
+  "new-device-login": "Anmeldung von einem neuen Gerät erkannt",
+  "new-location-login": "Anmeldung von einem neuen Standort",
+  "account-locked": "Ihr Konto wurde vorübergehend gesperrt",
+  "account-unlocked": "Ihr Konto wurde entsperrt",
+  "sessions-revoked-admin": "Alle Ihre Sitzungen wurden widerrufen",
+  "device-approval-required": "Gerätebestätigung erforderlich",
+  "device-denied-alert": "Sicherheitswarnung: Gerätezugriff verweigert",
+  "passkey-registered": "Passkey zu Ihrem Konto hinzugefügt",
+  "passkey-removed": "Passkey aus Ihrem Konto entfernt"
+}

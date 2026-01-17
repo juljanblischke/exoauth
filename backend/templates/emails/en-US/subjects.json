@@ -1,0 +1,18 @@
+{
+  "system-invite": "Invitation to ExoAuth",
+  "password-reset": "Reset Your Password",
+  "password-changed": "Your Password Has Been Changed",
+  "mfa-enabled": "Two-Factor Authentication Enabled",
+  "mfa-disabled": "Two-Factor Authentication Disabled",
+  "mfa-backup-code-used": "Backup Code Used for Login",
+  "mfa-reset-admin": "Your MFA Has Been Reset",
+  "new-device-login": "New Device Login Detected",
+  "new-location-login": "Login from New Location",
+  "account-locked": "Your Account Has Been Temporarily Locked",
+  "account-unlocked": "Your Account Has Been Unlocked",
+  "sessions-revoked-admin": "All Your Sessions Have Been Revoked",
+  "device-approval-required": "Device Approval Required",
+  "device-denied-alert": "Security Alert: Device Access Denied",
+  "passkey-registered": "Passkey Registered to Your Account",
+  "passkey-removed": "Passkey Removed from Your Account"
+}

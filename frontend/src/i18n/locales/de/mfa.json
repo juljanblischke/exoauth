@@ -1,0 +1,93 @@
+{
+  "title": "Zwei-Faktor-Authentifizierung",
+  "description": "Schuetzen Sie Ihr Konto mit einer zusaetzlichen Sicherheitsebene",
+  "status": {
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert"
+  },
+  "enable": {
+    "button": "2FA aktivieren",
+    "description": "Schuetzen Sie Ihr Konto mit Zwei-Faktor-Authentifizierung"
+  },
+  "setup": {
+    "title": "Zwei-Faktor-Authentifizierung einrichten",
+    "description": "Verwenden Sie eine Authenticator-App, um Verifizierungscodes zu generieren",
+    "step1": {
+      "title": "Schritt 1: Authenticator-App installieren",
+      "description": "Laden Sie Google Authenticator, Authy oder eine andere TOTP-kompatible App herunter"
+    },
+    "step2": {
+      "title": "Schritt 2: QR-Code scannen",
+      "description": "Oeffnen Sie Ihre Authenticator-App und scannen Sie diesen QR-Code"
+    },
+    "manualEntry": {
+      "title": "Scannen nicht moeglich?",
+      "description": "Geben Sie diesen Code manuell in Ihrer Authenticator-App ein:",
+      "button": "Code manuell eingeben"
+    },
+    "step3": {
+      "title": "Schritt 3: Verifizieren",
+      "description": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein",
+      "placeholder": "000000",
+      "button": "Verifizieren & Aktivieren",
+      "verifying": "Wird verifiziert..."
+    },
+    "cancel": "Einrichtung abbrechen"
+  },
+  "confirm": {
+    "title": "Backup-Codes speichern",
+    "description": "Diese Codes koennen verwendet werden, um auf Ihr Konto zuzugreifen, wenn Sie Ihr Authenticator-Geraet verlieren. Jeder Code kann nur einmal verwendet werden.",
+    "warning": "Bewahren Sie diese Codes an einem sicheren Ort auf. Sie werden sie nicht erneut sehen koennen!",
+    "downloaded": "Backup-Codes heruntergeladen",
+    "copied": "Backup-Codes in die Zwischenablage kopiert",
+    "downloadButton": "Codes herunterladen",
+    "copyButton": "Codes kopieren",
+    "continueButton": "Ich habe meine Codes gespeichert",
+    "continueWarning": "Stellen Sie sicher, dass Sie Ihre Backup-Codes gespeichert haben, bevor Sie fortfahren"
+  },
+  "verify": {
+    "title": "Zwei-Faktor-Authentifizierung",
+    "description": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein",
+    "placeholder": "000000",
+    "button": "Verifizieren",
+    "verifying": "Wird verifiziert...",
+    "useBackupCode": "Stattdessen einen Backup-Code verwenden",
+    "backupCodeTitle": "Backup-Code eingeben",
+    "backupCodeDescription": "Geben Sie einen Ihrer Backup-Codes ein",
+    "backupCodePlaceholder": "XXXXXXXX",
+    "backToCode": "Authenticator-Code verwenden",
+    "startNewLogin": "Neuen Login starten"
+  },
+  "disable": {
+    "title": "Zwei-Faktor-Authentifizierung deaktivieren",
+    "description": "Dies macht Ihr Konto weniger sicher. Sind Sie sicher?",
+    "warning": "Nach dem Deaktivieren von 2FA kann jeder mit Ihrem Passwort auf Ihr Konto zugreifen.",
+    "enterCode": "Geben Sie Ihren aktuellen Authenticator-Code zur Bestaetigung ein",
+    "placeholder": "000000",
+    "button": "2FA deaktivieren",
+    "disabling": "Wird deaktiviert...",
+    "cancel": "Abbrechen",
+    "success": "Zwei-Faktor-Authentifizierung deaktiviert"
+  },
+  "backupCodes": {
+    "title": "Backup-Codes",
+    "description": "Verwenden Sie diese Codes, wenn Sie den Zugriff auf Ihre Authenticator-App verlieren",
+    "regenerate": "Codes neu generieren",
+    "regenerateDescription": "Dies macht alle bestehenden Backup-Codes ungueltig",
+    "remaining": "{{count}} Codes verbleibend",
+    "viewCodes": "Backup-Codes anzeigen"
+  },
+  "required": {
+    "title": "Zwei-Faktor-Authentifizierung erforderlich",
+    "description": "Ihr Konto erfordert aus Sicherheitsgruenden die Aktivierung der Zwei-Faktor-Authentifizierung."
+  },
+  "errors": {
+    "codeInvalid": "Ungueltiger Verifizierungscode. Bitte versuchen Sie es erneut.",
+    "codeTooManyAttempts": "Zu viele fehlgeschlagene Versuche. Bitte versuchen Sie es spaeter erneut.",
+    "tokenInvalid": "Ungueltiges oder abgelaufenes Authentifizierungstoken. Bitte erneut anmelden.",
+    "tokenExpired": "Authentifizierungstoken abgelaufen. Bitte erneut anmelden.",
+    "alreadyEnabled": "Zwei-Faktor-Authentifizierung ist bereits aktiviert",
+    "notEnabled": "Zwei-Faktor-Authentifizierung ist nicht aktiviert",
+    "setupFailed": "2FA-Einrichtung fehlgeschlagen. Bitte versuchen Sie es erneut."
+  }
+}

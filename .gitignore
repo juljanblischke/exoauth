@@ -35,6 +35,7 @@ Thumbs.db
 # Logs
 *.log
 logs/
+!**/Features/Email/Logs/
 
 # Test results
 backend/**/TestResults/
@@ -42,3 +43,6 @@ frontend/coverage/
 
 # Docker
 docker/data/
+
+# GeoIP database (download from MaxMind)
+data/geoip/*.mmdb

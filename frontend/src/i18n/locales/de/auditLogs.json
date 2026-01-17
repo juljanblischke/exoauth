@@ -1,0 +1,32 @@
+{
+  "title": "Audit-Protokolle",
+  "subtitle": "Systemaktivitäten und Sicherheitsereignisse anzeigen",
+  "searchPlaceholder": "Protokolle durchsuchen...",
+  "fields": {
+    "time": "Zeit",
+    "user": "Benutzer",
+    "targetUser": "Zielbenutzer",
+    "action": "Aktion",
+    "entity": "Entität",
+    "ipAddress": "IP-Adresse",
+    "userAgent": "User Agent",
+    "details": "Details"
+  },
+  "filters": {
+    "action": "Aktion",
+    "user": "Benutzer",
+    "dateRange": "Zeitraum",
+    "entityType": "Entitätstyp"
+  },
+  "details": {
+    "title": "Audit-Protokoll Details",
+    "description": "Detaillierte Informationen zu diesem Ereignis anzeigen",
+    "type": "Typ"
+  },
+  "system": "System",
+  "empty": {
+    "title": "Noch keine Audit-Protokolle",
+    "description": "Audit-Protokolle werden hier angezeigt, sobald Systemaktivitäten auftreten"
+  },
+  "refreshed": "Audit-Protokolle aktualisiert"
+}

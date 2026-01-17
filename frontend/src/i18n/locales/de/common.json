@@ -1,0 +1,193 @@
+{
+  "app": {
+    "name": "ExoAuth",
+    "copyright": "Alle Rechte vorbehalten."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Willkommen zurück, {{name}}!",
+    "welcomeGeneric": "Willkommen zurück!",
+    "stats": {
+      "totalUsers": "Gesamtbenutzer",
+      "activeSessions": "Aktive Sitzungen",
+      "organizations": "Organisationen",
+      "projects": "Projekte"
+    }
+  },
+  "actions": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "add": "Hinzufügen",
+    "remove": "Entfernen",
+    "close": "Schließen",
+    "clear": "Löschen",
+    "confirm": "Bestätigen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "submit": "Absenden",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "reset": "Zurücksetzen",
+    "refresh": "Aktualisieren",
+    "refreshed": "Aktualisiert",
+    "export": "Exportieren",
+    "import": "Importieren",
+    "copy": "Kopieren",
+    "copied": "Kopiert!",
+    "loading": "Laden...",
+    "view": "Ansehen",
+    "viewDetails": "Details anzeigen",
+    "openMenu": "Menü öffnen",
+    "viewAll": "Alle anzeigen",
+    "showMore": "Mehr anzeigen",
+    "showLess": "Weniger anzeigen",
+    "selectAll": "Alle auswählen",
+    "deselectAll": "Auswahl aufheben",
+    "continue": "Fortfahren",
+    "retry": "Erneut versuchen",
+    "account": "Konto",
+    "logout": "Abmelden",
+    "rename": "Umbenennen"
+  },
+  "selectDate": "Datum auswählen",
+  "deleting": "Wird gelöscht...",
+  "search": {
+    "placeholder": "Suchen...",
+    "noResults": "Keine Ergebnisse gefunden."
+  },
+  "status": {
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "pending": "Ausstehend",
+    "suspended": "Gesperrt",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert"
+  },
+  "states": {
+    "deleting": "Wird gelöscht...",
+    "saving": "Wird gespeichert...",
+    "processing": "Wird verarbeitet..."
+  },
+  "table": {
+    "noResults": "Keine Ergebnisse gefunden",
+    "noData": "Keine Daten vorhanden",
+    "loading": "Daten werden geladen...",
+    "selected": "{{count}} ausgewählt",
+    "totalRows": "{{count}} Zeile",
+    "totalRows_other": "{{count}} Zeilen",
+    "selectAll": "Alle auswählen",
+    "selectRow": "Zeile auswählen",
+    "rowsPerPage": "Zeilen pro Seite",
+    "of": "von",
+    "columns": "Spalten",
+    "showColumns": "Spalten anzeigen",
+    "hideColumn": "Spalte ausblenden",
+    "sortAsc": "Aufsteigend sortieren",
+    "sortDesc": "Absteigend sortieren",
+    "clearSort": "Sortierung aufheben"
+  },
+  "time": {
+    "justNow": "Gerade eben",
+    "minutesAgo": "vor {{count}} Minute",
+    "minutesAgo_other": "vor {{count}} Minuten",
+    "hoursAgo": "vor {{count}} Stunde",
+    "hoursAgo_other": "vor {{count}} Stunden",
+    "daysAgo": "vor {{count}} Tag",
+    "daysAgo_other": "vor {{count}} Tagen",
+    "weeksAgo": "vor {{count}} Woche",
+    "weeksAgo_other": "vor {{count}} Wochen",
+    "monthsAgo": "vor {{count}} Monat",
+    "monthsAgo_other": "vor {{count}} Monaten"
+  },
+  "confirm": {
+    "title": "Aktion bestätigen",
+    "deleteTitle": "Löschen bestätigen",
+    "deleteMessage": "Sind Sie sicher, dass Sie diesen Eintrag löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "unsavedTitle": "Ungespeicherte Änderungen",
+    "unsavedMessage": "Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?",
+    "typeToConfirm": "Geben Sie <highlight>{{text}}</highlight> zur Bestätigung ein",
+    "stay": "Bleiben",
+    "leave": "Verlassen"
+  },
+  "legal": {
+    "imprint": "Impressum",
+    "privacy": "Datenschutz",
+    "terms": "AGB",
+    "cookies": "Cookie-Richtlinie",
+    "backToHome": "Zurück zur Startseite",
+    "lastUpdated": "Zuletzt aktualisiert",
+    "imprintPage": {
+      "title": "Impressum",
+      "subtitle": "Rechtliche Angaben zum Betreiber dieser Website",
+      "placeholder": "Dies ist ein Platzhalter für den Impressum-Inhalt. Bitte ersetzen Sie diesen durch Ihre tatsächlichen rechtlichen Angaben."
+    },
+    "privacyPage": {
+      "title": "Datenschutzerklärung",
+      "subtitle": "Wie wir Ihre Daten erheben, verwenden und schützen",
+      "placeholder": "Dies ist ein Platzhalter für die Datenschutzerklärung. Bitte ersetzen Sie diesen durch Ihre tatsächliche Datenschutzerklärung."
+    },
+    "termsPage": {
+      "title": "Allgemeine Geschäftsbedingungen",
+      "subtitle": "Bedingungen für die Nutzung unserer Dienste",
+      "placeholder": "Dies ist ein Platzhalter für die AGB. Bitte ersetzen Sie diesen durch Ihre tatsächlichen Geschäftsbedingungen."
+    }
+  },
+  "theme": {
+    "label": "Design",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  },
+  "language": {
+    "en": "English",
+    "de": "Deutsch"
+  },
+  "session": {
+    "warningTitle": "Sitzung läuft ab",
+    "warningDescription": "Ihre Sitzung läuft in {{time}} ab. Möchten Sie sie verlängern?",
+    "extend": "Sitzung verlängern"
+  },
+  "cookies": {
+    "title": "Cookie-Einwilligung",
+    "description": "Wir verwenden Cookies, um Ihre Erfahrung zu verbessern. Durch die weitere Nutzung dieser Website stimmen Sie der Verwendung von Cookies zu.",
+    "accept": "Alle akzeptieren",
+    "reject": "Ablehnen",
+    "learnMore": "Mehr erfahren"
+  },
+  "help": {
+    "toggle": "Hilfe",
+    "title": "Brauchen Sie Hilfe?",
+    "documentation": "Dokumentation",
+    "support": "Support kontaktieren",
+    "feedback": "Feedback senden"
+  },
+  "filters": {
+    "dateRange": "Zeitraum",
+    "selected": "{{count}} ausgewählt",
+    "selected_one": "{{count}} ausgewählt",
+    "selected_other": "{{count}} ausgewählt"
+  },
+  "unsavedChanges": {
+    "title": "Ungespeicherte Änderungen",
+    "description": "Sie haben ungespeicherte Änderungen. Möchten Sie wirklich verlassen? Ihre Änderungen gehen verloren.",
+    "continueEditing": "Weiter bearbeiten",
+    "discard": "Änderungen verwerfen",
+    "save": "Änderungen speichern"
+  },
+  "forceReauth": {
+    "title": "Sitzung abgelaufen",
+    "description": "Ihre Berechtigungen wurden geändert. Bitte melden Sie sich erneut an."
+  },
+  "error": "Fehler",
+  "labels": {
+    "type": "Typ",
+    "activity": "Aktivität",
+    "created": "Erstellt",
+    "security": "Sicherheit",
+    "riskScore": "Risikobewertung",
+    "email": "E-Mail"
+  }
+}
