@@ -790,6 +790,165 @@ import {
 
 ---
 
+## Repository Structure: Community vs Pro (2026-01-17)
+
+### Überblick
+
+Das Frontend folgt dem gleichen **Open Core** Modell wie das Backend:
+
+```
+ÖFFENTLICH (GitHub):                    PRIVAT (nicht auf GitHub):
+exoauth/frontend/                       exoauth-pro/frontend-pro/
+├── System Admin Dashboard              ├── Customer Portal
+└── MIT License                         ├── Organization UI
+                                        └── Proprietary License
+```
+
+### Was ist wo?
+
+| Feature | Community (Public) | Pro (Private) |
+|---------|-------------------|---------------|
+| **System Admin UI** | ✅ | ✅ |
+| SystemUser Login/Register | ✅ | ✅ |
+| User Management | ✅ | ✅ |
+| Permissions, Invites | ✅ | ✅ |
+| Audit Logs | ✅ | ✅ |
+| Email Config | ✅ | ✅ |
+| IP Restrictions | ✅ | ✅ |
+| Settings (MFA, Passkeys, Devices) | ✅ | ✅ |
+| **Customer Portal** | ❌ | ✅ |
+| Customer Login/Register | ❌ | ✅ |
+| Organization Management | ❌ | ✅ |
+| Project Management | ❌ | ✅ |
+| Billing/Plans UI | ❌ | ✅ |
+
+### Frontend Struktur in Pro
+
+```
+exoauth-pro/
+├── community/                          ← Git Submodule
+│   └── frontend/                       ← System Admin Dashboard
+│
+└── frontend-pro/
+    └── src/
+        ├── features/
+        │   ├── customer-auth/          ← NUR PRO
+        │   │   ├── api/
+        │   │   ├── hooks/
+        │   │   ├── components/
+        │   │   │   ├── customer-login-form.tsx
+        │   │   │   ├── customer-register-form.tsx
+        │   │   │   └── ...
+        │   │   └── types/
+        │   │
+        │   ├── organizations/          ← NUR PRO
+        │   │   ├── api/
+        │   │   ├── hooks/
+        │   │   ├── components/
+        │   │   │   ├── organization-list.tsx
+        │   │   │   ├── organization-card.tsx
+        │   │   │   ├── organization-settings.tsx
+        │   │   │   ├── member-list.tsx
+        │   │   │   └── ...
+        │   │   └── types/
+        │   │
+        │   └── projects/               ← NUR PRO
+        │       └── ...
+        │
+        ├── routes/
+        │   ├── customer-login.tsx      ← NUR PRO
+        │   ├── customer-register.tsx   ← NUR PRO
+        │   ├── organizations.tsx       ← NUR PRO
+        │   └── projects.tsx            ← NUR PRO
+        │
+        └── i18n/locales/
+            ├── en/
+            │   ├── organizations.json  ← NUR PRO
+            │   └── customerAuth.json   ← NUR PRO
+            └── de/
+                └── ...
+```
+
+### Zwei Apps oder Eine?
+
+**Option A: Zwei separate Apps** (empfohlen)
+```
+Community:  admin.exoauth.com     → SystemUser Dashboard
+Pro:        app.exoauth.com       → Customer Portal
+            admin.exoauth.com     → SystemUser Dashboard (inkludiert)
+```
+
+**Option B: Eine App mit Routing**
+```
+/admin/*    → SystemUser Dashboard
+/app/*      → Customer Portal (nur in Pro)
+```
+
+### API Base URLs
+
+```typescript
+// Community Frontend (System Admin)
+const API_BASE = '/api/system'  // SystemUser endpoints
+
+// Pro Frontend (Customer Portal)
+const API_BASE = '/api'         // Customer endpoints (/api/auth, /api/organizations)
+const API_ADMIN = '/api/system' // Falls Admin-Zugriff nötig
+```
+
+### Edition-Trennung: Build-Time (KEIN Runtime Flag)
+
+**WICHTIG:** Pro-Features existieren GAR NICHT im Community Code!
+
+```
+Community Build:                    Pro Build:
+├── features/auth/ ✅               ├── features/auth/ ✅ (aus submodule)
+├── features/users/ ✅              ├── features/users/ ✅ (aus submodule)
+├── features/audit-logs/ ✅         ├── features/audit-logs/ ✅ (aus submodule)
+├── features/email/ ✅              ├── features/email/ ✅ (aus submodule)
+│                                   ├── features/organizations/ 🔒 PRO
+│                                   ├── features/customers/ 🔒 PRO
+│                                   └── features/customer-auth/ 🔒 PRO
+```
+
+**Regeln:**
+
+1. **Kein `if (edition === 'pro')`** - Code existiert einfach nicht
+2. **Navigation/Sidebar** - Pro hat eigene `navigation.ts` die Community erweitert
+3. **Router** - Pro hat eigene Routes die Community Routes importiert + erweitert
+4. **Kein Pro-Code in Community** - niemals Pro-Features in public repo committen
+
+### Pro Frontend erweitert Community
+
+```typescript
+// exoauth-pro/frontend-pro/src/config/navigation.ts
+import { communityNavItems } from '../../../community/frontend/src/config/navigation'
+
+export const navItems = [
+  ...communityNavItems,
+  // Pro-only items
+  { title: 'Organizations', href: '/organizations', icon: Building2 },
+  { title: 'Customers', href: '/customers', icon: Users },
+  { title: 'Plans', href: '/plans', icon: CreditCard },
+]
+```
+
+```typescript
+// exoauth-pro/frontend-pro/src/app/router.tsx
+import { communityRoutes } from '../../../community/frontend/src/app/router'
+
+export const router = createRouter({
+  routeTree: rootRoute.addChildren([
+    ...communityRoutes,
+    // Pro-only routes
+    organizationsRoute,
+    customersRoute,
+    plansRoute,
+  ]),
+})
+```
+
+---
+
 ## Last Updated
 - **Date:** 2026-01-11
 - **Tasks Completed:** 003, 004, 006, 008, 010, 012, 014, 016, 018, 020, 022, 024, 026

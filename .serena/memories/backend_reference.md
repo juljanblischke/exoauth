@@ -745,6 +745,112 @@ Every new endpoint MUST have:
 
 ---
 
+## Repository Structure: Community vs Pro (2026-01-17)
+
+### Überblick
+
+ExoAuth verwendet ein **Open Core** Modell mit zwei Repositories:
+
+```
+ÖFFENTLICH (GitHub):                    PRIVAT (nicht auf GitHub):
+exoauth/                                exoauth-pro/
+├── backend/                            ├── community/  ← Git Submodule
+├── frontend/                           ├── backend-pro/
+└── MIT License                         ├── frontend-pro/
+                                        └── Proprietary License
+```
+
+### Was ist wo?
+
+| Feature | Community (Public) | Pro (Private) |
+|---------|-------------------|---------------|
+| **Auth Features** | ✅ | ✅ |
+| Email/Password, MFA, Passkeys | ✅ | ✅ |
+| Device Trust, Rate Limiting | ✅ | ✅ |
+| Audit Logs, IP Restrictions | ✅ | ✅ |
+| Email System (Multi-Provider) | ✅ | ✅ |
+| 1 Project | ✅ | ✅ |
+| **Business Layer** | ❌ | ✅ |
+| Multi-Project | ❌ | ✅ |
+| Organizations | ❌ | ✅ |
+| Customers | ❌ | ✅ |
+| Plans & Subscriptions | ❌ | ✅ |
+| License Management | ❌ | ✅ |
+
+### Pro Repository Struktur
+
+```
+exoauth-pro/
+├── community/                          ← Git Submodule (public repo)
+│   └── (kompletter exoauth/ code)
+│
+├── backend-pro/
+│   └── src/
+│       └── ExoAuth.Pro/
+│           ├── ExoAuth.Pro.csproj      ← Referenziert Community-Projekte
+│           ├── Features/
+│           │   ├── Organizations/      ← NUR PRO
+│           │   ├── Customers/          ← NUR PRO
+│           │   ├── CustomerAuth/       ← NUR PRO
+│           │   └── Plans/              ← NUR PRO
+│           └── ProStartup.cs
+│
+├── frontend-pro/
+│   └── src/
+│       └── (Customer Portal, Org UI)   ← NUR PRO
+│
+└── docker/
+    ├── Dockerfile.community
+    └── Dockerfile.pro
+```
+
+### Entwicklungs-Workflow
+
+**Community-Code ändern (Auth, MFA, etc.):**
+```bash
+cd exoauth/                    # Public Repo
+# Änderungen machen...
+git commit -m "Feature X"
+git push origin main
+
+# Pro-Repo updaten:
+cd ../exoauth-pro/
+git submodule update --remote community
+git add community
+git commit -m "Community updated"
+git push
+```
+
+**Pro-Code ändern (Organizations, Customers, etc.):**
+```bash
+cd exoauth-pro/               # Private Repo
+# Änderungen machen...
+git commit -m "Pro Feature Y"
+git push origin main
+# Community bleibt unberührt
+```
+
+### API Routes Trennung
+
+```
+COMMUNITY (SystemUser/Admin):
+/api/system/auth/*            ← SystemUser Login/MFA/etc.
+/api/system/users/*
+/api/system/permissions/*
+/api/system/invites/*
+/api/system/audit-logs/*
+/api/system/email/*
+/api/system/ip-restrictions/*
+
+PRO (Customer/Business):
+/api/auth/*                   ← Customer Login/Register (NUR PRO)
+/api/organizations/*          ← Organizations (NUR PRO)
+/api/projects/*               ← Multi-Project (NUR PRO)
+/api/plans/*                  ← Subscriptions (NUR PRO)
+```
+
+---
+
 ## Last Updated
 
 - **Date:** 2026-01-14
