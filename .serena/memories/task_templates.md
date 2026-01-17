@@ -4,6 +4,56 @@
 
 ---
 
+## Repository Classification
+
+Every task MUST be marked with its repository at the top:
+
+| Label | Repository | Description |
+|-------|------------|-------------|
+| `🌐 COMMUNITY` | `exoauth/exoauth` (public) | Core auth features, SystemUser management |
+| `🔒 PRO` | `exoauth-pro/exoauth-pro` (private) | Business features, multi-project, customers |
+
+**What goes where?**
+
+| Feature | Repository | Reason |
+|---------|------------|--------|
+| Auth (MFA, Passkeys, Social Login) | 🌐 COMMUNITY | Core auth for everyone |
+| SystemUsers & Admin | 🌐 COMMUNITY | Platform management |
+| Email System | 🌐 COMMUNITY | Core functionality |
+| Rate Limiting, IP Restrictions | 🌐 COMMUNITY | Security features |
+| Audit Logging | 🌐 COMMUNITY | Compliance |
+| Customers & Customer Auth | 🔒 PRO | Business layer |
+| Organizations | 🔒 PRO | Business layer |
+| Multi-Project | 🔒 PRO | Monetization feature |
+| Plans & Subscriptions | 🔒 PRO | Billing |
+| License Key Validation | 🔒 PRO | Monetization |
+
+### Frontend-spezifische Regeln
+
+| Wenn du baust... | Repository | Ordner |
+|------------------|------------|--------|
+| SystemUser Feature | 🌐 COMMUNITY | `frontend/src/features/` |
+| Customer Feature | 🔒 PRO | `frontend-pro/src/features/` |
+| Organization Feature | 🔒 PRO | `frontend-pro/src/features/` |
+| Shared UI Component | 🌐 COMMUNITY | `frontend/src/components/shared/` |
+
+**NIEMALS:**
+- Pro-Features in `frontend/` (Community) committen
+- `if (edition === 'pro')` Runtime-Checks verwenden
+- Pro-spezifische Navigation in Community hinzufügen
+
+**PRO Feature Warning Banner (copy this to PRO tasks):**
+```markdown
+> ⚠️ **PRO FEATURE** - This task is implemented in the private `exoauth-pro` repository.
+> 
+> **Setup:** Ensure the community submodule is initialized:
+> ```bash
+> git submodule update --init --recursive
+> ```
+```
+
+---
+
 ## Task File Naming
 
 ```
@@ -37,6 +87,12 @@ Examples:
 
 ```markdown
 # Task: [Feature Name]
+
+> **Repository:** 🌐 COMMUNITY | 🔒 PRO *(delete one)*
+> 
+> ⚠️ **PRO FEATURE** *(only if PRO - delete this block for COMMUNITY)*
+> This task is implemented in the private `exoauth-pro` repository.
+> Setup: `git submodule update --init --recursive`
 
 ## 1. Übersicht
 **Was wird gebaut?**
@@ -158,6 +214,12 @@ Examples:
 
 ```markdown
 # Task: [Feature Name]
+
+> **Repository:** 🌐 COMMUNITY | 🔒 PRO *(delete one)*
+> 
+> ⚠️ **PRO FEATURE** *(only if PRO - delete this block for COMMUNITY)*
+> This task is implemented in the private `exoauth-pro` repository.
+> Setup: `git submodule update --init --recursive`
 
 ## 1. Übersicht
 **Was wird gebaut?**
@@ -295,6 +357,20 @@ Examples:
 - **Status:** In Progress / Complete
 - **Nächster Schritt:** ...
 ```
+
+---
+
+## API Routes by Repository
+
+| Route Pattern | Repository | Description |
+|---------------|------------|-------------|
+| `/api/system/auth/*` | 🌐 COMMUNITY | SystemUser authentication |
+| `/api/system/users/*` | 🌐 COMMUNITY | SystemUser management |
+| `/api/system/*` | 🌐 COMMUNITY | All admin/system endpoints |
+| `/api/auth/*` | 🔒 PRO | Customer authentication |
+| `/api/organizations/*` | 🔒 PRO | Organization management |
+| `/api/projects/*` | 🔒 PRO | Multi-project management |
+| `/api/plans/*` | 🔒 PRO | Subscription/billing |
 
 ---
 
