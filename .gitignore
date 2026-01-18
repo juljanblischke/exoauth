@@ -46,3 +46,6 @@ docker/data/
 
 # GeoIP database (download from MaxMind)
 data/geoip/*.mmdb
+
+# Node
+node_modules/

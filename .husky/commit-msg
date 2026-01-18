@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+# Block commits with AI co-authorship
+if grep -qi "Co-Authored-By:.*Claude\|Co-Authored-By:.*Anthropic\|Co-Authored-By:.*OpenAI\|Co-Authored-By:.*GPT\|Co-Authored-By:.*Copilot" "$1"; then
+  echo "❌ ERROR: AI co-authorship detected in commit message!"
+  echo ""
+  echo "This repository does not allow AI attribution in commits."
+  echo "Please remove any 'Co-Authored-By' lines mentioning AI assistants."
+  echo ""
+  exit 1
+fi
