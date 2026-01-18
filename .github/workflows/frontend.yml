@@ -13,7 +13,8 @@ on:
       - '.github/workflows/frontend.yml'
 
 jobs:
-  build:
+  frontend-build:
+    name: Frontend Build & Lint
     runs-on: ubuntu-latest
 
     defaults:

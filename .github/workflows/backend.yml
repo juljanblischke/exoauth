@@ -13,7 +13,8 @@ on:
       - '.github/workflows/backend.yml'
 
 jobs:
-  build:
+  backend-build:
+    name: Backend Build & Test
     runs-on: ubuntu-latest
 
     defaults:
