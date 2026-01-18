@@ -6,7 +6,12 @@ namespace ExoAuth.Infrastructure.Persistence;
 
 public class AppDbContext : DbContext, IAppDbContext
 {
-    public AppDbContext(DbContextOptions options) : base(options)
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+    }
+
+    // Protected constructor for derived classes (e.g., ProDbContext)
+    protected AppDbContext(DbContextOptions options) : base(options)
     {
     }
 
