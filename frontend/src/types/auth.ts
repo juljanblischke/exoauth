@@ -58,6 +58,11 @@ export interface ResetPasswordResponse {
   message: string
 }
 
+export interface RequestMagicLinkResponse {
+  success: boolean
+  message: string
+}
+
 // Device info for auth requests
 export interface DeviceInfo {
   deviceId: string | null
@@ -102,6 +107,11 @@ export interface ResetPasswordRequest {
   email?: string
   code?: string
   newPassword: string
+}
+
+export interface RequestMagicLinkRequest {
+  email: string
+  captchaToken?: string
 }
 
 export interface MfaVerifyRequest extends DeviceInfo {
