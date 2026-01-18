@@ -16,7 +16,7 @@ export const authApi = {
    */
   login: async (request: LoginRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<ApiResponse<AuthResponse>>(
-      '/auth/login',
+      '/system/auth/login',
       request
     )
     return extractData(response)
@@ -27,7 +27,7 @@ export const authApi = {
    */
   register: async (request: RegisterRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<ApiResponse<AuthResponse>>(
-      '/auth/register',
+      '/system/auth/register',
       request
     )
     return extractData(response)
@@ -38,7 +38,7 @@ export const authApi = {
    */
   acceptInvite: async (request: AcceptInviteRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<ApiResponse<AuthResponse>>(
-      '/auth/accept-invite',
+      '/system/auth/accept-invite',
       request
     )
     return extractData(response)
@@ -49,7 +49,7 @@ export const authApi = {
    */
   logout: async (): Promise<LogoutResponse> => {
     const response = await apiClient.post<ApiResponse<LogoutResponse>>(
-      '/auth/logout'
+      '/system/auth/logout'
     )
     return extractData(response)
   },
@@ -58,7 +58,7 @@ export const authApi = {
    * Get current authenticated user
    */
   getCurrentUser: async (): Promise<User> => {
-    const response = await apiClient.get<ApiResponse<User>>('/auth/me')
+    const response = await apiClient.get<ApiResponse<User>>('/system/auth/me')
     return extractData(response)
   },
 
@@ -67,7 +67,7 @@ export const authApi = {
    * Note: Usually handled automatically by axios interceptor
    */
   refresh: async (): Promise<void> => {
-    await apiClient.post('/auth/refresh')
+    await apiClient.post('/system/auth/refresh')
   },
 
   /**
@@ -75,7 +75,7 @@ export const authApi = {
    */
   validateInvite: async (token: string): Promise<InviteValidationDto> => {
     const response = await apiClient.get<ApiResponse<InviteValidationDto>>(
-      '/auth/invite',
+      '/system/auth/invite',
       { params: { token } }
     )
     return extractData(response)

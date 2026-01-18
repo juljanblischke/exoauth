@@ -19,7 +19,7 @@ export const mfaApi = {
   setup: async (setupToken?: string): Promise<MfaSetupResponse> => {
     const body = setupToken ? { setupToken } : undefined
     const response = await apiClient.post<ApiResponse<MfaSetupResponse>>(
-      '/auth/mfa/setup',
+      '/system/auth/mfa/setup',
       body
     )
     return extractData(response)
@@ -37,7 +37,7 @@ export const mfaApi = {
   ): Promise<MfaConfirmResponse> => {
     const body = setupToken ? { ...request, setupToken } : request
     const response = await apiClient.post<ApiResponse<MfaConfirmResponse>>(
-      '/auth/mfa/confirm',
+      '/system/auth/mfa/confirm',
       body
     )
     return extractData(response)
@@ -48,7 +48,7 @@ export const mfaApi = {
    */
   verify: async (request: MfaVerifyRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<ApiResponse<AuthResponse>>(
-      '/auth/mfa/verify',
+      '/system/auth/mfa/verify',
       request
     )
     return extractData(response)
@@ -59,7 +59,7 @@ export const mfaApi = {
    */
   disable: async (request: MfaDisableRequest): Promise<MfaDisableResponse> => {
     const response = await apiClient.post<ApiResponse<MfaDisableResponse>>(
-      '/auth/mfa/disable',
+      '/system/auth/mfa/disable',
       request
     )
     return extractData(response)
@@ -72,7 +72,7 @@ export const mfaApi = {
     request: RegenerateBackupCodesRequest
   ): Promise<RegenerateBackupCodesResponse> => {
     const response = await apiClient.post<ApiResponse<RegenerateBackupCodesResponse>>(
-      '/auth/mfa/backup-codes',
+      '/system/auth/mfa/backup-codes',
       request
     )
     return extractData(response)

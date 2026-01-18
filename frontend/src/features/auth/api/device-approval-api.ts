@@ -16,7 +16,7 @@ export const deviceApprovalApi = {
     request: ApproveDeviceByCodeRequest
   ): Promise<ApproveDeviceByCodeResponse> => {
     const response = await apiClient.post<ApiResponse<ApproveDeviceByCodeResponse>>(
-      '/auth/approve-device',
+      '/system/auth/approve-device',
       request
     )
     return extractData(response)
@@ -27,7 +27,7 @@ export const deviceApprovalApi = {
    */
   approveByLink: async (token: string): Promise<ApproveDeviceByLinkResponse> => {
     const response = await apiClient.get<ApiResponse<ApproveDeviceByLinkResponse>>(
-      '/auth/approve-device-link',
+      '/system/auth/approve-device-link',
       { params: { token } }
     )
     return extractData(response)
@@ -38,7 +38,7 @@ export const deviceApprovalApi = {
    */
   denyDevice: async (request: DenyDeviceRequest): Promise<DenyDeviceResponse> => {
     const response = await apiClient.post<ApiResponse<DenyDeviceResponse>>(
-      '/auth/deny-device',
+      '/system/auth/deny-device',
       request
     )
     return extractData(response)

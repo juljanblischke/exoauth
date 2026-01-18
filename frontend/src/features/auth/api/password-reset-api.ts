@@ -15,7 +15,7 @@ export const passwordResetApi = {
     request: ForgotPasswordRequest
   ): Promise<ForgotPasswordResponse> => {
     const response = await apiClient.post<ApiResponse<ForgotPasswordResponse>>(
-      '/auth/forgot-password',
+      '/system/auth/forgot-password',
       request
     )
     return extractData(response)
@@ -28,7 +28,7 @@ export const passwordResetApi = {
     request: ResetPasswordRequest
   ): Promise<ResetPasswordResponse> => {
     const response = await apiClient.post<ApiResponse<ResetPasswordResponse>>(
-      '/auth/reset-password',
+      '/system/auth/reset-password',
       request
     )
     return extractData(response)

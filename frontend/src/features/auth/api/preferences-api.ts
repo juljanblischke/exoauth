@@ -17,7 +17,7 @@ export const preferencesApi = {
     request: UpdatePreferencesRequest
   ): Promise<UpdatePreferencesResponse> => {
     const response = await apiClient.patch<ApiResponse<UpdatePreferencesResponse>>(
-      '/auth/me/preferences',
+      '/system/auth/me/preferences',
       request
     )
     return extractData(response)

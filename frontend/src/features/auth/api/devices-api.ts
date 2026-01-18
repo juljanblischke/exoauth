@@ -14,7 +14,7 @@ export const devicesApi = {
    */
   getDevices: async (): Promise<DeviceDto[]> => {
     const response = await apiClient.get<ApiResponse<DeviceDto[]>>(
-      '/auth/devices'
+      '/system/auth/devices'
     )
     return extractData(response)
   },
@@ -24,7 +24,7 @@ export const devicesApi = {
    */
   revokeDevice: async (deviceId: string): Promise<RevokeDeviceResponse> => {
     const response = await apiClient.delete<ApiResponse<RevokeDeviceResponse>>(
-      `/auth/devices/${deviceId}`
+      `/system/auth/devices/${deviceId}`
     )
     return extractData(response)
   },
@@ -34,7 +34,7 @@ export const devicesApi = {
    */
   revokeAllDevices: async (): Promise<RevokeAllDevicesResponse> => {
     const response = await apiClient.delete<ApiResponse<RevokeAllDevicesResponse>>(
-      '/auth/devices'
+      '/system/auth/devices'
     )
     return extractData(response)
   },
@@ -47,7 +47,7 @@ export const devicesApi = {
     request: RenameDeviceRequest
   ): Promise<DeviceDto> => {
     const response = await apiClient.put<ApiResponse<DeviceDto>>(
-      `/auth/devices/${deviceId}/name`,
+      `/system/auth/devices/${deviceId}/name`,
       request
     )
     return extractData(response)
@@ -58,7 +58,7 @@ export const devicesApi = {
    */
   approveDeviceFromSession: async (deviceId: string): Promise<AuthResponse> => {
     const response = await apiClient.post<ApiResponse<AuthResponse>>(
-      `/auth/devices/${deviceId}/approve`
+      `/system/auth/devices/${deviceId}/approve`
     )
     return extractData(response)
   },

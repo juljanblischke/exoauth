@@ -17,7 +17,7 @@ export const passkeysApi = {
    */
   getAll: async (): Promise<PasskeyDto[]> => {
     const response = await apiClient.get<ApiResponse<GetPasskeysResponse>>(
-      '/auth/passkeys'
+      '/system/auth/passkeys'
     )
     return extractData(response).passkeys
   },
@@ -27,7 +27,7 @@ export const passkeysApi = {
    */
   getRegisterOptions: async (): Promise<PasskeyRegisterOptionsResponse> => {
     const response = await apiClient.post<ApiResponse<PasskeyRegisterOptionsResponse>>(
-      '/auth/passkeys/register/options'
+      '/system/auth/passkeys/register/options'
     )
     return extractData(response)
   },
@@ -37,7 +37,7 @@ export const passkeysApi = {
    */
   register: async (data: PasskeyRegisterRequest): Promise<PasskeyDto> => {
     const response = await apiClient.post<ApiResponse<PasskeyDto>>(
-      '/auth/passkeys/register',
+      '/system/auth/passkeys/register',
       data
     )
     return extractData(response)
@@ -48,7 +48,7 @@ export const passkeysApi = {
    */
   getLoginOptions: async (): Promise<PasskeyLoginOptionsResponse> => {
     const response = await apiClient.post<ApiResponse<PasskeyLoginOptionsResponse>>(
-      '/auth/passkeys/login/options'
+      '/system/auth/passkeys/login/options'
     )
     return extractData(response)
   },
@@ -58,7 +58,7 @@ export const passkeysApi = {
    */
   login: async (data: PasskeyLoginRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<ApiResponse<AuthResponse>>(
-      '/auth/passkeys/login',
+      '/system/auth/passkeys/login',
       data
     )
     return extractData(response)
@@ -69,7 +69,7 @@ export const passkeysApi = {
    */
   rename: async (id: string, data: RenamePasskeyRequest): Promise<PasskeyDto> => {
     const response = await apiClient.patch<ApiResponse<PasskeyDto>>(
-      `/auth/passkeys/${id}`,
+      `/system/auth/passkeys/${id}`,
       data
     )
     return extractData(response)
@@ -79,6 +79,6 @@ export const passkeysApi = {
    * Delete a passkey
    */
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete<ApiResponse<void>>(`/auth/passkeys/${id}`)
+    await apiClient.delete<ApiResponse<void>>(`/system/auth/passkeys/${id}`)
   },
 }

@@ -114,7 +114,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return null
       }
       try {
-        const response = await apiClient.get<ApiResponse<User>>('/auth/me')
+        const response = await apiClient.get<ApiResponse<User>>('/system/auth/me')
         const user = extractData(response)
         return user
       } catch {
@@ -138,7 +138,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const loginMutation = useMutation({
     mutationFn: async (data: LoginRequest) => {
       const response = await apiClient.post<ApiResponse<AuthResponse>>(
-        '/auth/login',
+        '/system/auth/login',
         data
       )
       return extractData(response)
@@ -155,7 +155,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterRequest) => {
       const response = await apiClient.post<ApiResponse<AuthResponse>>(
-        '/auth/register',
+        '/system/auth/register',
         data
       )
       return extractData(response)
@@ -172,7 +172,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logoutMutation = useMutation({
     mutationFn: async () => {
       const response =
-        await apiClient.post<ApiResponse<LogoutResponse>>('/auth/logout')
+        await apiClient.post<ApiResponse<LogoutResponse>>('/system/auth/logout')
       return extractData(response)
     },
     onSuccess: () => {

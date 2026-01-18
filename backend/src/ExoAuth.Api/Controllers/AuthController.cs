@@ -37,7 +37,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ExoAuth.Api.Controllers;
 
-[Route("api/auth")]
+[Route("api/system/auth")]
 public sealed class AuthController : ApiControllerBase
 {
     private readonly IConfiguration _configuration;
@@ -723,7 +723,7 @@ public sealed class AuthController : ApiControllerBase
             HttpOnly = true,
             Secure = secureCookies,
             SameSite = secureCookies ? SameSiteMode.Strict : SameSiteMode.Lax,
-            Path = "/api/auth",
+            Path = "/api/system/auth",
             MaxAge = TimeSpan.FromDays(30)
         };
 
@@ -749,7 +749,7 @@ public sealed class AuthController : ApiControllerBase
             HttpOnly = true,
             Secure = secureCookies,
             SameSite = secureCookies ? SameSiteMode.Strict : SameSiteMode.Lax,
-            Path = "/api/auth",
+            Path = "/api/system/auth",
             MaxAge = TimeSpan.Zero
         };
 

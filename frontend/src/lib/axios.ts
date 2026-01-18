@@ -82,7 +82,7 @@ apiClient.interceptors.response.use(
 
       // Don't try to refresh for login/register/refresh endpoints (would cause infinite loop)
       // Also exclude device approval and passkey login endpoints (unauthenticated flow during login)
-      const noRefreshEndpoints = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout', '/auth/mfa', '/auth/approve-device', '/auth/deny-device', '/auth/forgot-password', '/auth/reset-password', '/auth/passkeys/login']
+      const noRefreshEndpoints = ['/system/auth/login', '/system/auth/register', '/system/auth/refresh', '/system/auth/logout', '/system/auth/mfa', '/system/auth/approve-device', '/system/auth/deny-device', '/system/auth/forgot-password', '/system/auth/reset-password', '/system/auth/passkeys/login']
       const isNoRefreshEndpoint = noRefreshEndpoints.some(ep => originalRequest.url?.includes(ep))
       if (isNoRefreshEndpoint) {
         return Promise.reject(transformError(error))
@@ -102,7 +102,7 @@ apiClient.interceptors.response.use(
       try {
         // Call refresh endpoint - cookies are sent automatically
         await axios.post(
-          `${API_BASE_URL}/auth/refresh`,
+          `${API_BASE_URL}/system/auth/refresh`,
           {},
           { withCredentials: true }
         )
