@@ -17,6 +17,7 @@ using ExoAuth.Application.Features.Auth.Commands.ApproveDeviceLink;
 using ExoAuth.Application.Features.Auth.Commands.DenyDevice;
 using ExoAuth.Application.Features.Auth.Commands.ResendDeviceApproval;
 using ExoAuth.Application.Features.Auth.Commands.ResendPasswordReset;
+using ExoAuth.Application.Features.Auth.Commands.RequestMagicLink;
 using ExoAuth.Application.Features.Auth.Models;
 using ExoAuth.Application.Features.Auth.Queries.GetCurrentUser;
 using ExoAuth.Application.Features.Auth.Queries.GetDevices;
@@ -305,6 +306,25 @@ public sealed class AuthController : ApiControllerBase
             request.Email,
             request.Code,
             request.NewPassword
+        );
+
+        var result = await Mediator.Send(command, ct);
+
+        return ApiOk(result);
+    }
+
+    /// <summary>
+    /// Request a magic link email for passwordless login.
+    /// </summary>
+    [HttpPost("magic-link/request")]
+    [RateLimit("forgot-password")]
+    [ProducesResponseType(typeof(RequestMagicLinkResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> RequestMagicLink(RequestMagicLinkRequest request, CancellationToken ct)
+    {
+        var command = new RequestMagicLinkCommand(
+            request.Email,
+            request.CaptchaToken,
+            HttpContext.Connection.RemoteIpAddress?.ToString()
         );
 
         var result = await Mediator.Send(command, ct);
@@ -811,6 +831,11 @@ public sealed record ResetPasswordRequest(
     string? Email,
     string? Code,
     string NewPassword
+);
+
+public sealed record RequestMagicLinkRequest(
+    string Email,
+    string? CaptchaToken = null
 );
 
 public sealed record MfaSetupRequest(
