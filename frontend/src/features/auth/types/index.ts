@@ -17,6 +17,7 @@ export type {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   RequestMagicLinkRequest,
+  MagicLinkLoginRequest,
   MfaVerifyRequest,
   SessionInfo,
 } from '@/types/auth'

@@ -10,6 +10,7 @@ import type {
   InviteValidationDto,
   RequestMagicLinkRequest,
   RequestMagicLinkResponse,
+  MagicLinkLoginRequest,
 } from '../types'
 
 export const authApi = {
@@ -91,6 +92,19 @@ export const authApi = {
   ): Promise<RequestMagicLinkResponse> => {
     const response = await apiClient.post<ApiResponse<RequestMagicLinkResponse>>(
       '/system/auth/magic-link/request',
+      request
+    )
+    return extractData(response)
+  },
+
+  /**
+   * Login with magic link token
+   */
+  magicLinkLogin: async (
+    request: MagicLinkLoginRequest
+  ): Promise<AuthResponse> => {
+    const response = await apiClient.post<ApiResponse<AuthResponse>>(
+      '/system/auth/magic-link/login',
       request
     )
     return extractData(response)

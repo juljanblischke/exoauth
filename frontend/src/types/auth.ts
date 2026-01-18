@@ -114,6 +114,11 @@ export interface RequestMagicLinkRequest {
   captchaToken?: string
 }
 
+export interface MagicLinkLoginRequest extends DeviceInfo {
+  token: string
+  rememberMe: boolean
+}
+
 export interface MfaVerifyRequest extends DeviceInfo {
   mfaToken: string
   code: string
