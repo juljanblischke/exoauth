@@ -8,6 +8,7 @@ export type {
   LogoutResponse,
   ForgotPasswordResponse,
   ResetPasswordResponse,
+  RequestMagicLinkResponse,
   DeviceInfo,
   LoginRequest,
   RegisterRequest,
@@ -15,6 +16,8 @@ export type {
   RefreshTokenRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  RequestMagicLinkRequest,
+  MagicLinkLoginRequest,
   MfaVerifyRequest,
   SessionInfo,
 } from '@/types/auth'
@@ -79,6 +82,15 @@ export interface AcceptInviteFormData {
   password: string
   confirmPassword: string
 }
+
+export interface MagicLinkFormData {
+  email: string
+}
+
+export const createMagicLinkSchema = (t: TFunction) =>
+  z.object({
+    email: z.string().email(t('validation:email')),
+  })
 
 // Invite validation types (public endpoint)
 export interface InviterDto {

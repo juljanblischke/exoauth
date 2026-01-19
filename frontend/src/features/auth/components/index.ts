@@ -2,6 +2,8 @@ export { LoginForm } from './login-form'
 export { RegisterForm } from './register-form'
 export { AcceptInviteForm } from './accept-invite-form'
 export { PasswordRequirements } from './password-requirements'
+export { MagicLinkForm } from './magic-link-form'
+export { MagicLinkSent } from './magic-link-sent'
 
 // MFA components
 export { MfaSetupModal } from './mfa-setup-modal'

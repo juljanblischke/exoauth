@@ -94,6 +94,9 @@ public static class DependencyInjection
         // Password Reset
         services.AddScoped<IPasswordResetService, PasswordResetService>();
 
+        // Magic Link
+        services.AddScoped<IMagicLinkService, MagicLinkService>();
+
         // System Invite
         services.AddScoped<ISystemInviteService, SystemInviteService>();
 

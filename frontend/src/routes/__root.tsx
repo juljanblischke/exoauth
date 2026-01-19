@@ -18,6 +18,7 @@ import { ImprintPage, PrivacyPage, TermsPage } from './legal'
 import { ResetPasswordPage } from './reset-password'
 import { ApproveDevicePage } from './approve-device'
 import { EmailPage } from './email'
+import { MagicLinkLoginPage } from './magic-link-login'
 
 // Permission-protected page wrapper
 function withPermission(Component: React.ComponentType, permission: string) {
@@ -114,6 +115,16 @@ const approveDeviceRoute = createRoute({
   component: ApproveDevicePage,
 })
 
+// Magic Link Login route
+const magicLinkLoginRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/magic-link-login',
+  component: MagicLinkLoginPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    token: (search.token as string) || '',
+  }),
+})
+
 // App layout - for authenticated pages (with sidebar)
 const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -205,6 +216,7 @@ export const routeTree = rootRoute.addChildren([
     termsRoute,
     resetPasswordRoute,
     approveDeviceRoute,
+    magicLinkLoginRoute,
   ]),
   appLayoutRoute.addChildren([
     dashboardRoute,

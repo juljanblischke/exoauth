@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -17,6 +18,11 @@ public static class ServiceCollectionExtensions
                 Version = "v1",
                 Description = "Authentication and Authorization API"
             });
+
+            // Include XML documentation
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
