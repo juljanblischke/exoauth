@@ -1,12 +1,15 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate } from '@tanstack/react-router'
 import { useAuth } from '@/contexts/auth-context'
-import { LoginForm } from '@/features/auth'
+import { LoginForm, MagicLinkForm, MagicLinkSent } from '@/features/auth'
 import { LoadingSpinner } from '@/components/shared/feedback'
 
 export function LoginPage() {
   const { t } = useTranslation('auth')
   const { isAuthenticated, isLoading } = useAuth()
+  const [loginMode, setLoginMode] = useState<'password' | 'magic-link'>('password')
+  const [magicLinkEmail, setMagicLinkEmail] = useState<string | null>(null)
 
   // Show loading while checking auth status
   if (isLoading) {
@@ -22,6 +25,16 @@ export function LoginPage() {
     return <Navigate to="/dashboard" />
   }
 
+  // Handle magic link success
+  const handleMagicLinkSuccess = (email: string) => {
+    setMagicLinkEmail(email)
+  }
+
+  // If magic link was sent, show success message
+  if (magicLinkEmail) {
+    return <MagicLinkSent email={magicLinkEmail} onBack={() => setMagicLinkEmail(null)} />
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-6">
@@ -31,7 +44,19 @@ export function LoginPage() {
         </div>
 
         <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <LoginForm />
+          {loginMode === 'password' ? <LoginForm /> : <MagicLinkForm onSuccess={handleMagicLinkSuccess} />}
+
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => setLoginMode(loginMode === 'password' ? 'magic-link' : 'password')}
+              className="text-sm text-primary hover:underline"
+            >
+              {loginMode === 'password'
+                ? t('login.useMagicLink')
+                : t('login.usePassword')}
+            </button>
+          </div>
         </div>
       </div>
     </div>

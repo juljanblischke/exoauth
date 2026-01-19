@@ -23,6 +23,7 @@ public class AppDbContext : DbContext, IAppDbContext
     public DbSet<SystemInvite> SystemInvites => Set<SystemInvite>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<MagicLinkToken> MagicLinkTokens => Set<MagicLinkToken>();
     public DbSet<MfaBackupCode> MfaBackupCodes => Set<MfaBackupCode>();
     public DbSet<LoginPattern> LoginPatterns => Set<LoginPattern>();
     public DbSet<Device> Devices => Set<Device>();
