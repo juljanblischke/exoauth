@@ -32,7 +32,7 @@ export function LoginPage() {
 
   // If magic link was sent, show success message
   if (magicLinkEmail) {
-    return <MagicLinkSent email={magicLinkEmail} />
+    return <MagicLinkSent email={magicLinkEmail} onBack={() => setMagicLinkEmail(null)} />
   }
 
   return (

@@ -1,14 +1,14 @@
 import { useTranslation } from 'react-i18next'
-import { Link } from '@tanstack/react-router'
 import { Mail } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 
 interface MagicLinkSentProps {
   email: string
+  onBack: () => void
 }
 
-export function MagicLinkSent({ email }: MagicLinkSentProps) {
+export function MagicLinkSent({ email, onBack }: MagicLinkSentProps) {
   const { t } = useTranslation()
 
   return (
@@ -25,8 +25,8 @@ export function MagicLinkSent({ email }: MagicLinkSentProps) {
             <p className="text-sm text-muted-foreground">
               {t('auth:magicLink.sentMessage', { email })}
             </p>
-            <Button asChild className="w-full mt-4">
-              <Link to="/login">{t('auth:forgotPassword.backToLogin')}</Link>
+            <Button onClick={onBack} className="w-full mt-4">
+              {t('auth:forgotPassword.backToLogin')}
             </Button>
           </div>
         </div>
