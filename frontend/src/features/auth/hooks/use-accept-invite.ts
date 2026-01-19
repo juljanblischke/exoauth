@@ -28,7 +28,7 @@ export function useAcceptInvite(options?: UseAcceptInviteOptions) {
       // Update the auth cache with the user data (auto-login)
       queryClient.setQueryData(AUTH_QUERY_KEY, response.user)
       // Navigate to dashboard
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/system/dashboard' })
     },
   })
 }

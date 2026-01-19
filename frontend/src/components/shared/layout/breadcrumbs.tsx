@@ -30,10 +30,10 @@ export function Breadcrumbs() {
   const { t } = useTranslation()
   const location = useLocation()
 
-  // Parse pathname into segments
+  // Parse pathname into segments, filtering out 'system' prefix
   const segments = location.pathname
     .split('/')
-    .filter((segment) => segment !== '')
+    .filter((segment) => segment !== '' && segment !== 'system')
 
   if (segments.length === 0) {
     return null
@@ -45,7 +45,7 @@ export function Breadcrumbs() {
         {/* Home link */}
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to="/dashboard" className="flex items-center gap-1">
+            <Link to="/system/dashboard" className="flex items-center gap-1">
               <Home className="h-4 w-4" />
               <span className="sr-only">{t('navigation:breadcrumb.home')}</span>
             </Link>
@@ -54,7 +54,8 @@ export function Breadcrumbs() {
 
         {segments.map((segment, index) => {
           const isLast = index === segments.length - 1
-          const href = '/' + segments.slice(0, index + 1).join('/')
+          // Prepend /system since we filtered it out from segments
+          const href = '/system/' + segments.slice(0, index + 1).join('/')
           const label = routeLabels[segment] || segment
 
           return (

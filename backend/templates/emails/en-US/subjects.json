@@ -14,5 +14,6 @@
   "device-approval-required": "Device Approval Required",
   "device-denied-alert": "Security Alert: Device Access Denied",
   "passkey-registered": "Passkey Registered to Your Account",
-  "passkey-removed": "Passkey Removed from Your Account"
+  "passkey-removed": "Passkey Removed from Your Account",
+  "magic-link": "Your magic link to sign in"
 }

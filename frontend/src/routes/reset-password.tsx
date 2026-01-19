@@ -87,7 +87,7 @@ export function ResetPasswordPage() {
                 {t('errors:codes.AUTH_INVITE_INVALID')}
               </p>
               <Button asChild className="w-full mt-4">
-                <Link to="/login">{t('auth:forgotPassword.backToLogin')}</Link>
+                <Link to="/system/login">{t('auth:forgotPassword.backToLogin')}</Link>
               </Button>
             </div>
           </div>
@@ -113,7 +113,7 @@ export function ResetPasswordPage() {
                 {t('auth:resetPassword.successMessage')}
               </p>
               <Button asChild className="w-full mt-4">
-                <Link to="/login">{t('auth:login.signIn')}</Link>
+                <Link to="/system/login">{t('auth:login.signIn')}</Link>
               </Button>
             </div>
           </div>
@@ -190,7 +190,7 @@ export function ResetPasswordPage() {
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
-              <Link to="/login" className="text-primary hover:underline">
+              <Link to="/system/login" className="text-primary hover:underline">
                 {t('auth:forgotPassword.backToLogin')}
               </Link>
             </p>

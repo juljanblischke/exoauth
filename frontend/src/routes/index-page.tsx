@@ -13,5 +13,5 @@ export function IndexRedirect() {
     )
   }
 
-  return <Navigate to={isAuthenticated ? '/dashboard' : '/login'} />
+  return <Navigate to={isAuthenticated ? '/system/dashboard' : '/system/login'} />
 }

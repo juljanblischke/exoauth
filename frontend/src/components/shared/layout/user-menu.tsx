@@ -86,13 +86,13 @@ export function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to="/settings" className="cursor-pointer">
+          <Link to="/system/settings" className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             {t('navigation:userMenu.profile')}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/settings" className="cursor-pointer">
+          <Link to="/system/settings" className="cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />
             {t('navigation:userMenu.settings')}
           </Link>
