@@ -64,7 +64,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const handleSessionExpired = () => {
       // Redirect immediately to avoid re-render race conditions
-      window.location.href = '/login'
+      window.location.href = '/system/login'
     }
 
     const handleForceReauth = () => {
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
       // Delay redirect so user can see the toast
       setTimeout(() => {
-        window.location.href = '/login'
+        window.location.href = '/system/login'
       }, 1500)
     }
 

@@ -23,7 +23,7 @@ export function ForbiddenPage() {
         </p>
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
           <Button asChild>
-            <Link to="/dashboard">
+            <Link to="/system/dashboard">
               <Home className="mr-2 h-4 w-4" />
               {t('general.goHome')}
             </Link>
