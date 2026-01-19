@@ -25,7 +25,7 @@ export function MagicLinkForm({ onSuccess, defaultEmail = '' }: MagicLinkFormPro
   // CAPTCHA state
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const { data: captchaConfig } = useCaptchaConfig()
-  const captchaRequired = captchaConfig?.enabled && captchaConfig?.provider !== 'Disabled'
+  const captchaRequired = captchaConfig?.enabled && !!captchaConfig?.siteKey && captchaConfig?.provider !== 'Disabled'
 
   const handleCaptchaVerify = useCallback((token: string) => {
     setCaptchaToken(token)
