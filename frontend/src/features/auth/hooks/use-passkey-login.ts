@@ -41,7 +41,7 @@ export function usePasskeyLogin(options?: UsePasskeyLoginOptions) {
       // Normal login success - set session and navigate
       localStorage.setItem(AUTH_SESSION_KEY, 'true')
       queryClient.setQueryData(AUTH_QUERY_KEY, response.user)
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/system/dashboard' })
     },
   })
 }

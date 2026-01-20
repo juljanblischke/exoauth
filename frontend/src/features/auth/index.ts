@@ -1,5 +1,12 @@
 // Components
-export { LoginForm, RegisterForm, AcceptInviteForm, PasswordRequirements } from './components'
+export {
+  LoginForm,
+  RegisterForm,
+  AcceptInviteForm,
+  PasswordRequirements,
+  MagicLinkForm,
+  MagicLinkSent,
+} from './components'
 
 // Hooks
 export {

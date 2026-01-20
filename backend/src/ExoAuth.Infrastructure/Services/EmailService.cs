@@ -14,6 +14,7 @@ public sealed class EmailService : IEmailService
     private readonly int _inviteExpirationHours;
     private readonly int _passwordResetExpiryMinutes;
     private readonly int _deviceApprovalExpiryMinutes;
+    private readonly int _magicLinkExpiryMinutes;
 
     public EmailService(
         IMessageBus messageBus,
@@ -31,6 +32,7 @@ public sealed class EmailService : IEmailService
 
         _passwordResetExpiryMinutes = configuration.GetValue("Auth:PasswordResetExpiryMinutes", 15);
         _deviceApprovalExpiryMinutes = configuration.GetValue("DeviceTrust:ApprovalExpiryMinutes", 30);
+        _magicLinkExpiryMinutes = configuration.GetValue("Auth:MagicLinkExpiryMinutes", 15);
     }
 
     public async Task SendAsync(
@@ -109,6 +111,35 @@ public sealed class EmailService : IEmailService
             to: email,
             subject: _templateService.GetSubject("password-reset", language),
             templateName: "password-reset",
+            variables: variables,
+            language: language,
+            recipientUserId: userId,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    public async Task SendMagicLinkAsync(
+        string email,
+        string firstName,
+        string magicLinkToken,
+        Guid userId,
+        string language = "en-US",
+        CancellationToken cancellationToken = default)
+    {
+        var magicLinkUrl = $"{_baseUrl}/magic-link-login?token={magicLinkToken}";
+
+        var variables = new Dictionary<string, string>
+        {
+            ["firstName"] = firstName,
+            ["magicLinkUrl"] = magicLinkUrl,
+            ["expirationMinutes"] = _magicLinkExpiryMinutes.ToString(),
+            ["year"] = DateTime.UtcNow.Year.ToString()
+        };
+
+        await SendAsync(
+            to: email,
+            subject: _templateService.GetSubject("magic-link", language),
+            templateName: "magic-link",
             variables: variables,
             language: language,
             recipientUserId: userId,

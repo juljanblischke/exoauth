@@ -81,7 +81,7 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
       // Set user in cache BEFORE navigating (triggers isAuthenticated)
       queryClient.setQueryData(AUTH_QUERY_KEY, pendingAuthResponse.user)
       localStorage.setItem(AUTH_SESSION_KEY, 'true')
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/system/dashboard' })
     }
     setMfaConfirmOpen(false)
   }
