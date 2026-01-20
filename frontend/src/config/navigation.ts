@@ -26,32 +26,32 @@ export const navigation: NavSection[] = [
     label: 'navigation:sections.system',
     items: [
       {
-        label: 'navigation:items.systemDashboard',
-        href: '/system/dashboard',
+        label: 'navigation:items.dashboard',
+        href: '/dashboard',
         icon: LayoutDashboard,
         // No permission = always visible
       },
       {
         label: 'navigation:items.users',
-        href: '/system/users',
+        href: '/users',
         icon: Users,
         permission: 'system:users:read',
       },
       {
         label: 'navigation:items.auditLogs',
-        href: '/system/audit-logs',
+        href: '/audit-logs',
         icon: FileText,
         permission: 'system:audit:read',
       },
       {
         label: 'navigation:items.ipRestrictions',
-        href: '/system/ip-restrictions',
+        href: '/ip-restrictions',
         icon: Shield,
         permission: 'system:ip-restrictions:read',
       },
       {
         label: 'navigation:items.email',
-        href: '/system/email',
+        href: '/email',
         icon: Mail,
         permission: 'email:providers:read',
       },
@@ -63,7 +63,7 @@ export const navigation: NavSection[] = [
     items: [
       {
         label: 'navigation:items.settings',
-        href: '/system/settings',
+        href: '/settings',
         icon: Settings,
         permission: 'system:settings:read',
       },

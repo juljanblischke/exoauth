@@ -6,12 +6,7 @@ namespace ExoAuth.Infrastructure.Persistence;
 
 public class AppDbContext : DbContext, IAppDbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
-
-    // Protected constructor for derived classes (e.g., ProDbContext)
-    protected AppDbContext(DbContextOptions options) : base(options)
+    public AppDbContext(DbContextOptions options) : base(options)
     {
     }
 
@@ -23,7 +18,6 @@ public class AppDbContext : DbContext, IAppDbContext
     public DbSet<SystemInvite> SystemInvites => Set<SystemInvite>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
-    public DbSet<MagicLinkToken> MagicLinkTokens => Set<MagicLinkToken>();
     public DbSet<MfaBackupCode> MfaBackupCodes => Set<MfaBackupCode>();
     public DbSet<LoginPattern> LoginPatterns => Set<LoginPattern>();
     public DbSet<Device> Devices => Set<Device>();

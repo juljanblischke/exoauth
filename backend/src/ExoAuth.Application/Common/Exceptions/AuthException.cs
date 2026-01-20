@@ -494,14 +494,3 @@ public sealed class CaptchaExpiredException : AuthException
     {
     }
 }
-
-/// <summary>
-/// Exception when magic link token is invalid.
-/// </summary>
-public sealed class MagicLinkTokenInvalidException : AuthException
-{
-    public MagicLinkTokenInvalidException()
-        : base("MAGIC_LINK_TOKEN_INVALID", "Invalid or expired magic link token", 400)
-    {
-    }
-}

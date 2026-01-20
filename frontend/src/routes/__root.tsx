@@ -18,14 +18,13 @@ import { ImprintPage, PrivacyPage, TermsPage } from './legal'
 import { ResetPasswordPage } from './reset-password'
 import { ApproveDevicePage } from './approve-device'
 import { EmailPage } from './email'
-import { MagicLinkLoginPage } from './magic-link-login'
 
 // Permission-protected page wrapper
 function withPermission(Component: React.ComponentType, permission: string) {
   return function ProtectedPage() {
     const { hasPermission } = usePermissions()
     if (!hasPermission(permission)) {
-      return <Navigate to="/system/forbidden" />
+      return <Navigate to="/forbidden" />
     }
     return <Component />
   }
@@ -51,28 +50,28 @@ const authLayoutRoute = createRoute({
 // Login route
 const loginRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
-  path: '/system/login',
+  path: '/login',
   component: LoginPage,
 })
 
 // Register route
 const registerRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
-  path: '/system/register',
+  path: '/register',
   component: RegisterPage,
 })
 
 // Forbidden route
 const forbiddenRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
-  path: '/system/forbidden',
+  path: '/forbidden',
   component: ForbiddenPage,
 })
 
 // Invite route - for accepting invitations
 const inviteRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
-  path: '/system/invite',
+  path: '/invite',
   component: InvitePage,
   validateSearch: (search: Record<string, unknown>) => ({
     token: (search.token as string) || '',
@@ -101,7 +100,7 @@ const termsRoute = createRoute({
 // Reset Password route
 const resetPasswordRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
-  path: '/system/reset-password',
+  path: '/reset-password',
   component: ResetPasswordPage,
   validateSearch: (search: Record<string, unknown>) => ({
     token: (search.token as string) || '',
@@ -111,18 +110,8 @@ const resetPasswordRoute = createRoute({
 // Approve Device route (email link approval)
 const approveDeviceRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
-  path: '/system/approve-device/$token',
+  path: '/approve-device/$token',
   component: ApproveDevicePage,
-})
-
-// Magic Link Login route
-const magicLinkLoginRoute = createRoute({
-  getParentRoute: () => authLayoutRoute,
-  path: '/system/magic-link-login',
-  component: MagicLinkLoginPage,
-  validateSearch: (search: Record<string, unknown>) => ({
-    token: (search.token as string) || '',
-  }),
 })
 
 // App layout - for authenticated pages (with sidebar)
@@ -144,7 +133,7 @@ function AppLayoutWrapper() {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/system/login" />
+    return <Navigate to="/login" />
   }
 
   return (
@@ -161,45 +150,45 @@ const indexRoute = createRoute({
   component: IndexRedirect,
 })
 
-// System Dashboard route
+// Dashboard route
 const dashboardRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: '/system/dashboard',
+  path: '/dashboard',
   component: DashboardPage,
 })
 
 // Users route (requires system:users:read)
 const usersRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: '/system/users',
+  path: '/users',
   component: withPermission(UsersPage, 'system:users:read'),
 })
 
 // Audit Logs route (requires system:audit:read)
 const auditLogsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: '/system/audit-logs',
+  path: '/audit-logs',
   component: withPermission(AuditLogsPage, 'system:audit:read'),
 })
 
 // IP Restrictions route (requires system:ip-restrictions:read)
 const ipRestrictionsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: '/system/ip-restrictions',
+  path: '/ip-restrictions',
   component: withPermission(IpRestrictionsPage, 'system:ip-restrictions:read'),
 })
 
 // Email route (requires any email permission - tabs check individual permissions)
 const emailRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: '/system/email',
+  path: '/email',
   component: EmailPage,
 })
 
 // Settings route
 const settingsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: '/system/settings',
+  path: '/settings',
   component: SettingsPage,
 })
 
@@ -216,7 +205,6 @@ export const routeTree = rootRoute.addChildren([
     termsRoute,
     resetPasswordRoute,
     approveDeviceRoute,
-    magicLinkLoginRoute,
   ]),
   appLayoutRoute.addChildren([
     dashboardRoute,

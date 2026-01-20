@@ -7,7 +7,6 @@
   },
   "items": {
     "dashboard": "Dashboard",
-    "systemDashboard": "System Dashboard",
     "users": "Users",
     "permissions": "Permissions",
     "auditLogs": "Audit Logs",
@@ -20,7 +19,6 @@
   "breadcrumb": {
     "home": "Home",
     "dashboard": "Dashboard",
-    "systemDashboard": "System Dashboard",
     "users": "Users",
     "userDetails": "User Details",
     "createUser": "Create User",

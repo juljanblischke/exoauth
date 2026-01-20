@@ -7,7 +7,6 @@
   },
   "items": {
     "dashboard": "Dashboard",
-    "systemDashboard": "System-Dashboard",
     "users": "Benutzer",
     "permissions": "Berechtigungen",
     "auditLogs": "Audit-Protokolle",
@@ -20,7 +19,6 @@
   "breadcrumb": {
     "home": "Startseite",
     "dashboard": "Dashboard",
-    "systemDashboard": "System-Dashboard",
     "users": "Benutzer",
     "userDetails": "Benutzerdetails",
     "createUser": "Benutzer erstellen",

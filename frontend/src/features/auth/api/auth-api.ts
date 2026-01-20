@@ -8,9 +8,6 @@ import type {
   AcceptInviteRequest,
   LogoutResponse,
   InviteValidationDto,
-  RequestMagicLinkRequest,
-  RequestMagicLinkResponse,
-  MagicLinkLoginRequest,
 } from '../types'
 
 export const authApi = {
@@ -80,32 +77,6 @@ export const authApi = {
     const response = await apiClient.get<ApiResponse<InviteValidationDto>>(
       '/system/auth/invite',
       { params: { token } }
-    )
-    return extractData(response)
-  },
-
-  /**
-   * Request a magic link for passwordless login
-   */
-  requestMagicLink: async (
-    request: RequestMagicLinkRequest
-  ): Promise<RequestMagicLinkResponse> => {
-    const response = await apiClient.post<ApiResponse<RequestMagicLinkResponse>>(
-      '/system/auth/magic-link/request',
-      request
-    )
-    return extractData(response)
-  },
-
-  /**
-   * Login with magic link token
-   */
-  magicLinkLogin: async (
-    request: MagicLinkLoginRequest
-  ): Promise<AuthResponse> => {
-    const response = await apiClient.post<ApiResponse<AuthResponse>>(
-      '/system/auth/magic-link/login',
-      request
     )
     return extractData(response)
   },

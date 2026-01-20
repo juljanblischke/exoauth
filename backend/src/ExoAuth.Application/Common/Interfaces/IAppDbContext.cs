@@ -15,7 +15,6 @@ public interface IAppDbContext
     DbSet<SystemInvite> SystemInvites { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
-    DbSet<MagicLinkToken> MagicLinkTokens { get; }
     DbSet<MfaBackupCode> MfaBackupCodes { get; }
     DbSet<LoginPattern> LoginPatterns { get; }
     DbSet<Device> Devices { get; }

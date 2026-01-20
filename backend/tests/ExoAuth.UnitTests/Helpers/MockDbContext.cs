@@ -27,7 +27,6 @@ public static class MockDbContext
         mockContext.Setup(x => x.LoginPatterns).Returns(CreateAsyncMockDbSet<LoginPattern>(new List<LoginPattern>()).Object);
         mockContext.Setup(x => x.Passkeys).Returns(CreateAsyncMockDbSet<Passkey>(new List<Passkey>()).Object);
         mockContext.Setup(x => x.IpRestrictions).Returns(CreateAsyncMockDbSet<IpRestriction>(new List<IpRestriction>()).Object);
-        mockContext.Setup(x => x.MagicLinkTokens).Returns(CreateAsyncMockDbSet<MagicLinkToken>(new List<MagicLinkToken>()).Object);
 
         // Email DbSets
         mockContext.Setup(x => x.EmailProviders).Returns(CreateAsyncMockDbSet<EmailProvider>(new List<EmailProvider>()).Object);

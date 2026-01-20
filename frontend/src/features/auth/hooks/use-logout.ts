@@ -18,7 +18,7 @@ export function useLogout() {
       // Clear all cached data
       queryClient.clear()
       // Navigate to login
-      navigate({ to: '/system/login' })
+      navigate({ to: '/login' })
     },
   })
 }

@@ -258,40 +258,4 @@ public static class TestDataFactory
     {
         return PasswordResetToken.Create(userId, token, code, expirationMinutes);
     }
-
-    // Magic Link Token
-    public static MagicLinkToken CreateMagicLinkToken(
-        Guid userId,
-        string? token = null,
-        int expirationMinutes = 15)
-    {
-        var tokenValue = token ?? MagicLinkToken.GenerateToken();
-        return MagicLinkToken.Create(userId, tokenValue, expirationMinutes);
-    }
-
-    public static MagicLinkToken CreateMagicLinkTokenWithId(
-        Guid id,
-        Guid userId,
-        string? token = null,
-        int expirationMinutes = 15)
-    {
-        var magicLinkToken = CreateMagicLinkToken(userId, token, expirationMinutes);
-        SetEntityId(magicLinkToken, id);
-        return magicLinkToken;
-    }
-
-    public static MagicLinkToken CreateExpiredMagicLinkToken(Guid userId)
-    {
-        var token = MagicLinkToken.GenerateToken();
-        var magicLinkToken = MagicLinkToken.Create(userId, token, -1); // Already expired
-        return magicLinkToken;
-    }
-
-    public static MagicLinkToken CreateUsedMagicLinkToken(Guid userId)
-    {
-        var token = MagicLinkToken.GenerateToken();
-        var magicLinkToken = MagicLinkToken.Create(userId, token, 15);
-        magicLinkToken.MarkAsUsed();
-        return magicLinkToken;
-    }
 }

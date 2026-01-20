@@ -59,23 +59,6 @@ public interface IEmailService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Sends a magic link email for passwordless login.
-    /// </summary>
-    /// <param name="email">The recipient email address.</param>
-    /// <param name="firstName">The recipient's first name.</param>
-    /// <param name="magicLinkToken">The magic link token for authentication.</param>
-    /// <param name="userId">The user ID for tracking.</param>
-    /// <param name="language">The language for the template (default: "en-US").</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    Task SendMagicLinkAsync(
-        string email,
-        string firstName,
-        string magicLinkToken,
-        Guid userId,
-        string language = "en-US",
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Sends a password changed confirmation email.
     /// </summary>
     /// <param name="email">The recipient email address.</param>

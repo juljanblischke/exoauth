@@ -729,64 +729,6 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                     b.ToTable("login_patterns", (string)null);
                 });
 
-            modelBuilder.Entity("ExoAuth.Domain.Entities.MagicLinkToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
-
-                    b.Property<bool>("IsUsed")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_used");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("token_hash");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<DateTime?>("UsedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("used_at");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("p_k_magic_link_tokens");
-
-                    b.HasIndex("ExpiresAt")
-                        .HasDatabaseName("i_x_magic_link_tokens_expires_at");
-
-                    b.HasIndex("TokenHash")
-                        .IsUnique()
-                        .HasDatabaseName("i_x_magic_link_tokens_token_hash");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("i_x_magic_link_tokens_user_id");
-
-                    b.HasIndex("UserId", "IsUsed", "ExpiresAt")
-                        .HasDatabaseName("i_x_magic_link_tokens_user_id_is_used_expires_at");
-
-                    b.ToTable("magic_link_tokens", (string)null);
-                });
-
             modelBuilder.Entity("ExoAuth.Domain.Entities.MfaBackupCode", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1498,18 +1440,6 @@ namespace ExoAuth.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("f_k_login_patterns_system_users_user_id");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ExoAuth.Domain.Entities.MagicLinkToken", b =>
-                {
-                    b.HasOne("ExoAuth.Domain.Entities.SystemUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("f_k_magic_link_tokens_system_users_user_id");
 
                     b.Navigation("User");
                 });

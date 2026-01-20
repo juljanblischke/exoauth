@@ -25,7 +25,7 @@ export function ProtectedRoute({
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      navigate({ to: '/system/login' })
+      navigate({ to: '/login' })
     }
   }, [isLoading, isAuthenticated, navigate])
 
@@ -44,7 +44,7 @@ export function ProtectedRoute({
       : hasAnyPermission(permissions)
 
     if (!hasAccess) {
-      navigate({ to: '/system/forbidden' })
+      navigate({ to: '/forbidden' })
       return null
     }
   }
