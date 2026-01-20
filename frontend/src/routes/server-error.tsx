@@ -30,7 +30,7 @@ export function ServerErrorPage() {
             {t('general.retry')}
           </Button>
           <Button variant="outline" asChild>
-            <a href="/dashboard">
+            <a href="/system/dashboard">
               <Home className="mr-2 h-4 w-4" />
               {t('general.goHome')}
             </a>

@@ -22,7 +22,7 @@ export function LoginPage() {
 
   // Redirect to dashboard if already authenticated
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" />
+    return <Navigate to="/system/dashboard" />
   }
 
   // Handle magic link success

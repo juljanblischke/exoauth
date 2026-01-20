@@ -43,7 +43,7 @@ export function useLogin(options?: UseLoginOptions) {
       // Normal login success - set session and navigate
       localStorage.setItem(AUTH_SESSION_KEY, 'true')
       queryClient.setQueryData(AUTH_QUERY_KEY, response.user)
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/system/dashboard' })
     },
     onError: (error) => {
       const errorCode = (error as { code?: string })?.code?.toLowerCase()

@@ -87,7 +87,7 @@ export function MagicLinkLoginPage() {
       // Set user in cache BEFORE navigating (triggers isAuthenticated)
       queryClient.setQueryData(AUTH_QUERY_KEY, pendingAuthResponse.user)
       localStorage.setItem(AUTH_SESSION_KEY, 'true')
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/system/dashboard' })
     }
     setMfaConfirmOpen(false)
   }
@@ -109,7 +109,7 @@ export function MagicLinkLoginPage() {
                 {t('errors:codes.AUTH_MAGIC_LINK_INVALID')}
               </p>
               <Button asChild className="w-full mt-4">
-                <Link to="/login">{t('auth:forgotPassword.backToLogin')}</Link>
+                <Link to="/system/login">{t('auth:forgotPassword.backToLogin')}</Link>
               </Button>
             </div>
           </div>
@@ -198,7 +198,7 @@ export function MagicLinkLoginPage() {
               </Button>
 
               <Button asChild variant="outline" className="w-full">
-                <Link to="/login">{t('auth:forgotPassword.backToLogin')}</Link>
+                <Link to="/system/login">{t('auth:forgotPassword.backToLogin')}</Link>
               </Button>
             </div>
           </div>
@@ -207,7 +207,7 @@ export function MagicLinkLoginPage() {
     )
   }
 
-  // Success state is handled by the hook navigating to /dashboard
+  // Success state is handled by the hook navigating to /system/dashboard
   // This return should not be reached, but included for completeness
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">

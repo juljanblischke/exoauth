@@ -26,7 +26,7 @@ export function useRegister(options?: UseRegisterOptions) {
       // Normal register success - set session and navigate
       localStorage.setItem(AUTH_SESSION_KEY, 'true')
       queryClient.setQueryData(AUTH_QUERY_KEY, response.user)
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/system/dashboard' })
     },
   })
 }
