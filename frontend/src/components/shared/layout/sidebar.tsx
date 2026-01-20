@@ -31,7 +31,7 @@ export function Sidebar() {
         {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b px-4">
           {!isCollapsed && (
-            <Link to="/system/dashboard" className="flex items-center gap-2">
+            <Link to="/dashboard" className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
                 E
               </div>
@@ -41,7 +41,7 @@ export function Sidebar() {
             </Link>
           )}
           {isCollapsed && (
-            <Link to="/system/dashboard" className="mx-auto">
+            <Link to="/dashboard" className="mx-auto">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
                 E
               </div>

@@ -23,10 +23,6 @@ export { useApproveDeviceFromSession } from './use-approve-device-from-session'
 export { useForgotPassword } from './use-forgot-password'
 export { useResetPassword } from './use-reset-password'
 
-// Magic link hooks
-export { useRequestMagicLink } from './use-request-magic-link'
-export { useMagicLinkLogin, type UseMagicLinkLoginOptions } from './use-magic-link'
-
 // Device approval hooks
 export { useApproveDeviceByCode } from './use-approve-device-by-code'
 export { useApproveDeviceByLink } from './use-approve-device-by-link'

@@ -79,11 +79,6 @@ public static class AuditActions
     public const string PasswordResetCompleted = "system.password.reset_completed";
     public const string PasswordChanged = "system.password.changed";
 
-    // Magic link actions
-    public const string MagicLinkRequested = "system.magic_link.requested";
-    public const string MagicLinkLogin = "system.magic_link.login";
-    public const string MagicLinkLoginFailed = "system.magic_link.login_failed";
-
     // Session actions
     public const string SessionCreated = "system.session.created";
     public const string SessionRevoked = "system.session.revoked";

@@ -19,7 +19,7 @@ export function RegisterPage() {
 
   // Redirect to dashboard if already authenticated
   if (isAuthenticated) {
-    return <Navigate to="/system/dashboard" />
+    return <Navigate to="/dashboard" />
   }
 
   return (

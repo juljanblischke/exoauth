@@ -130,7 +130,7 @@ export function LoginForm() {
       // Set user in cache BEFORE navigating (triggers isAuthenticated)
       queryClient.setQueryData(AUTH_QUERY_KEY, pendingAuthResponse.user)
       localStorage.setItem(AUTH_SESSION_KEY, 'true')
-      navigate({ to: '/system/dashboard' })
+      navigate({ to: '/dashboard' })
     }
     setMfaConfirmOpen(false)
   }
@@ -254,7 +254,7 @@ export function LoginForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         {t('auth:login.noAccount')}{' '}
-        <Link to="/system/register" className="text-primary hover:underline">
+        <Link to="/register" className="text-primary hover:underline">
           {t('auth:login.register')}
         </Link>
       </p>

@@ -30,7 +30,7 @@ export function ApproveDevicePage() {
                 {t('auth:deviceApproval.linkApproval.error')}
               </p>
               <Button asChild className="mt-4 w-full">
-                <Link to="/system/login">
+                <Link to="/login">
                   {t('auth:deviceApproval.linkApproval.backToLogin')}
                 </Link>
               </Button>
@@ -79,7 +79,7 @@ export function ApproveDevicePage() {
                 {getErrorMessage(error, t) || t('auth:deviceApproval.linkApproval.error')}
               </p>
               <Button asChild className="mt-4 w-full">
-                <Link to="/system/login">
+                <Link to="/login">
                   {t('auth:deviceApproval.linkApproval.backToLogin')}
                 </Link>
               </Button>
@@ -107,7 +107,7 @@ export function ApproveDevicePage() {
                 {t('auth:deviceApproval.linkApproval.success')}
               </p>
               <Button asChild className="mt-4 w-full">
-                <Link to="/system/login">
+                <Link to="/login">
                   {t('auth:deviceApproval.linkApproval.backToLogin')}
                 </Link>
               </Button>

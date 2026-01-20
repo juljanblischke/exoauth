@@ -13,8 +13,6 @@
     "AUTH_FORCE_REAUTH": "Your session has been invalidated. Please sign in again.",
     "AUTH_INVITE_EXPIRED": "Invitation expired. Please request a new one.",
     "AUTH_INVITE_INVALID": "Invalid invitation link",
-    "AUTH_MAGIC_LINK_INVALID": "Invalid or missing magic link token",
-    "AUTH_MAGIC_LINK_EXPIRED": "Magic link has expired. Please request a new one.",
     "PASSWORD_RESET_TOKEN_INVALID": "Invalid password reset link. Please request a new one.",
     "PASSWORD_RESET_TOKEN_EXPIRED": "Password reset link has expired. Please request a new one.",
     "AUTH_USER_NOT_FOUND": "No account found with this email address.",
